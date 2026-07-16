@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://bomdgafd46m8f"]
+
+[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="1_p503o"]
+
+[resource]
+script = ExtResource("1_p503o")
+card_name = "Défense de base"
+description = "Donne 5 de bouclier"
+block = 5
+metadata/_custom_type_script = "uid://f3o7b7woxojq"

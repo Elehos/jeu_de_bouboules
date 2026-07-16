@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://d0g5hjsgl0b2j"]
+
+[ext_resource type="Script" uid="uid://1urewgq58c01" path="res://script/cards/Card.gd" id="1_fa4yn"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_74i71"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_h2sm1"]
+font_size = 11
+
+[node name="Card" type="Control" unique_id=97315397]
+custom_minimum_size = Vector2(150, 200)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_fa4yn")
+
+[node name="Panel" type="Panel" parent="." unique_id=1847458020]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1761455084]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 135.0
+offset_bottom = 82.0
+
+[node name="CardCost" type="Label" parent="Panel/VBoxContainer" unique_id=2014171580]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="CardName" type="Label" parent="Panel/VBoxContainer" unique_id=1475386707]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+offset_transform_enabled = true
+label_settings = SubResource("LabelSettings_74i71")
+horizontal_alignment = 1
+
+[node name="CardDescription" type="Label" parent="Panel/VBoxContainer" unique_id=86117268]
+custom_minimum_size = Vector2(130, 0)
+layout_mode = 2
+label_settings = SubResource("LabelSettings_h2sm1")
+autowrap_mode = 2

@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://ch02vlp7pbhbu"]
 
+[ext_resource type="Script" uid="uid://batmmnjn3kp00" path="res://script/combat/CombatManager.gd" id="1_4voa6"]
 [ext_resource type="Script" uid="uid://dsmj81ld5jq7v" path="res://script/combat/Character.gd" id="1_5vqsm"]
 [ext_resource type="Texture2D" uid="uid://c32vf6tqncadn" path="res://assets/wireframe.jpg" id="1_ltalu"]
 [ext_resource type="Texture2D" uid="uid://bhv2lbp7eivo3" path="res://assets/characters/hero.png" id="3_4voa6"]
@@ -10,8 +11,10 @@
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://script/cards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://script/cards/superAttackCard.tres" id="10_mrrmw"]
+[ext_resource type="Script" uid="uid://bug7rsw3haj2c" path="res://script/combat/Enemy.gd" id="5_jgg25"]
 
 [node name="Combat" type="Node2D" unique_id=1943509951]
+script = ExtResource("1_4voa6")
 
 [node name="ReferenceBackground" type="Sprite2D" parent="." unique_id=1691740053]
 visible = false
@@ -34,9 +37,15 @@ position = Vector2(481.99997, 562)
 scale = Vector2(0.26012462, 0.26012462)
 texture = ExtResource("3_4voa6")
 
+[node name="Block" type="Label" parent="Player" unique_id=138433327]
+offset_left = 528.0
+offset_top = 754.0
+offset_right = 568.0
+offset_bottom = 777.0
+
 [node name="Enemy" type="CharacterBody2D" parent="." unique_id=1490143893]
-script = ExtResource("1_5vqsm")
-max_hp = 31
+script = ExtResource("5_jgg25")
+intention_sequence = Array[int]([1, 0, 0, 1])
 
 [node name="HP" type="Label" parent="Enemy" unique_id=1371015497]
 offset_left = 1422.0
@@ -47,6 +56,18 @@ offset_bottom = 764.0
 [node name="Sprite2D" type="Sprite2D" parent="Enemy" unique_id=2048843923]
 position = Vector2(1446, 557)
 texture = ExtResource("4_jgg25")
+
+[node name="IntentionLabel" type="Label" parent="Enemy" unique_id=1415942021]
+offset_left = 1399.0
+offset_top = 272.0
+offset_right = 1511.0
+offset_bottom = 333.0
+
+[node name="Block" type="Label" parent="Enemy" unique_id=164104485]
+offset_left = 1236.0
+offset_top = 757.0
+offset_right = 1276.0
+offset_bottom = 780.0
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 
@@ -65,3 +86,11 @@ grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("5_jgg25")
 starting_cards = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("10_mrrmw")])
+
+[node name="EndTurnButton" type="Button" parent="UI" unique_id=273793230]
+offset_left = 1614.0
+offset_top = 862.0
+offset_right = 1814.0
+offset_bottom = 922.0
+theme_override_font_sizes/font_size = 25
+text = "Fin de tour"

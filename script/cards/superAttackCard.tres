@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://64tt2oeikj55"]
+
+[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="1_vt1s7"]
+
+[resource]
+script = ExtResource("1_vt1s7")
+card_name = "Superr attaque"
+cost = 2
+description = "Fait 10 de dégats !! Wouah"
+damage = 10
+metadata/_custom_type_script = "uid://f3o7b7woxojq"

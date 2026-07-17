@@ -9,7 +9,6 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
 @onready var player: Character = $WorldRoot/Player
-@onready var enemy: Enemy = $WorldRoot/Enemy
 @onready var end_turn_button: Button = $UI/EndTurnButton
 @onready var mana_label: Label = $UI/ManaLabel
 @onready var end_screen: Panel = $UI/EndScreen
@@ -21,6 +20,10 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
 
 var combat_over: bool = false
+@export var enemy_scene: PackedScene  # glisse Enemy.tscn dans l'Inspecteur
+@onready var enemy_slots: Array[Marker2D] = [$WorldRoot/EnemySlot1, $WorldRoot/EnemySlot2, $WorldRoot/EnemySlot3]
+
+var enemies: Array[Enemy] = []
 
 # Signaux émis pour prévenir d'autres scripts (UI, animations...) qu'un tour démarre/finit
 signal turn_started(state: TurnState)
@@ -28,16 +31,17 @@ signal turn_ended(state: TurnState)
 
 
 func _ready() -> void:
+	spawn_enemies()
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	player.died.connect(_on_player_died)
-	enemy.died.connect(_on_enemy_died)
+	#enemy.died.connect(_on_enemy_died)
 	restart_button.pressed.connect(_on_restart_pressed)
 	player.damage_taken.connect(_on_damage_taken)
-	enemy.damage_taken.connect(_on_damage_taken)
+	#enemy.damage_taken.connect(_on_damage_taken)
 	draw_count_label.gui_input.connect(_on_draw_pile_input)
 	discard_count_label.gui_input.connect(_on_discard_pile_input)
 	start_turn(TurnState.PLAYER_TURN)
@@ -53,7 +57,9 @@ func start_turn(state: TurnState) -> void:
 			CombatEvents.refill_mana()
 			CombatEvents.player_turn_started.emit()
 		TurnState.ENEMY_TURN:
-			enemy.reset_block()
+			for e in enemies:
+				if is_instance_valid(e):
+					e.reset_block()
 			enemy_play_turn()
 
 
@@ -70,8 +76,10 @@ func end_turn() -> void:
 
 
 func enemy_play_turn() -> void:
-	await get_tree().create_timer(0.5).timeout
-	enemy.execute_intention(player) 
+	for e in enemies:
+		if is_instance_valid(e):
+			await get_tree().create_timer(0.5).timeout
+			e.execute_intention(player)
 	end_turn()
 
 
@@ -106,8 +114,17 @@ func _on_mana_changed(current: int, max: int) -> void:
 func _on_player_died() -> void:
 	show_end_screen("Défaite...")
 
-func _on_enemy_died() -> void:
-	show_end_screen("Victoire !")
+func _on_enemy_died(dead_enemy: Enemy) -> void:
+	enemies.erase(dead_enemy)
+	
+	var all_dead = true
+	for e in enemies:
+		if is_instance_valid(e):
+			all_dead = false
+			break
+	
+	if all_dead:
+		show_end_screen("Victoire !")
 
 func show_end_screen(text: String) -> void:
 	combat_over = true
@@ -155,3 +172,15 @@ func _on_draw_pile_input(event: InputEvent) -> void:
 func _on_discard_pile_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		_on_discard_pile_clicked()
+
+func spawn_enemies() -> void:
+	var enemy_count = randi_range(1, 3)
+	print("Nombre d'ennemis à spawn : ", enemy_count)
+	
+	for i in range(enemy_count):
+		var new_enemy: Enemy = enemy_scene.instantiate()
+		add_child(new_enemy)
+		new_enemy.global_position = enemy_slots[i].global_position
+		print("Ennemi ", i, " positionné à : ", new_enemy.global_position)
+		enemies.append(new_enemy)
+		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))

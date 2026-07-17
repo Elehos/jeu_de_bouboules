@@ -84,14 +84,14 @@ func _on_turn_started(state: TurnState) -> void:
 	end_turn_button.disabled = (state != TurnState.PLAYER_TURN)
 
 
-func _on_card_played(card_data: CardData) -> void:
+func _on_card_played(card_data: CardData, target: Character) -> void:
 	if combat_over:
 		return
 	if current_state != TurnState.PLAYER_TURN:
 		return
 	
-	if card_data.damage > 0:
-		enemy.take_damage(card_data.damage)
+	if card_data.damage > 0 and target:
+		target.take_damage(card_data.damage)
 	
 	if card_data.block > 0:
 		player.gain_block(card_data.block)

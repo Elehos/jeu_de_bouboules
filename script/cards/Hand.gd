@@ -12,8 +12,8 @@ func _ready() -> void:
 
 func add_card(data: CardData) -> void:
 	var card_instance = card_scene.instantiate()
-	add_child(card_instance)
 	card_instance.card_data = data
+	add_child(card_instance)
 	card_instance.update_display()
 
 func draw_hand() -> void:

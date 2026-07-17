@@ -26,6 +26,7 @@ signal intention_changed(intention: IntentionType)
 
 
 func _ready() -> void:
+	super._ready()
 	intention_changed.connect(_on_intention_changed)
 	choose_intention()
 

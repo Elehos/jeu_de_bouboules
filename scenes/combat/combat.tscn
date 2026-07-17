@@ -22,17 +22,19 @@ bg_color = Color(0.7254902, 0.5803922, 0.15686275, 1)
 [node name="Combat" type="Node2D" unique_id=1943509951]
 script = ExtResource("1_4voa6")
 
-[node name="ReferenceBackground" type="Sprite2D" parent="." unique_id=1691740053]
+[node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
+
+[node name="ReferenceBackground" type="Sprite2D" parent="WorldRoot" unique_id=1691740053]
 visible = false
 modulate = Color(1, 1, 1, 0.36078432)
 position = Vector2(960, 540)
 texture = ExtResource("1_ltalu")
 metadata/_edit_lock_ = true
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=1391993159]
+[node name="Player" type="CharacterBody2D" parent="WorldRoot" unique_id=1391993159]
 script = ExtResource("1_5vqsm")
 
-[node name="HPBarDelayed" type="ProgressBar" parent="Player" unique_id=1523442336]
+[node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Player" unique_id=1523442336]
 offset_left = 393.0
 offset_top = 752.0
 offset_right = 558.0
@@ -40,35 +42,35 @@ offset_bottom = 761.0
 theme_override_styles/fill = SubResource("StyleBoxFlat_mrrmw")
 show_percentage = false
 
-[node name="HPBar" type="ProgressBar" parent="Player" unique_id=571146498]
+[node name="HPBar" type="ProgressBar" parent="WorldRoot/Player" unique_id=571146498]
 offset_left = 392.0
 offset_top = 752.0
 offset_right = 560.0
 offset_bottom = 761.0
 show_percentage = false
 
-[node name="HP" type="Label" parent="Player" unique_id=2021964912]
+[node name="HP" type="Label" parent="WorldRoot/Player" unique_id=2021964912]
 offset_left = 455.0
 offset_top = 745.0
 offset_right = 495.0
 offset_bottom = 768.0
 
-[node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=1110491526]
+[node name="Sprite2D" type="Sprite2D" parent="WorldRoot/Player" unique_id=1110491526]
 position = Vector2(481.99997, 562)
 scale = Vector2(0.26012462, 0.26012462)
 texture = ExtResource("3_4voa6")
 
-[node name="Block" type="Label" parent="Player" unique_id=138433327]
+[node name="Block" type="Label" parent="WorldRoot/Player" unique_id=138433327]
 offset_left = 564.0
 offset_top = 754.0
 offset_right = 604.0
 offset_bottom = 777.0
 
-[node name="Enemy" type="CharacterBody2D" parent="." unique_id=1490143893]
+[node name="Enemy" type="CharacterBody2D" parent="WorldRoot" unique_id=1490143893]
 script = ExtResource("5_jgg25")
 intention_sequence = Array[int]([0, 0, 0, 0])
 
-[node name="HPBarDelayed" type="ProgressBar" parent="Enemy" unique_id=479009923]
+[node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Enemy" unique_id=479009923]
 offset_left = 1250.0
 offset_top = 760.0
 offset_right = 1608.0
@@ -76,30 +78,30 @@ offset_bottom = 769.0
 theme_override_styles/fill = SubResource("StyleBoxFlat_563wa")
 show_percentage = false
 
-[node name="HPBar" type="ProgressBar" parent="Enemy" unique_id=1127862993]
+[node name="HPBar" type="ProgressBar" parent="WorldRoot/Enemy" unique_id=1127862993]
 offset_left = 1249.0
 offset_top = 760.0
 offset_right = 1609.0
 offset_bottom = 769.0
 show_percentage = false
 
-[node name="HP" type="Label" parent="Enemy" unique_id=1371015497]
+[node name="HP" type="Label" parent="WorldRoot/Enemy" unique_id=1371015497]
 offset_left = 1408.0
 offset_top = 753.0
 offset_right = 1448.0
 offset_bottom = 776.0
 
-[node name="Sprite2D" type="Sprite2D" parent="Enemy" unique_id=2048843923]
+[node name="Sprite2D" type="Sprite2D" parent="WorldRoot/Enemy" unique_id=2048843923]
 position = Vector2(1446, 557)
 texture = ExtResource("4_jgg25")
 
-[node name="IntentionLabel" type="Label" parent="Enemy" unique_id=1415942021]
+[node name="IntentionLabel" type="Label" parent="WorldRoot/Enemy" unique_id=1415942021]
 offset_left = 1399.0
 offset_top = 272.0
 offset_right = 1511.0
 offset_bottom = 333.0
 
-[node name="Block" type="Label" parent="Enemy" unique_id=164104485]
+[node name="Block" type="Label" parent="WorldRoot/Enemy" unique_id=164104485]
 offset_left = 1208.0
 offset_top = 762.0
 offset_right = 1248.0

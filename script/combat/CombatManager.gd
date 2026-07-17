@@ -8,8 +8,8 @@ enum TurnState { PLAYER_TURN, ENEMY_TURN, TRANSITION }
 var current_state: TurnState = TurnState.PLAYER_TURN
 
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
-@onready var player: Character = $Player
-@onready var enemy: Enemy = $Enemy
+@onready var player: Character = $WorldRoot/Player
+@onready var enemy: Enemy = $WorldRoot/Enemy
 @onready var end_turn_button: Button = $UI/EndTurnButton
 @onready var mana_label: Label = $UI/ManaLabel
 @onready var end_screen: Panel = $UI/EndScreen
@@ -17,6 +17,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var restart_button: Button = $UI/EndScreen/RestartButton
 @onready var draw_count_label: Label = $UI/DrawCountLabel
 @onready var discard_count_label: Label = $UI/DiscardCountLabel
+@onready var world_root: Node2D = $WorldRoot
 
 var combat_over: bool = false
 
@@ -34,6 +35,8 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	enemy.died.connect(_on_enemy_died)
 	restart_button.pressed.connect(_on_restart_pressed)
+	player.damage_taken.connect(_on_damage_taken)
+	enemy.damage_taken.connect(_on_damage_taken)
 	start_turn(TurnState.PLAYER_TURN)
 
 
@@ -114,3 +117,24 @@ func _on_restart_pressed() -> void:
 func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	draw_count_label.text = "🂠 " + str(draw_count)
 	discard_count_label.text = "🗑 " + str(discard_count)
+	
+func _on_damage_taken(amount: int) -> void:
+	shake_screen(amount)
+
+func shake_screen(amount: int) -> void:
+	# Ramène les dégâts entre 1 et 50 sur une échelle de 0.0 à 1.0
+	var intensity: float = clamp(amount, 1, 50) / 50.0
+	
+	# Plus l'intensité est haute, plus le tremblement est fort et long
+	var max_offset: float = lerp(1.0, 25.0, intensity)
+	var duration: float = lerp(0.25, 0.35, intensity)
+	
+	var steps: int = 6
+	var shake_tween: Tween = create_tween()
+	
+	for i in steps:
+		var offset := Vector2(randf_range(-max_offset, max_offset), randf_range(-max_offset, max_offset))
+		shake_tween.tween_property(world_root, "position", offset, duration / steps)
+	
+	# Revient exactement à sa position d'origine à la fin
+	shake_tween.tween_property(world_root, "position", Vector2.ZERO, duration / steps)

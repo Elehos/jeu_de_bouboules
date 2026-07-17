@@ -4,7 +4,7 @@ class_name Hand
 @export var card_scene: PackedScene  # on y glissera Card.tscn depuis l'Inspecteur
 @export var starting_cards: Array[CardData] = []  # tes CardData de test, à remplir dans l'Inspecteur
 @export var deck_data: Array[CardData] = []  # ton deck complet, assigné dans l'Inspecteur
-@export var cards_per_turn: int = 3
+@export var cards_per_turn: int = 5 # nombre de cartes tirées par tour
 
 func _ready() -> void:
 	CombatEvents.player_turn_started.connect(new_turn)

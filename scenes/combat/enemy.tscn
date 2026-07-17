@@ -1,0 +1,57 @@
+[gd_scene format=3 uid="uid://bnydw6h4io0og"]
+
+[ext_resource type="Script" uid="uid://bug7rsw3haj2c" path="res://script/combat/Enemy.gd" id="1_dxtal"]
+[ext_resource type="Texture2D" uid="uid://e1ecrkhdsv07" path="res://assets/monsters/poichon.png" id="2_8afxw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_563wa"]
+bg_color = Color(0.7254902, 0.5803922, 0.15686275, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ifpyu"]
+size = Vector2(522, 384.5)
+
+[node name="Enemy" type="CharacterBody2D" unique_id=1414696823]
+script = ExtResource("1_dxtal")
+intention_sequence = Array[int]([0, 0, 0, 0])
+
+[node name="HPBarDelayed" type="ProgressBar" parent="." unique_id=820461938]
+offset_left = -175.0
+offset_top = 208.0
+offset_right = 183.0
+offset_bottom = 217.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_563wa")
+show_percentage = false
+
+[node name="HPBar" type="ProgressBar" parent="." unique_id=1490257298]
+offset_left = -176.0
+offset_top = 208.0
+offset_right = 184.0
+offset_bottom = 217.0
+show_percentage = false
+
+[node name="HP" type="Label" parent="." unique_id=1215918533]
+offset_left = -17.0
+offset_top = 201.0
+offset_right = 23.0
+offset_bottom = 224.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1065179813]
+texture = ExtResource("2_8afxw")
+
+[node name="IntentionLabel" type="Label" parent="." unique_id=946254267]
+offset_left = -54.0
+offset_top = -272.0
+offset_right = 58.0
+offset_bottom = -211.0
+
+[node name="Block" type="Label" parent="." unique_id=1940169795]
+offset_left = -217.0
+offset_top = 210.0
+offset_right = -177.0
+offset_bottom = 233.0
+
+[node name="ClickArea" type="Area2D" parent="." unique_id=1903516912]
+collision_layer = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea" unique_id=688300112]
+position = Vector2(0, -3)
+shape = SubResource("RectangleShape2D_ifpyu")

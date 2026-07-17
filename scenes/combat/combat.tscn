@@ -7,11 +7,17 @@
 [ext_resource type="Texture2D" uid="uid://e1ecrkhdsv07" path="res://assets/monsters/poichon.png" id="4_jgg25"]
 [ext_resource type="Script" uid="uid://olrbvy74v182" path="res://script/cards/Hand.gd" id="5_4a6i5"]
 [ext_resource type="Script" uid="uid://bug7rsw3haj2c" path="res://script/combat/Enemy.gd" id="5_jgg25"]
-[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://script/cards/attackCard.tres" id="6_ijgaf"]
+[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="6_ijgaf"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
-[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://script/cards/defenseCard.tres" id="9_gwckk"]
-[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://script/cards/superAttackCard.tres" id="10_mrrmw"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
+[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
+[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
+bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_563wa"]
+bg_color = Color(0.7254902, 0.5803922, 0.15686275, 1)
 
 [node name="Combat" type="Node2D" unique_id=1943509951]
 script = ExtResource("1_4voa6")
@@ -26,11 +32,26 @@ metadata/_edit_lock_ = true
 [node name="Player" type="CharacterBody2D" parent="." unique_id=1391993159]
 script = ExtResource("1_5vqsm")
 
+[node name="HPBarDelayed" type="ProgressBar" parent="Player" unique_id=1523442336]
+offset_left = 393.0
+offset_top = 752.0
+offset_right = 558.0
+offset_bottom = 761.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_mrrmw")
+show_percentage = false
+
+[node name="HPBar" type="ProgressBar" parent="Player" unique_id=571146498]
+offset_left = 392.0
+offset_top = 752.0
+offset_right = 560.0
+offset_bottom = 761.0
+show_percentage = false
+
 [node name="HP" type="Label" parent="Player" unique_id=2021964912]
-offset_left = 459.0
-offset_top = 744.0
-offset_right = 499.0
-offset_bottom = 767.0
+offset_left = 455.0
+offset_top = 745.0
+offset_right = 495.0
+offset_bottom = 768.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Player" unique_id=1110491526]
 position = Vector2(481.99997, 562)
@@ -38,20 +59,35 @@ scale = Vector2(0.26012462, 0.26012462)
 texture = ExtResource("3_4voa6")
 
 [node name="Block" type="Label" parent="Player" unique_id=138433327]
-offset_left = 528.0
+offset_left = 564.0
 offset_top = 754.0
-offset_right = 568.0
+offset_right = 604.0
 offset_bottom = 777.0
 
 [node name="Enemy" type="CharacterBody2D" parent="." unique_id=1490143893]
 script = ExtResource("5_jgg25")
 intention_sequence = Array[int]([0, 0, 0, 0])
 
+[node name="HPBarDelayed" type="ProgressBar" parent="Enemy" unique_id=479009923]
+offset_left = 1250.0
+offset_top = 760.0
+offset_right = 1608.0
+offset_bottom = 769.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_563wa")
+show_percentage = false
+
+[node name="HPBar" type="ProgressBar" parent="Enemy" unique_id=1127862993]
+offset_left = 1249.0
+offset_top = 760.0
+offset_right = 1609.0
+offset_bottom = 769.0
+show_percentage = false
+
 [node name="HP" type="Label" parent="Enemy" unique_id=1371015497]
-offset_left = 1422.0
-offset_top = 741.0
-offset_right = 1462.0
-offset_bottom = 764.0
+offset_left = 1408.0
+offset_top = 753.0
+offset_right = 1448.0
+offset_bottom = 776.0
 
 [node name="Sprite2D" type="Sprite2D" parent="Enemy" unique_id=2048843923]
 position = Vector2(1446, 557)
@@ -64,10 +100,10 @@ offset_right = 1511.0
 offset_bottom = 333.0
 
 [node name="Block" type="Label" parent="Enemy" unique_id=164104485]
-offset_left = 1236.0
-offset_top = 757.0
-offset_right = 1276.0
-offset_bottom = 780.0
+offset_left = 1208.0
+offset_top = 762.0
+offset_right = 1248.0
+offset_bottom = 785.0
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 

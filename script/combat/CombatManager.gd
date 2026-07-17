@@ -18,6 +18,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var draw_count_label: Label = $UI/DrawCountLabel
 @onready var discard_count_label: Label = $UI/DiscardCountLabel
 @onready var world_root: Node2D = $WorldRoot
+@onready var card_list_popup: CardListPopup = $UI/CardListPopup
 
 var combat_over: bool = false
 
@@ -37,6 +38,8 @@ func _ready() -> void:
 	restart_button.pressed.connect(_on_restart_pressed)
 	player.damage_taken.connect(_on_damage_taken)
 	enemy.damage_taken.connect(_on_damage_taken)
+	draw_count_label.gui_input.connect(_on_draw_pile_input)
+	discard_count_label.gui_input.connect(_on_discard_pile_input)
 	start_turn(TurnState.PLAYER_TURN)
 
 
@@ -138,3 +141,17 @@ func shake_screen(amount: int) -> void:
 	
 	# Revient exactement à sa position d'origine à la fin
 	shake_tween.tween_property(world_root, "position", Vector2.ZERO, duration / steps)
+
+func _on_draw_pile_clicked() -> void:
+	card_list_popup.show_cards(DeckManager.draw_pile, "Pioche")
+
+func _on_discard_pile_clicked() -> void:
+	card_list_popup.show_cards(DeckManager.discard_pile, "Défausse")
+
+func _on_draw_pile_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_draw_pile_clicked()
+
+func _on_discard_pile_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		_on_discard_pile_clicked()

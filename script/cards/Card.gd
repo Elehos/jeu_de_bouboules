@@ -11,34 +11,32 @@ class_name Card
 var dragging: bool = false
 var drag_start_mouse: Vector2
 var drag_start_position: Vector2
-
-var normal_min_width: float
-@export var hover_min_width: float = 160.0
-@export var hover_scale: float = 1.15
 var drag_start_local_position: Vector2
-@export var hand_zone: Control
 
-const DRAG_THRESHOLD: float = 250.0
+@export var hover_scale: float = 1.15
+
+const DRAG_THRESHOLD: float = 200.0
 var interactive: bool = true
+
+enum CardState { IDLE, DRAGGING, AWAITING_TARGET, PLAYED }
+var state: CardState = CardState.IDLE
+
+var hover_shrink_timer: Timer
 
 func _ready() -> void:
 	update_display()
 	panel.gui_input.connect(_on_panel_gui_input)
-	mouse_entered.connect(_on_mouse_entered)
-	mouse_exited.connect(_on_mouse_exited)
-	normal_min_width = custom_minimum_size.x
-	pivot_offset = size / 2
+	panel.mouse_entered.connect(_on_mouse_entered)
+	panel.mouse_exited.connect(_on_mouse_exited)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	CombatEvents.targeting_started.connect(_on_targeting_started)
 	CombatEvents.targeting_cancelled.connect(_on_targeting_cancelled)
 	_update_affordability()
-
-func _on_targeting_started(data: CardData) -> void:
-	if CombatEvents.pending_card == self:
-		modulate = Color(1.2, 1.2, 0.6)
-
-func _on_targeting_cancelled() -> void:
-	_update_affordability()
+	
+	hover_shrink_timer = Timer.new()
+	hover_shrink_timer.one_shot = true
+	hover_shrink_timer.wait_time = 0.05
+	add_child(hover_shrink_timer)
 
 func update_display() -> void:
 	if card_data:
@@ -46,73 +44,135 @@ func update_display() -> void:
 		cost_label.text = str(card_data.cost)
 		description_label.text = card_data.description
 
-
-# Premier clic : lance le ciblage si nécessaire, sinon joue direct
-func play() -> void:
-	if card_data.requires_target:
-		CombatEvents.request_targeting(self)
+func set_interactive(value: bool) -> void:
+	interactive = value
+	if not interactive:
+		modulate = Color(1, 1, 1, 1)
 	else:
-		confirm_play(null)
+		_update_affordability()
 
-# Appelé une fois la cible confirmée (ou immédiatement si pas de cible nécessaire)
+# --- Grossissement / rétrécissement ---
+func _grow() -> void:
+	pivot_offset = Vector2(size.x / 2, size.y)
+	z_index = 1
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
+
+func _shrink() -> void:
+	pivot_offset = Vector2(size.x / 2, size.y)
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "scale", Vector2.ONE, 0.15)
+	tween.tween_callback(func(): z_index = 0)
+
+func _on_mouse_entered() -> void:
+	if interactive and state == CardState.IDLE:
+		_grow()
+
+func _on_mouse_exited() -> void:
+	if interactive and state == CardState.IDLE:
+		_shrink()
+
+# --- Ciblage ---
+func _on_targeting_started(_data: CardData) -> void:
+	if CombatEvents.pending_card == self:
+		modulate = Color(1.2, 1.2, 0.6)
+
+func _on_targeting_cancelled() -> void:
+	if state == CardState.AWAITING_TARGET:
+		state = CardState.IDLE
+		_shrink()
+	CombatEvents.targeting_arrow.hide_arrow()
+	_update_affordability()
+
+# --- Jeu de la carte ---
 func confirm_play(target: Character) -> void:
 	if not CombatEvents.try_spend_mana(card_data.cost):
-		return  # pas assez de mana, rien ne se passe
+		state = CardState.IDLE
+		_return_to_hand()
+		_shrink()
+		return
+	
+	state = CardState.PLAYED
 	print("Carte jouée : ", card_data.card_name)
 	CombatEvents.card_played.emit(card_data, target)
 	DeckManager.discard_card(card_data)
-	queue_free()
+	_play_confirmation_animation()
 
+func _play_confirmation_animation() -> void:
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
+	var current_global: Vector2 = global_position
+	var ui_layer: Node = get_tree().current_scene.get_node("UI")  # récupéré AVANT de détacher
+	var hand_parent := get_parent()
+	
+	if hand_parent:
+		hand_parent.remove_child(self)
+	ui_layer.add_child(self)
+	top_level = true
+	global_position = current_global
+	
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var target_position: Vector2 = viewport_size / 2 - (size * hover_scale) / 2
+	
+	var tween: Tween = create_tween()
+	tween.tween_property(self, "global_position", target_position, 0.2)
+	tween.parallel().tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.2)
+	tween.tween_interval(0.6)
+	tween.tween_callback(queue_free)
 
+# --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
 	if not interactive:
 		return
+	if state == CardState.PLAYED:
+		return
 	if CombatEvents.current_mana < card_data.cost:
-		return  # pas assez de mana : aucune interaction possible
+		return
 	
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			drag_start_local_position = position
-			var current_global_pos: Vector2 = global_position
-			top_level = true
-			global_position = current_global_pos
+			state = CardState.DRAGGING
+			_grow()
 			dragging = true
-			drag_start_mouse = get_global_mouse_position()
-			drag_start_position = global_position
+			
+			if card_data.requires_target:
+				# Pas de déplacement physique : juste la flèche qui suit la souris
+				CombatEvents.targeting_arrow.show_arrow(self)
+			else:
+				drag_start_local_position = position
+				var current_global_pos: Vector2 = global_position
+				top_level = true
+				global_position = current_global_pos
+				drag_start_mouse = get_global_mouse_position()
+				drag_start_position = global_position
 		elif not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			if dragging:
 				_end_drag()
 
-func set_interactive(value: bool) -> void:
-	interactive = value
-
 func _process(_delta: float) -> void:
-	if dragging:
+	if dragging and not card_data.requires_target:
 		var offset: Vector2 = get_global_mouse_position() - drag_start_mouse
 		global_position = drag_start_position + offset
 
 func _end_drag() -> void:
 	dragging = false
-	var moved_distance: float = global_position.distance_to(drag_start_position)
 	
 	if card_data.requires_target:
-		if moved_distance < 10.0:
-			_return_to_hand()
-			CombatEvents.request_targeting(self)
-			return
-		
 		var target: Character = _find_target_under_mouse()
+		CombatEvents.targeting_arrow.hide_arrow()
 		if target:
-			_return_to_hand()
 			confirm_play(target)
 		else:
-			_return_to_hand()
+			state = CardState.IDLE
+			_shrink()
 	else:
+		var moved_distance: float = global_position.distance_to(drag_start_position)
 		if _has_dragged_far_enough():
-			_return_to_hand()
 			confirm_play(null)
 		else:
+			state = CardState.IDLE
 			_return_to_hand()
+			_shrink()
 
 func _return_to_hand() -> void:
 	top_level = false
@@ -133,23 +193,17 @@ func _find_target_under_mouse() -> Character:
 			return collider.get_parent()
 	return null
 
-func _on_mouse_entered() -> void:
-	var tween: Tween = create_tween()
-	tween.tween_property(self, "custom_minimum_size:x", hover_min_width, 0.15)
-	tween.parallel().tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
-
-func _on_mouse_exited() -> void:
-	var tween: Tween = create_tween()
-	tween.tween_property(self, "custom_minimum_size:x", normal_min_width, 0.15)
-	tween.parallel().tween_property(self, "scale", Vector2.ONE, 0.15)
+func _has_dragged_far_enough() -> bool:
+	var delta: Vector2 = global_position - drag_start_position
+	return delta.y < -DRAG_THRESHOLD
 
 func _update_affordability() -> void:
+	if not interactive:
+		return
+	if state == CardState.AWAITING_TARGET or state == CardState.PLAYED:
+		return
 	var affordable: bool = CombatEvents.current_mana >= card_data.cost
 	modulate = Color(1, 1, 1, 1) if affordable else Color(0.5, 0.5, 0.5, 0.6)
 
 func _on_mana_changed(_current: int, _max: int) -> void:
 	_update_affordability()
-
-func _has_dragged_far_enough() -> bool:
-	var delta: Vector2 = global_position - drag_start_position
-	return delta.y < -DRAG_THRESHOLD

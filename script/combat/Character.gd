@@ -119,4 +119,5 @@ func die() -> void:
 	
 func _on_click_area_input_event(viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		CombatEvents.resolve_target(self)
+		if self is Enemy:
+			CombatEvents.resolve_target(self)

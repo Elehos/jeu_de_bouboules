@@ -7,4 +7,5 @@ script = ExtResource("1_74i71")
 card_name = "Attaque de base"
 description = "Fait 3 de dégats"
 damage = 3
+requires_target = true
 metadata/_custom_type_script = "uid://f3o7b7woxojq"

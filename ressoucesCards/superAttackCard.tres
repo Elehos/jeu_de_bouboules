@@ -8,4 +8,5 @@ card_name = "Superr attaque"
 cost = 2
 description = "Fait 10 de dégats !! Wouah"
 damage = 10
+requires_target = true
 metadata/_custom_type_script = "uid://f3o7b7woxojq"

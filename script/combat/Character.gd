@@ -12,6 +12,7 @@ var current_block: int = 0
 @onready var block_label: Label = $Block
 @onready var hp_bar: ProgressBar = $HPBar
 @onready var hp_bar_delayed: ProgressBar = $HPBarDelayed
+@onready var click_area: Area2D = $ClickArea
 
 const TWEEN_DURATION: float = 0.4
 const DAMAGE_TRAIL_DELAY: float = 1.0
@@ -22,6 +23,7 @@ var fill_shielded: StyleBoxFlat
 
 signal died
 signal damage_taken(amount: int)
+signal clicked_as_target
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -43,6 +45,8 @@ func _ready() -> void:
 	
 	update_hp_display()
 	update_block_display()
+	
+	click_area.input_event.connect(_on_click_area_input_event)
 
 # Crée un style de remplissage avec une couleur donnée, coins arrondis inclus
 func make_fill_style(color: Color) -> StyleBoxFlat:
@@ -112,3 +116,7 @@ func update_block_display() -> void:
 func die() -> void:
 	print(name + " est mort.")
 	died.emit()
+	
+func _on_click_area_input_event(viewport, event: InputEvent, shape_idx: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		CombatEvents.resolve_target(self)

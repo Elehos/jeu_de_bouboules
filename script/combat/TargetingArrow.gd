@@ -3,12 +3,14 @@ class_name TargetingArrow
 
 var active: bool = false
 var source_card: Control = null
+var currently_highlighted: Enemy = null
 
 const ARROW_COLOR: Color = Color(0.9, 0.15, 0.15)
 const ARROW_WIDTH: float = 5.0
 const CURVE_HEIGHT: float = 100.0
 const ARROW_HEAD_SIZE: float = 18.0
 const SEGMENTS: int = 24
+
 
 func _ready() -> void:
 	CombatEvents.targeting_arrow = self
@@ -21,6 +23,9 @@ func show_arrow(card: Control) -> void:
 func hide_arrow() -> void:
 	active = false
 	source_card = null
+	if currently_highlighted:
+		currently_highlighted.set_targeted(false)
+		currently_highlighted = null
 	queue_redraw()
 
 func _process(_delta: float) -> void:
@@ -28,6 +33,7 @@ func _process(_delta: float) -> void:
 		if not is_instance_valid(source_card):
 			hide_arrow()
 			return
+		_update_target_highlight()
 		queue_redraw()
 
 func _draw() -> void:
@@ -58,3 +64,26 @@ func _draw() -> void:
 	var right: Vector2 = tip - direction * ARROW_HEAD_SIZE - perpendicular * ARROW_HEAD_SIZE * 0.5
 	
 	draw_polygon(PackedVector2Array([tip, left, right]), PackedColorArray([ARROW_COLOR]))
+	
+func _update_target_highlight() -> void:
+	var hovered: Enemy = _find_enemy_under_mouse()
+	if hovered != currently_highlighted:
+		if currently_highlighted:
+			currently_highlighted.set_targeted(false)
+		if hovered:
+			hovered.set_targeted(true)
+		currently_highlighted = hovered
+
+func _find_enemy_under_mouse() -> Enemy:
+	var space_state := get_viewport().get_world_2d().direct_space_state
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = get_global_mouse_position()
+	query.collision_mask = 0b1000
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	var results := space_state.intersect_point(query)
+	for result in results:
+		var collider = result.collider
+		if collider.get_parent() is Enemy:
+			return collider.get_parent()
+	return null

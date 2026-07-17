@@ -80,13 +80,14 @@ func _on_targeting_cancelled() -> void:
 
 # --- Jeu de la carte ---
 func confirm_play(target: Character) -> void:
-	if not CombatEvents.try_spend_mana(card_data.cost):
+	if CombatEvents.current_mana < card_data.cost:
 		state = CardState.IDLE
 		_return_to_hand()
 		_shrink()
 		return
 	
 	state = CardState.PLAYED
+	CombatEvents.try_spend_mana(card_data.cost)
 	print("Carte jouée : ", card_data.card_name)
 	CombatEvents.card_played.emit(card_data, target)
 	DeckManager.discard_card(card_data)

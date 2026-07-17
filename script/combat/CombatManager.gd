@@ -20,8 +20,9 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
 
 var combat_over: bool = false
+@onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
+@export var enemy_spacing: float = 300.0
 @export var enemy_scene: PackedScene  # glisse Enemy.tscn dans l'Inspecteur
-@onready var enemy_slots: Array[Marker2D] = [$WorldRoot/EnemySlot1, $WorldRoot/EnemySlot2, $WorldRoot/EnemySlot3]
 
 var enemies: Array[Enemy] = []
 
@@ -114,6 +115,7 @@ func _on_player_died() -> void:
 
 func _on_enemy_died(dead_enemy: Enemy) -> void:
 	enemies.erase(dead_enemy)
+	dead_enemy.queue_free()
 	
 	var all_dead = true
 	for e in enemies:
@@ -178,8 +180,13 @@ func spawn_enemies() -> void:
 	for i in range(enemy_count):
 		var new_enemy: Enemy = enemy_scene.instantiate()
 		world_root.add_child(new_enemy)
-		new_enemy.global_position = enemy_slots[i].global_position
+		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
 		print("Ennemi ", i, " positionné à : ", new_enemy.global_position)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
 		new_enemy.damage_taken.connect(_on_damage_taken)
+
+func _compute_enemy_position(index: int, total: int) -> Vector2:
+	# Centre le groupe d'ennemis autour du point central, comme un flex justify-content: center
+	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing
+	return enemy_zone_center.global_position + Vector2(offset_x, 0)

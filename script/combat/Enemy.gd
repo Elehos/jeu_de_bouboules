@@ -21,6 +21,8 @@ var current_intention: IntentionType
 # Référence au Label qui affiche l'intention
 @onready var intention_label: Label = $IntentionLabel
 
+@onready var target_highlight: Node2D = $TargetHighlight
+
 # Signal émis à chaque fois que l'intention change
 signal intention_changed(intention: IntentionType)
 
@@ -55,3 +57,6 @@ func _on_intention_changed(intention: IntentionType) -> void:
 			intention_label.text = "⚔ Attaque (%d)" % attack_power
 		IntentionType.DEFEND:
 			intention_label.text = "🛡 Défense (%d)" % defense_power
+			
+func set_targeted(value: bool) -> void:
+	target_highlight.set_active(value)

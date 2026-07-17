@@ -75,14 +75,8 @@ collision_layer = 8
 position = Vector2(474, 545.5)
 shape = SubResource("RectangleShape2D_ckr0i")
 
-[node name="EnemySlot1" type="Marker2D" parent="WorldRoot" unique_id=1229845398]
-position = Vector2(1429, 560)
-
-[node name="EnemySlot2" type="Marker2D" parent="WorldRoot" unique_id=2047136660]
-position = Vector2(1745, 566)
-
-[node name="EnemySlot3" type="Marker2D" parent="WorldRoot" unique_id=1664503013]
-position = Vector2(1097, 559)
+[node name="EnemyZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=865605184]
+position = Vector2(1450, 565)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 

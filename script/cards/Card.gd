@@ -8,6 +8,8 @@ class_name Card
 @onready var cost_label: Label = $Panel/VBoxContainer/CardCost
 @onready var description_label: Label = $Panel/VBoxContainer/CardDescription
 
+var interactive: bool = true
+
 func _ready() -> void:
 	update_display()
 	panel.gui_input.connect(_on_panel_gui_input)
@@ -28,5 +30,11 @@ func play() -> void:
 	queue_free()
 
 func _on_panel_gui_input(event: InputEvent) -> void:
+	if not interactive:
+		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		play()
+
+
+func set_interactive(value: bool) -> void:
+	interactive = value

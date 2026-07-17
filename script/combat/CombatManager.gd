@@ -38,10 +38,8 @@ func _ready() -> void:
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	player.died.connect(_on_player_died)
-	#enemy.died.connect(_on_enemy_died)
 	restart_button.pressed.connect(_on_restart_pressed)
 	player.damage_taken.connect(_on_damage_taken)
-	#enemy.damage_taken.connect(_on_damage_taken)
 	draw_count_label.gui_input.connect(_on_draw_pile_input)
 	discard_count_label.gui_input.connect(_on_discard_pile_input)
 	start_turn(TurnState.PLAYER_TURN)
@@ -179,8 +177,9 @@ func spawn_enemies() -> void:
 	
 	for i in range(enemy_count):
 		var new_enemy: Enemy = enemy_scene.instantiate()
-		add_child(new_enemy)
+		world_root.add_child(new_enemy)
 		new_enemy.global_position = enemy_slots[i].global_position
 		print("Ennemi ", i, " positionné à : ", new_enemy.global_position)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
+		new_enemy.damage_taken.connect(_on_damage_taken)

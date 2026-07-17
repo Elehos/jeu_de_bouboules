@@ -21,7 +21,6 @@ var interactive: bool = true
 enum CardState { IDLE, DRAGGING, AWAITING_TARGET, PLAYED }
 var state: CardState = CardState.IDLE
 
-var hover_shrink_timer: Timer
 
 func _ready() -> void:
 	update_display()
@@ -32,11 +31,6 @@ func _ready() -> void:
 	CombatEvents.targeting_started.connect(_on_targeting_started)
 	CombatEvents.targeting_cancelled.connect(_on_targeting_cancelled)
 	_update_affordability()
-	
-	hover_shrink_timer = Timer.new()
-	hover_shrink_timer.one_shot = true
-	hover_shrink_timer.wait_time = 0.05
-	add_child(hover_shrink_timer)
 
 func update_display() -> void:
 	if card_data:

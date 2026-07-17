@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://cuugmemifju2l"]
 
-[ext_resource type="Script" uid="uid://6ngn3ghlgpat" path="res://scenes/ui/card_list_popup.gd" id="1_14ic3"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="2_qs076"]
+[ext_resource type="Script" uid="uid://6ngn3ghlgpat" path="res://script/ui/card_list_popup.gd" id="1_14ic3"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="2_qs076"]
 
 [node name="CardListPopup" type="Control" unique_id=577641462]
 layout_mode = 3

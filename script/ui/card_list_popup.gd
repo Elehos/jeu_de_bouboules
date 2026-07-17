@@ -16,16 +16,15 @@ func _ready() -> void:
 func show_cards(card_list: Array[CardData], title_text: String) -> void:
 	title_label.text = title_text
 	
-	# Nettoie les anciennes cartes affichées avant d'en remettre de nouvelles
 	for child in card_grid.get_children():
 		child.queue_free()
 	
-	print("Nombre de cartes à afficher : ", card_list.size())  # ← ligne de test
+	print("Nombre de cartes à afficher : ", card_list.size())
 	
 	for data in card_list:
 		var card_instance = card_scene.instantiate()
-		card_grid.add_child(card_instance)
 		card_instance.card_data = data
+		card_grid.add_child(card_instance)
 		card_instance.update_display()
 		card_instance.set_interactive(false)
 	

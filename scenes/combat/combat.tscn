@@ -9,9 +9,10 @@
 [ext_resource type="Script" uid="uid://bug7rsw3haj2c" path="res://script/combat/Enemy.gd" id="5_jgg25"]
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="6_ijgaf"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
+[ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -185,9 +186,13 @@ offset_left = 85.0
 offset_top = 844.0
 offset_right = 172.0
 offset_bottom = 898.0
+mouse_filter = 0
 
 [node name="DiscardCountLabel" type="Label" parent="UI" unique_id=2023236194]
 offset_left = 1790.0
 offset_top = 945.0
 offset_right = 1874.0
 offset_bottom = 1011.0
+mouse_filter = 0
+
+[node name="CardListPopup" parent="UI" unique_id=577641462 instance=ExtResource("13_mrrmw")]

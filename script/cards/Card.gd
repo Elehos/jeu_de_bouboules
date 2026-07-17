@@ -19,6 +19,7 @@ var drag_start_local_position: Vector2
 @export var hand_zone: Control
 
 const DRAG_THRESHOLD: float = 250.0
+var interactive: bool = true
 
 func _ready() -> void:
 	update_display()
@@ -64,6 +65,8 @@ func confirm_play(target: Character) -> void:
 
 
 func _on_panel_gui_input(event: InputEvent) -> void:
+	if not interactive:
+		return
 	if CombatEvents.current_mana < card_data.cost:
 		return  # pas assez de mana : aucune interaction possible
 	
@@ -80,6 +83,9 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 			if dragging:
 				_end_drag()
 
+func set_interactive(value: bool) -> void:
+	interactive = value
+
 func _process(_delta: float) -> void:
 	if dragging:
 		var offset: Vector2 = get_global_mouse_position() - drag_start_mouse
@@ -91,7 +97,6 @@ func _end_drag() -> void:
 	
 	if card_data.requires_target:
 		if moved_distance < 10.0:
-			# Clic simple : passe en mode "en attente de cible"
 			_return_to_hand()
 			CombatEvents.request_targeting(self)
 			return
@@ -127,7 +132,7 @@ func _find_target_under_mouse() -> Character:
 		if collider.get_parent() is Enemy:
 			return collider.get_parent()
 	return null
-	
+
 func _on_mouse_entered() -> void:
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "custom_minimum_size:x", hover_min_width, 0.15)
@@ -137,14 +142,14 @@ func _on_mouse_exited() -> void:
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "custom_minimum_size:x", normal_min_width, 0.15)
 	tween.parallel().tween_property(self, "scale", Vector2.ONE, 0.15)
-	
+
 func _update_affordability() -> void:
 	var affordable: bool = CombatEvents.current_mana >= card_data.cost
 	modulate = Color(1, 1, 1, 1) if affordable else Color(0.5, 0.5, 0.5, 0.6)
 
 func _on_mana_changed(_current: int, _max: int) -> void:
 	_update_affordability()
-	
+
 func _has_dragged_far_enough() -> bool:
 	var delta: Vector2 = global_position - drag_start_position
 	return delta.y < -DRAG_THRESHOLD

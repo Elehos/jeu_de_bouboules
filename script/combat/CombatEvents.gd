@@ -6,6 +6,9 @@ signal card_played(card_data: CardData)
 # Signal émis à chaque fois que le mana change (pour l'affichage)
 signal mana_changed(current: int, max: int)
 
+signal player_turn_started
+signal deck_counts_changed(draw_count: int, discard_count: int)
+
 @export var max_mana: int = 3
 var current_mana: int = max_mana
 

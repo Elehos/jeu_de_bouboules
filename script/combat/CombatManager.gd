@@ -12,6 +12,11 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var enemy: Enemy = $Enemy
 @onready var end_turn_button: Button = $UI/EndTurnButton
 @onready var mana_label: Label = $UI/ManaLabel
+@onready var end_screen: Panel = $UI/EndScreen
+@onready var end_label: Label = $UI/EndScreen/EndLabel
+@onready var restart_button: Button = $UI/EndScreen/RestartButton
+
+var combat_over: bool = false
 
 # Signaux émis pour prévenir d'autres scripts (UI, animations...) qu'un tour démarre/finit
 signal turn_started(state: TurnState)
@@ -23,6 +28,9 @@ func _ready() -> void:
 	turn_started.connect(_on_turn_started)
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
+	player.died.connect(_on_player_died)
+	enemy.died.connect(_on_enemy_died)
+	restart_button.pressed.connect(_on_restart_pressed)
 	start_turn(TurnState.PLAYER_TURN)
 
 
@@ -58,7 +66,8 @@ func enemy_play_turn() -> void:
 
 
 func _on_end_turn_pressed() -> void:
-	# Sécurité : on ne termine le tour que si c'est bien celui du joueur
+	if combat_over:
+		return
 	if current_state == TurnState.PLAYER_TURN:
 		end_turn()
 
@@ -69,6 +78,8 @@ func _on_turn_started(state: TurnState) -> void:
 
 
 func _on_card_played(card_data: CardData) -> void:
+	if combat_over:
+		return
 	if current_state != TurnState.PLAYER_TURN:
 		return
 	
@@ -81,3 +92,17 @@ func _on_card_played(card_data: CardData) -> void:
 		
 func _on_mana_changed(current: int, max: int) -> void:
 	mana_label.text = "💧 " + str(current) + " / " + str(max)
+	
+func _on_player_died() -> void:
+	show_end_screen("Défaite...")
+
+func _on_enemy_died() -> void:
+	show_end_screen("Victoire !")
+
+func show_end_screen(text: String) -> void:
+	combat_over = true
+	end_label.text = text
+	end_screen.visible = true
+	
+func _on_restart_pressed() -> void:
+	get_tree().reload_current_scene()

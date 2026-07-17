@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EncounterData" format=3 uid="uid://bvb8uvx2ovggf"]
+
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_hnj12"]
+[ext_resource type="Script" uid="uid://bfei241uvcs7d" path="res://script/combat/EncounterData.gd" id="2_2qa4j"]
+[ext_resource type="Resource" uid="uid://l4dks12vxa5d" path="res://ressourcesEncounters/emplacement_bouboule1.tres" id="2_vrsn1"]
+[ext_resource type="Resource" uid="uid://dhnl51xmjcmci" path="res://ressourcesEncounters/emplacement_bouboule2.tres" id="3_nmrjm"]
+[ext_resource type="Resource" uid="uid://c2iva1ggng5xa" path="res://ressourcesEncounters/emplacement_bouboule3.tres" id="4_dneg1"]
+
+[resource]
+script = ExtResource("2_2qa4j")
+enemies = Array[ExtResource("1_hnj12")]([ExtResource("2_vrsn1"), ExtResource("3_nmrjm"), ExtResource("4_dneg1")])
+metadata/_custom_type_script = "uid://bfei241uvcs7d"

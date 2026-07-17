@@ -31,9 +31,9 @@ offset_bottom = 96.84
 show_percentage = false
 
 [node name="HP" type="Label" parent="." unique_id=1215918533]
-offset_left = -17.0
+offset_left = -23.0
 offset_top = 81.0
-offset_right = 23.0
+offset_right = 17.0
 offset_bottom = 104.0
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1065179813]

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://dcdqyrnqmvurp"]
+
+[ext_resource type="Script" uid="uid://dy83y3f7mksi" path="res://script/combat/EnemyData.gd" id="1_qtt3b"]
+[ext_resource type="Texture2D" uid="uid://e1ecrkhdsv07" path="res://assets/monsters/poichon.png" id="2_65055"]
+
+[resource]
+script = ExtResource("1_qtt3b")
+enemy_name = "Poichon"
+max_hp = 15
+attack_power = 5
+defense_power = 10
+intention_sequence = Array[int]([0, 1, 1])
+sprite_texture = ExtResource("2_65055")
+enemy_scale = Vector2(0.4, 0.4)
+metadata/_custom_type_script = "uid://dy83y3f7mksi"

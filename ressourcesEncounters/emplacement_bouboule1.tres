@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EncounterEnemySlot" format=3 uid="uid://l4dks12vxa5d"]
+
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_1hnhu"]
+[ext_resource type="Resource" uid="uid://dksm2goule7qo" path="res://ressourcesMonsters/bouboules.tres" id="1_26kh8"]
+
+[resource]
+script = ExtResource("1_1hnhu")
+enemy_data = ExtResource("1_26kh8")
+intention_override = Array[int]([0, 1])
+metadata/_custom_type_script = "uid://ba7mmm8wptu1v"

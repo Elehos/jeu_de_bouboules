@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="EncounterEnemySlot" format=3 uid="uid://bjjmck6c7qsos"]
+
+[ext_resource type="Resource" uid="uid://dcdqyrnqmvurp" path="res://ressourcesMonsters/poichon.tres" id="1_1w0ew"]
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_15hg0"]
+
+[resource]
+script = ExtResource("1_15hg0")
+enemy_data = ExtResource("1_1w0ew")
+intention_override = Array[int]([1, 0])
+metadata/_custom_type_script = "uid://ba7mmm8wptu1v"

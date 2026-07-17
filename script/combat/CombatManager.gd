@@ -30,8 +30,13 @@ var enemies: Array[Enemy] = []
 signal turn_started(state: TurnState)
 signal turn_ended(state: TurnState)
 
+@export var possible_encounters: Array[EncounterData] = []
+var current_encounter: EncounterData
+
 
 func _ready() -> void:
+	current_encounter = possible_encounters.pick_random()
+	print("Combat choisi : ", current_encounter.encounter_name)
 	spawn_enemies()
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
@@ -174,19 +179,20 @@ func _on_discard_pile_input(event: InputEvent) -> void:
 		_on_discard_pile_clicked()
 
 func spawn_enemies() -> void:
-	var enemy_count = randi_range(1, 3)
+	var enemy_count: int = current_encounter.enemies.size()
 	print("Nombre d'ennemis à spawn : ", enemy_count)
 	
 	for i in range(enemy_count):
+		var slot: EncounterEnemySlot = current_encounter.enemies[i]
 		var new_enemy: Enemy = enemy_scene.instantiate()
+		new_enemy.enemy_data = slot.enemy_data
+		new_enemy.intention_override = slot.intention_override
 		world_root.add_child(new_enemy)
 		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
-		print("Ennemi ", i, " positionné à : ", new_enemy.global_position)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
 		new_enemy.damage_taken.connect(_on_damage_taken)
 
 func _compute_enemy_position(index: int, total: int) -> Vector2:
-	# Centre le groupe d'ennemis autour du point central, comme un flex justify-content: center
 	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing
 	return enemy_zone_center.global_position + Vector2(offset_x, 0)

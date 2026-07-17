@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://dksm2goule7qo"]
+
+[ext_resource type="Script" uid="uid://dy83y3f7mksi" path="res://script/combat/EnemyData.gd" id="1_7r04d"]
+[ext_resource type="Texture2D" uid="uid://srq2icnktsfk" path="res://assets/monsters/bouboules.png" id="2_35ncp"]
+
+[resource]
+script = ExtResource("1_7r04d")
+enemy_name = "Bouboule"
+attack_power = 5
+defense_power = 0
+intention_sequence = Array[int]([0, 1])
+sprite_texture = ExtResource("2_35ncp")
+enemy_scale = Vector2(0.4, 0.4)
+metadata/_custom_type_script = "uid://dy83y3f7mksi"

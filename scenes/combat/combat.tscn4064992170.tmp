@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" uid="uid://bnydw6h4io0og" path="res://scenes/combat/enemy.tscn" id="2_gwckk"]
 [ext_resource type="Texture2D" uid="uid://bhv2lbp7eivo3" path="res://assets/characters/hero.png" id="3_4voa6"]
 [ext_resource type="Resource" uid="uid://duq5m6wbqhsiq" path="res://ressourcesEncounters/encounter_1.tres" id="3_j3cqa"]
-[ext_resource type="Script" uid="uid://bfei241uvcs7d" path="res://script/combat/EncounterData.gd" id="3_rgm65"]
 [ext_resource type="Resource" uid="uid://dbsom1uj1qk7u" path="res://ressourcesEncounters/encounter_2.tres" id="4_rgm65"]
 [ext_resource type="Script" uid="uid://olrbvy74v182" path="res://script/cards/Hand.gd" id="5_4a6i5"]
 [ext_resource type="Resource" uid="uid://bvb8uvx2ovggf" path="res://ressourcesEncounters/encounter_3.tres" id="5_05d77"]
@@ -27,7 +26,7 @@ size = Vector2(276, 391)
 [node name="Combat" type="Node2D" unique_id=1943509951]
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
-possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
+possible_encounters = Array[Object]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 

@@ -8,7 +8,7 @@
 [ext_resource type="Script" uid="uid://olrbvy74v182" path="res://script/cards/Hand.gd" id="5_4a6i5"]
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="6_ijgaf"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
@@ -76,13 +76,13 @@ position = Vector2(474, 545.5)
 shape = SubResource("RectangleShape2D_ckr0i")
 
 [node name="EnemySlot1" type="Marker2D" parent="WorldRoot" unique_id=1229845398]
-position = Vector2(1385, 732)
+position = Vector2(1429, 560)
 
 [node name="EnemySlot2" type="Marker2D" parent="WorldRoot" unique_id=2047136660]
-position = Vector2(1481, 526)
+position = Vector2(1745, 566)
 
 [node name="EnemySlot3" type="Marker2D" parent="WorldRoot" unique_id=1664503013]
-position = Vector2(1175, 591)
+position = Vector2(1097, 559)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 
@@ -152,7 +152,7 @@ offset_bottom = 1011.0
 mouse_filter = 0
 
 [node name="CardListPopup" parent="UI" unique_id=577641462 instance=ExtResource("13_mrrmw")]
+metadata/_edit_lock_ = true
 
 [node name="TargetingArrow" type="Node2D" parent="UI" unique_id=1444779721]
 script = ExtResource("14_h2sm1")
-visible = false

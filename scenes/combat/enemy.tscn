@@ -11,7 +11,7 @@ size = Vector2(522, 384.5)
 
 [node name="Enemy" type="CharacterBody2D" unique_id=1414696823]
 script = ExtResource("1_dxtal")
-intention_sequence = Array[int]([0, 0, 0, 0])
+intention_sequence = Array[int]([1, 0, 1, 0])
 
 [node name="HPBarDelayed" type="ProgressBar" parent="." unique_id=820461938]
 offset_left = -175.0

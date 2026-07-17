@@ -13,6 +13,7 @@
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
+[ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -196,3 +197,6 @@ offset_bottom = 1011.0
 mouse_filter = 0
 
 [node name="CardListPopup" parent="UI" unique_id=577641462 instance=ExtResource("13_mrrmw")]
+
+[node name="TargetingArrow" type="Node2D" parent="UI" unique_id=1444779721]
+script = ExtResource("14_h2sm1")

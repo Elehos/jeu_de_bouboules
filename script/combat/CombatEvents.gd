@@ -9,6 +9,7 @@ signal targeting_started(card_data: CardData)
 signal targeting_cancelled
 
 var pending_card: Card = null
+var targeting_arrow: TargetingArrow = null
 
 @export var max_mana: int = 3
 var current_mana: int = max_mana
@@ -34,5 +35,7 @@ func cancel_targeting() -> void:
 
 func resolve_target(target: Character) -> void:
 	if pending_card:
+		if targeting_arrow:
+			targeting_arrow.hide_arrow()
 		pending_card.confirm_play(target)
 		pending_card = null

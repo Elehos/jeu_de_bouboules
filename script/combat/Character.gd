@@ -21,6 +21,7 @@ var fill_normal: StyleBoxFlat
 var fill_shielded: StyleBoxFlat
 
 signal died
+signal damage_taken(amount: int)
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -66,6 +67,7 @@ func take_damage(amount: int) -> void:
 		current_hp -= remaining_damage
 		current_hp = max(current_hp, 0)
 		show_damage_trail()
+		damage_taken.emit(remaining_damage)
 	
 	if current_hp <= 0:
 		die()

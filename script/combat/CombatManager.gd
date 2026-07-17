@@ -11,6 +11,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var player: Character = $Player
 @onready var enemy: Enemy = $Enemy
 @onready var end_turn_button: Button = $UI/EndTurnButton
+@onready var mana_label: Label = $UI/ManaLabel
 
 # Signaux émis pour prévenir d'autres scripts (UI, animations...) qu'un tour démarre/finit
 signal turn_started(state: TurnState)
@@ -21,20 +22,19 @@ func _ready() -> void:
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	CombatEvents.card_played.connect(_on_card_played)
+	CombatEvents.mana_changed.connect(_on_mana_changed)
 	start_turn(TurnState.PLAYER_TURN)
 
 
 func start_turn(state: TurnState) -> void:
-	# Met à jour l'état courant et prévient les autres scripts
 	current_state = state
 	turn_started.emit(state)
 	
-	# Déclenche l'action propre à ce tour
 	match state:
 		TurnState.PLAYER_TURN:
 			player.reset_block()
+			CombatEvents.refill_mana()
 		TurnState.ENEMY_TURN:
-			# L'ennemi joue automatiquement son tour
 			enemy.reset_block()
 			enemy_play_turn()
 
@@ -66,7 +66,8 @@ func _on_end_turn_pressed() -> void:
 func _on_turn_started(state: TurnState) -> void:
 	# Désactive le bouton "Fin de tour" sauf pendant le tour du joueur
 	end_turn_button.disabled = (state != TurnState.PLAYER_TURN)
-	
+
+
 func _on_card_played(card_data: CardData) -> void:
 	if current_state != TurnState.PLAYER_TURN:
 		return
@@ -76,3 +77,7 @@ func _on_card_played(card_data: CardData) -> void:
 	
 	if card_data.block > 0:
 		player.gain_block(card_data.block)
+		
+		
+func _on_mana_changed(current: int, max: int) -> void:
+	mana_label.text = "💧 " + str(current) + " / " + str(max)

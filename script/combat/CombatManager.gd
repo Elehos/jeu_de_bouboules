@@ -15,6 +15,8 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var end_screen: Panel = $UI/EndScreen
 @onready var end_label: Label = $UI/EndScreen/EndLabel
 @onready var restart_button: Button = $UI/EndScreen/RestartButton
+@onready var draw_count_label: Label = $UI/DrawCountLabel
+@onready var discard_count_label: Label = $UI/DiscardCountLabel
 
 var combat_over: bool = false
 
@@ -24,6 +26,7 @@ signal turn_ended(state: TurnState)
 
 
 func _ready() -> void:
+	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	CombatEvents.card_played.connect(_on_card_played)
@@ -42,6 +45,7 @@ func start_turn(state: TurnState) -> void:
 		TurnState.PLAYER_TURN:
 			player.reset_block()
 			CombatEvents.refill_mana()
+			CombatEvents.player_turn_started.emit()
 		TurnState.ENEMY_TURN:
 			enemy.reset_block()
 			enemy_play_turn()
@@ -106,3 +110,7 @@ func show_end_screen(text: String) -> void:
 	
 func _on_restart_pressed() -> void:
 	get_tree().reload_current_scene()
+
+func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
+	draw_count_label.text = "🂠 " + str(draw_count)
+	discard_count_label.text = "🗑 " + str(discard_count)

@@ -85,7 +85,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
-starting_cards = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("10_mrrmw")])
+deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk")])
 
 [node name="EndTurnButton" type="Button" parent="UI" unique_id=273793230]
 offset_left = 1614.0
@@ -121,3 +121,15 @@ layout_mode = 0
 offset_right = 120.0
 offset_bottom = 50.0
 text = "Recommencer"
+
+[node name="DrawCountLabel" type="Label" parent="UI" unique_id=2085056507]
+offset_left = 85.0
+offset_top = 844.0
+offset_right = 172.0
+offset_bottom = 898.0
+
+[node name="DiscardCountLabel" type="Label" parent="UI" unique_id=2023236194]
+offset_left = 1790.0
+offset_top = 945.0
+offset_right = 1874.0
+offset_bottom = 1011.0

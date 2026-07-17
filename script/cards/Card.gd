@@ -24,6 +24,7 @@ func play() -> void:
 		return
 	print("Carte jouée : ", card_data.card_name)
 	CombatEvents.card_played.emit(card_data)
+	DeckManager.discard_card(card_data)
 	queue_free()
 
 func _on_panel_gui_input(event: InputEvent) -> void:

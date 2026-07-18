@@ -86,21 +86,26 @@ position = Vector2(1450, 565)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 
-[node name="Cardzone" type="HBoxContainer" parent="UI" unique_id=312678830]
+[node name="Cardzone" type="Control" parent="UI" unique_id=1204767064]
+layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
 offset_left = -20.0
-offset_top = -95.94501
+offset_top = -214.67499
 offset_right = 20.0
-offset_bottom = -55.944702
+offset_bottom = -174.67474
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
 deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk")])
+cards_per_turn = 7
+card_spacing = 115.0
+max_angle = 10.0
+arc_height = 30.0
 
 [node name="EndTurnButton" type="Button" parent="UI" unique_id=273793230]
 offset_left = 1614.0

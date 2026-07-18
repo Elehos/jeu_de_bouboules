@@ -17,6 +17,9 @@
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 [ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
+[ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="18_05d77"]
+[ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="19_akrri"]
+[ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -28,6 +31,7 @@ size = Vector2(276, 391)
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
+metadata/_edit_horizontal_guides_ = [1022.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 
@@ -100,13 +104,13 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
-deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk")])
+deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf")])
 
 [node name="EndTurnButton" type="Button" parent="UI" unique_id=273793230]
 offset_left = 1614.0
-offset_top = 862.0
+offset_top = 840.0
 offset_right = 1814.0
-offset_bottom = 922.0
+offset_bottom = 900.0
 theme_override_font_sizes/font_size = 25
 text = "Fin de tour"
 
@@ -137,22 +141,60 @@ offset_right = 120.0
 offset_bottom = 50.0
 text = "Recommencer"
 
-[node name="DrawCountLabel" type="Label" parent="UI" unique_id=2085056507]
-offset_left = 85.0
-offset_top = 844.0
-offset_right = 172.0
-offset_bottom = 898.0
-mouse_filter = 0
-
-[node name="DiscardCountLabel" type="Label" parent="UI" unique_id=2023236194]
-offset_left = 1790.0
-offset_top = 945.0
-offset_right = 1874.0
-offset_bottom = 1011.0
-mouse_filter = 0
-
 [node name="CardListPopup" parent="UI" unique_id=577641462 instance=ExtResource("13_mrrmw")]
 metadata/_edit_lock_ = true
 
 [node name="TargetingArrow" type="Node2D" parent="UI" unique_id=1444779721]
 script = ExtResource("14_h2sm1")
+
+[node name="DrawPileIcon" type="Control" parent="UI" unique_id=1892586802]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 47.0
+offset_top = 941.0
+offset_right = 128.0
+offset_bottom = 1034.0
+
+[node name="Icon" type="TextureRect" parent="UI/DrawPileIcon" unique_id=1820839960]
+layout_mode = 0
+offset_right = 244.0
+offset_bottom = 329.0
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("18_05d77")
+
+[node name="DrawCountLabel" type="Label" parent="UI/DrawPileIcon" unique_id=2085056507]
+layout_mode = 0
+offset_left = 7.0
+offset_top = 17.0
+offset_right = 43.0
+offset_bottom = 71.0
+theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiscardPileIcon" type="Control" parent="UI" unique_id=484616843]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 1812.0
+offset_top = 940.0
+offset_right = 1881.0
+offset_bottom = 1026.0
+
+[node name="Icon" type="TextureRect" parent="UI/DiscardPileIcon" unique_id=1549924640]
+layout_mode = 0
+offset_right = 244.0
+offset_bottom = 329.0
+scale = Vector2(0.245, 0.245)
+texture = ExtResource("20_j11kn")
+
+[node name="DiscardCountLabel" type="Label" parent="UI/DiscardPileIcon" unique_id=2023236194]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 16.0
+offset_right = 45.0
+offset_bottom = 76.0
+theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+vertical_alignment = 1

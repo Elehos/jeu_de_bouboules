@@ -14,10 +14,12 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var end_screen: Panel = $UI/EndScreen
 @onready var end_label: Label = $UI/EndScreen/EndLabel
 @onready var restart_button: Button = $UI/EndScreen/RestartButton
-@onready var draw_count_label: Label = $UI/DrawCountLabel
-@onready var discard_count_label: Label = $UI/DiscardCountLabel
+@onready var draw_count_label: Label = $UI/DrawPileIcon/DrawCountLabel
+@onready var discard_count_label: Label = $UI/DiscardPileIcon/DiscardCountLabel
 @onready var world_root: Node2D = $WorldRoot
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
+@onready var draw_pile_icon: Control = $UI/DrawPileIcon
+@onready var discard_pile_icon: Control = $UI/DiscardPileIcon
 
 var combat_over: bool = false
 @onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
@@ -46,8 +48,8 @@ func _ready() -> void:
 	player.died.connect(_on_player_died)
 	restart_button.pressed.connect(_on_restart_pressed)
 	player.damage_taken.connect(_on_damage_taken)
-	draw_count_label.gui_input.connect(_on_draw_pile_input)
-	discard_count_label.gui_input.connect(_on_discard_pile_input)
+	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
+	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	start_turn(TurnState.PLAYER_TURN)
 
 
@@ -140,8 +142,8 @@ func _on_restart_pressed() -> void:
 	get_tree().reload_current_scene()
 
 func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
-	draw_count_label.text = "🂠 " + str(draw_count)
-	discard_count_label.text = "🗑 " + str(discard_count)
+	draw_count_label.text = str(draw_count)
+	discard_count_label.text = str(discard_count)
 	
 func _on_damage_taken(amount: int) -> void:
 	shake_screen(amount)

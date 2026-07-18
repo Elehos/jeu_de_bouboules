@@ -12,11 +12,17 @@ var dragging: bool = false
 var drag_start_mouse: Vector2
 var drag_start_position: Vector2
 var drag_start_local_position: Vector2
-
+var base_z_index: int = 0
 @export var hover_scale: float = 1.15
 
 const DRAG_THRESHOLD: float = 200.0
 var interactive: bool = true
+
+# Pour stocker la rotation de base
+var base_rotation_degrees: float = 0.0
+var base_position: Vector2 = Vector2.ZERO
+@export var hover_lift: float = 60.0  # ajuste selon ce qui te plaît visuellement
+var hover_target_y: float = 0.0
 
 enum CardState { IDLE, DRAGGING, AWAITING_TARGET, PLAYED }
 var state: CardState = CardState.IDLE
@@ -48,17 +54,22 @@ func set_interactive(value: bool) -> void:
 		_update_affordability()
 
 # --- Grossissement / rétrécissement ---
-func _grow() -> void:
-	pivot_offset = Vector2(size.x / 2, size.y)
+func _grow(lift_position: bool = true) -> void:
 	z_index = 1
 	var tween: Tween = create_tween()
+	tween.set_parallel(true)
 	tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
+	tween.tween_property(self, "rotation_degrees", 0.0, 0.15)
+	if lift_position:
+		tween.tween_property(self, "position:y", hover_target_y, 0.06)
 
 func _shrink() -> void:
-	pivot_offset = Vector2(size.x / 2, size.y)
 	var tween: Tween = create_tween()
+	tween.set_parallel(true)
 	tween.tween_property(self, "scale", Vector2.ONE, 0.15)
-	tween.tween_callback(func(): z_index = 0)
+	tween.tween_property(self, "rotation_degrees", base_rotation_degrees, 0.15)
+	tween.tween_property(self, "position:y", base_position.y, 0.15)
+	tween.chain().tween_callback(func(): z_index = base_z_index)
 
 func _on_mouse_entered() -> void:
 	if interactive and state == CardState.IDLE:
@@ -129,7 +140,7 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			state = CardState.DRAGGING
-			_grow()
+			_grow(false)
 			dragging = true
 			
 			if card_data.requires_target:
@@ -174,7 +185,6 @@ func _end_drag() -> void:
 func _return_to_hand() -> void:
 	top_level = false
 	position = drag_start_local_position
-	get_parent().queue_sort()
 
 func _find_target_under_mouse() -> Character:
 	var space_state := get_viewport().get_world_2d().direct_space_state
@@ -195,6 +205,8 @@ func _has_dragged_far_enough() -> bool:
 	return delta.y < -DRAG_THRESHOLD
 
 func _update_affordability() -> void:
+	if not interactive or not card_data:
+		return
 	if not interactive:
 		return
 	if state == CardState.AWAITING_TARGET or state == CardState.PLAYED:

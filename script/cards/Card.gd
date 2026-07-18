@@ -4,10 +4,10 @@ class_name Card
 @export var card_data: CardData
 
 @onready var panel: Panel = $Panel
-@onready var name_label: Label = $Panel/VBoxContainer/CardName
-@onready var cost_label: Label = $Panel/VBoxContainer/CardCost
-@onready var description_label: Label = $Panel/VBoxContainer/CardDescription
-
+@onready var name_label: Label = $Panel/CardName
+@onready var cost_label: Label = $Panel/CardCost
+@onready var description_label: Label = $Panel/CardDescription
+@export var card_name_max_width: float = 100.0
 var dragging: bool = false
 var drag_start_mouse: Vector2
 var drag_start_position: Vector2
@@ -35,8 +35,10 @@ func _ready() -> void:
 func update_display() -> void:
 	if card_data:
 		name_label.text = card_data.card_name
+		_fit_label_text(name_label, card_name_max_width)
 		cost_label.text = str(card_data.cost)
 		description_label.text = card_data.description
+
 
 func set_interactive(value: bool) -> void:
 	interactive = value
@@ -202,3 +204,11 @@ func _update_affordability() -> void:
 
 func _on_mana_changed(_current: int, _max: int) -> void:
 	_update_affordability()
+
+func _fit_label_text(label: Label, max_width: float, max_font_size: int = 20, min_font_size: int = 8) -> void:
+	var font_size = max_font_size
+	label.add_theme_font_size_override("font_size", font_size)
+	
+	while label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x > max_width and font_size > min_font_size:
+		font_size -= 1
+		label.add_theme_font_size_override("font_size", font_size)

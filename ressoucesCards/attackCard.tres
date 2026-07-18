@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_74i71")
-card_name = "Attaque de base"
+card_name = "Attaque de base très long"
 description = "Fait 3 de dégats"
 damage = 95
 requires_target = true

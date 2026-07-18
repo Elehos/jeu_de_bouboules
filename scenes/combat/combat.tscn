@@ -32,6 +32,7 @@ possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), Ext
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 
 [node name="ReferenceBackground" type="Sprite2D" parent="WorldRoot" unique_id=1691740053]
+visible = false
 modulate = Color(1, 1, 1, 0.36078432)
 position = Vector2(960, 540)
 texture = ExtResource("1_ltalu")
@@ -42,37 +43,38 @@ script = ExtResource("1_5vqsm")
 
 [node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Player" unique_id=1523442336]
 offset_left = 393.0
-offset_top = 752.0
+offset_top = 648.0
 offset_right = 558.0
-offset_bottom = 761.0
+offset_bottom = 657.0
 theme_override_styles/fill = SubResource("StyleBoxFlat_mrrmw")
 show_percentage = false
 
 [node name="HPBar" type="ProgressBar" parent="WorldRoot/Player" unique_id=571146498]
 offset_left = 392.0
-offset_top = 752.0
+offset_top = 648.0
 offset_right = 560.0
-offset_bottom = 761.0
+offset_bottom = 657.0
 show_percentage = false
 
 [node name="HP" type="Label" parent="WorldRoot/Player" unique_id=2021964912]
 offset_left = 455.0
-offset_top = 745.0
+offset_top = 641.0
 offset_right = 495.0
-offset_bottom = 768.0
+offset_bottom = 664.0
 
 [node name="Sprite2D" type="Sprite2D" parent="WorldRoot/Player" unique_id=1110491526]
-position = Vector2(481.99997, 562)
+position = Vector2(481.99997, 458)
 scale = Vector2(0.26012462, 0.26012462)
 texture = ExtResource("3_4voa6")
 
 [node name="Block" type="Label" parent="WorldRoot/Player" unique_id=138433327]
 offset_left = 564.0
-offset_top = 754.0
+offset_top = 650.0
 offset_right = 604.0
-offset_bottom = 777.0
+offset_bottom = 673.0
 
 [node name="ClickArea" type="Area2D" parent="WorldRoot/Player" unique_id=517369035]
+position = Vector2(0, -104)
 collision_layer = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldRoot/Player/ClickArea" unique_id=1492985134]

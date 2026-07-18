@@ -7,7 +7,7 @@ class_name Card
 @onready var name_label: Label = $Panel/CardName
 @onready var cost_label: Label = $Panel/CardCost
 @onready var description_label: Label = $Panel/CardDescription
-@export var card_name_max_width: float = 100.0
+@export var card_name_max_width: float = 98.775
 var dragging: bool = false
 var drag_start_mouse: Vector2
 var drag_start_position: Vector2
@@ -205,7 +205,7 @@ func _update_affordability() -> void:
 func _on_mana_changed(_current: int, _max: int) -> void:
 	_update_affordability()
 
-func _fit_label_text(label: Label, max_width: float, max_font_size: int = 20, min_font_size: int = 8) -> void:
+func _fit_label_text(label: Label, max_width: float, max_font_size: int = 10, min_font_size: int = 8) -> void:
 	var font_size = max_font_size
 	label.add_theme_font_size_override("font_size", font_size)
 	

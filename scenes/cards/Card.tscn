@@ -41,25 +41,26 @@ texture = ExtResource("2_5xlns")
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
 offset_left = 127.0
-offset_top = 19.0
-offset_right = 156.0
-offset_bottom = 49.0
+offset_top = 20.0
+offset_right = 155.0
+offset_bottom = 48.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
 offset_transform_position = Vector2(-15, 3)
 theme_override_fonts/font = ExtResource("3_5xlns")
+theme_override_font_sizes/font_size = 17
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_trim_flags = 0
 
 [node name="CardName" type="Label" parent="Panel" unique_id=1475386707]
-custom_minimum_size = Vector2(98.775, 11)
-custom_maximum_size = Vector2(100, 20)
+custom_minimum_size = Vector2(98.775, 23)
+custom_maximum_size = Vector2(98.775, 23)
 layout_mode = 0
-offset_left = 23.0
+offset_left = 25.224998
 offset_top = 104.0
-offset_right = 123.0
-offset_bottom = 124.0
+offset_right = 124.0
+offset_bottom = 127.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 offset_transform_enabled = true
@@ -71,7 +72,7 @@ clip_text = true
 [node name="CardDescription" type="Label" parent="Panel" unique_id=86117268]
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 0
-offset_left = 16.0
+offset_left = 19.0
 offset_top = 142.0
 offset_right = 130.0
 offset_bottom = 196.0

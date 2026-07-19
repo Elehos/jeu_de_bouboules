@@ -11,7 +11,9 @@
 [ext_resource type="Resource" uid="uid://bvb8uvx2ovggf" path="res://ressourcesEncounters/encounter_3.tres" id="5_05d77"]
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="6_ijgaf"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d1uw6tjyj3h3d" path="res://scenes/ui/damage_number.tscn" id="7_xt4lv"]
+[ext_resource type="Texture2D" uid="uid://c0dkpritmuasc" path="res://assets/backgrounds/landscape.png" id="8_crn1f"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
@@ -33,9 +35,16 @@ size = Vector2(276, 391)
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
+damage_number_scene = ExtResource("7_xt4lv")
 metadata/_edit_horizontal_guides_ = [1030.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
+
+[node name="Background" type="Sprite2D" parent="WorldRoot" unique_id=376794718]
+visible = false
+position = Vector2(963, 540)
+scale = Vector2(1.3186814, 1.25)
+texture = ExtResource("8_crn1f")
 
 [node name="ReferenceBackground" type="Sprite2D" parent="WorldRoot" unique_id=1691740053]
 visible = false
@@ -45,46 +54,46 @@ texture = ExtResource("1_ltalu")
 metadata/_edit_lock_ = true
 
 [node name="Player" type="CharacterBody2D" parent="WorldRoot" unique_id=1391993159]
+position = Vector2(480, 450)
 script = ExtResource("1_5vqsm")
 
 [node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Player" unique_id=1523442336]
-offset_left = 393.0
-offset_top = 648.0
-offset_right = 558.0
-offset_bottom = 657.0
+offset_left = -85.0
+offset_top = 200.0
+offset_right = 80.0
+offset_bottom = 209.0
 theme_override_styles/fill = SubResource("StyleBoxFlat_mrrmw")
 show_percentage = false
 
 [node name="HPBar" type="ProgressBar" parent="WorldRoot/Player" unique_id=571146498]
-offset_left = 392.0
-offset_top = 648.0
-offset_right = 560.0
-offset_bottom = 657.0
+offset_left = -85.0
+offset_top = 200.0
+offset_right = 83.0
+offset_bottom = 209.0
 show_percentage = false
 
 [node name="HP" type="Label" parent="WorldRoot/Player" unique_id=2021964912]
-offset_left = 455.0
-offset_top = 641.0
-offset_right = 495.0
-offset_bottom = 664.0
+offset_left = -31.0
+offset_top = 193.0
+offset_right = 9.0
+offset_bottom = 216.0
 
 [node name="Sprite2D" type="Sprite2D" parent="WorldRoot/Player" unique_id=1110491526]
-position = Vector2(481.99997, 458)
 scale = Vector2(0.37, 0.37)
 texture = ExtResource("9_j11kn")
 
 [node name="Block" type="Label" parent="WorldRoot/Player" unique_id=138433327]
-offset_left = 564.0
-offset_top = 650.0
-offset_right = 604.0
-offset_bottom = 673.0
+offset_left = -140.0
+offset_top = 200.0
+offset_right = -100.0
+offset_bottom = 223.0
 
 [node name="ClickArea" type="Area2D" parent="WorldRoot/Player" unique_id=517369035]
 position = Vector2(0, -104)
 collision_layer = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WorldRoot/Player/ClickArea" unique_id=1492985134]
-position = Vector2(474, 545.5)
+position = Vector2(5, 118)
 shape = SubResource("RectangleShape2D_ckr0i")
 
 [node name="EnemyZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=865605184]

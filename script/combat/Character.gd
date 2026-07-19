@@ -72,6 +72,7 @@ func take_damage(amount: int) -> void:
 		current_hp = max(current_hp, 0)
 		show_damage_trail()
 		damage_taken.emit(remaining_damage)
+		CombatEvents.damage_taken.emit(self, remaining_damage)
 	
 	if current_hp <= 0:
 		die()

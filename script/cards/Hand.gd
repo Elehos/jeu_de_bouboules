@@ -7,7 +7,7 @@ class_name Hand
 @export var hover_lift: float = 60.0
 
 # Réglages de l'éventail
-@export var card_spacing: float = 110.0      # distance horizontale entre cartes
+@export var card_spacing: float = 120.0      # distance horizontale entre cartes
 @export var max_angle: float = 25.0          # angle max (en degrés) sur les cartes des extrémités
 @export var arc_height: float = 40.0         # hauteur de la courbe (plus haut au centre ou sur les bords)
 
@@ -49,6 +49,8 @@ func _update_hand_layout() -> void:
 	if count == 0:
 		return
 	
+	print("Hand size: ", size, " | global_position: ", global_position)
+	
 	var center_index: float = (count - 1) / 2.0
 	var hover_target_y: float = size.y / 2 - hover_lift
 	
@@ -58,18 +60,17 @@ func _update_hand_layout() -> void:
 		card.z_index = -i
 		var offset_from_center: float = i - center_index
 		
-		# Position horizontale : centrée, espacée régulièrement
 		var x: float = offset_from_center * card_spacing
 		
-		# Courbe : les cartes sur les bords remontent légèrement (parabole)
 		var normalized: float = offset_from_center / max(center_index, 1.0)
 		var y: float = arc_height * pow(normalized, 2)
 		
-		# Rotation : plus on s'éloigne du centre, plus l'angle est prononcé
 		var rotation_deg: float = normalized * max_angle
 		card.pivot_offset = Vector2(card.size.x / 2, card.size.y)
 		
-		var target_pos: Vector2 = Vector2(x, y) + size / 2  # centré dans CardZone
+		var target_pos: Vector2 = Vector2(x, y) + size / 2 - card.size / 2
+		
+		print("Carte ", i, "/", count, " | offset: ", offset_from_center, " | x local: ", x, " | target_pos: ", target_pos)
 		
 		var tween: Tween = create_tween()
 		tween.set_parallel(true)

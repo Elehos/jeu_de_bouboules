@@ -10,7 +10,8 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
 @onready var player: Character = $WorldRoot/Player
 @onready var end_turn_button: Button = $UI/EndTurnButton
-@onready var mana_label: Label = $UI/ManaLabel
+@onready var current_mana_label: Label = $UI/ManaIcon/ManaLabel/CurrentManaLabel
+@onready var max_mana_label: Label = $UI/ManaIcon/ManaLabel/MaxManaLabel
 @onready var end_screen: Panel = $UI/EndScreen
 @onready var end_label: Label = $UI/EndScreen/EndLabel
 @onready var restart_button: Button = $UI/EndScreen/RestartButton
@@ -51,6 +52,7 @@ func _ready() -> void:
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	start_turn(TurnState.PLAYER_TURN)
+	
 
 
 func start_turn(state: TurnState) -> void:
@@ -115,7 +117,8 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 		
 		
 func _on_mana_changed(current: int, max: int) -> void:
-	mana_label.text = "💧 " + str(current) + " / " + str(max)
+	current_mana_label.text = str(current)
+	max_mana_label.text = str(max)
 	
 func _on_player_died() -> void:
 	show_end_screen("Défaite...")

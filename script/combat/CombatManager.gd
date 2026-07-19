@@ -35,9 +35,10 @@ signal turn_ended(state: TurnState)
 
 @export var possible_encounters: Array[EncounterData] = []
 var current_encounter: EncounterData
-
+@export var damage_number_scene: PackedScene  # glisse DamageNumber.tscn dans l'Inspecteur
 
 func _ready() -> void:
+	CombatEvents.damage_taken.connect(_on_damage_taken)
 	current_encounter = possible_encounters.pick_random()
 	print("Combat choisi : ", current_encounter.encounter_name)
 	spawn_enemies()
@@ -148,7 +149,13 @@ func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	draw_count_label.text = str(draw_count)
 	discard_count_label.text = str(discard_count)
 	
-func _on_damage_taken(amount: int) -> void:
+
+func _on_damage_taken(character: Character, amount: int) -> void:
+	print("Damage number pour : ", character.name, " montant : ", amount)
+	var number_instance: DamageNumber = damage_number_scene.instantiate()
+	get_tree().current_scene.add_child(number_instance)
+	number_instance.global_position = character.global_position + Vector2(0, -80)
+	number_instance.set_amount(amount)
 	shake_screen(amount)
 
 func shake_screen(amount: int) -> void:

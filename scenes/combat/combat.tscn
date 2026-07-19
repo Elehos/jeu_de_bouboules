@@ -12,7 +12,7 @@
 [ext_resource type="Resource" uid="uid://bvb8uvx2ovggf" path="res://ressourcesEncounters/encounter_3.tres" id="5_05d77"]
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="6_ijgaf"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="10_mrrmw"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
@@ -20,6 +20,8 @@
 [ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="18_05d77"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="19_akrri"]
 [ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
+[ext_resource type="Texture2D" uid="uid://dfdw2ai6ys5cm" path="res://assets/ui/mana_count.png" id="21_qs84n"]
+[ext_resource type="FontFile" uid="uid://cweuoumjq3fpl" path="res://assets/fonts/GeneralSans-Regular.otf" id="22_08wqo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -31,7 +33,7 @@ size = Vector2(276, 391)
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
-metadata/_edit_horizontal_guides_ = [1022.0]
+metadata/_edit_horizontal_guides_ = [1030.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 
@@ -97,17 +99,16 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -20.0
-offset_top = -214.67499
-offset_right = 20.0
-offset_bottom = -174.67474
+offset_left = -634.0
+offset_top = -236.0
+offset_right = 634.0
 grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
-deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk")])
-cards_per_turn = 7
-card_spacing = 115.0
+deck_data = Array[ExtResource("7_3dmww")]([ExtResource("6_ijgaf"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("9_gwckk"), ExtResource("10_mrrmw"), ExtResource("6_ijgaf"), ExtResource("10_mrrmw")])
+cards_per_turn = 10
+card_spacing = 140.0
 max_angle = 10.0
 arc_height = 30.0
 
@@ -118,13 +119,6 @@ offset_right = 1814.0
 offset_bottom = 900.0
 theme_override_font_sizes/font_size = 25
 text = "Fin de tour"
-
-[node name="ManaLabel" type="Label" parent="UI" unique_id=612282739]
-offset_left = 132.0
-offset_top = 877.0
-offset_right = 172.0
-offset_bottom = 900.0
-theme_override_font_sizes/font_size = 26
 
 [node name="EndScreen" type="Panel" parent="UI" unique_id=1208711910]
 visible = false
@@ -156,9 +150,9 @@ script = ExtResource("14_h2sm1")
 layout_mode = 3
 anchors_preset = 0
 offset_left = 47.0
-offset_top = 941.0
-offset_right = 128.0
-offset_bottom = 1034.0
+offset_top = 951.0
+offset_right = 105.0
+offset_bottom = 1030.0
 
 [node name="Icon" type="TextureRect" parent="UI/DrawPileIcon" unique_id=1820839960]
 layout_mode = 0
@@ -182,9 +176,9 @@ vertical_alignment = 1
 layout_mode = 3
 anchors_preset = 0
 offset_left = 1812.0
-offset_top = 940.0
-offset_right = 1881.0
-offset_bottom = 1026.0
+offset_top = 949.0
+offset_right = 1874.0
+offset_bottom = 1030.0
 
 [node name="Icon" type="TextureRect" parent="UI/DiscardPileIcon" unique_id=1549924640]
 layout_mode = 0
@@ -203,3 +197,43 @@ theme_override_fonts/font = ExtResource("19_akrri")
 theme_override_font_sizes/font_size = 30
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="ManaIcon" type="Control" parent="UI" unique_id=2078743672]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 54.0
+offset_top = 776.0
+offset_right = 161.0
+offset_bottom = 883.0
+
+[node name="Icon" type="TextureRect" parent="UI/ManaIcon" unique_id=889670759]
+layout_mode = 0
+offset_right = 176.0
+offset_bottom = 176.0
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("21_qs84n")
+
+[node name="ManaLabel" type="HBoxContainer" parent="UI/ManaIcon" unique_id=788055940]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 11.0
+offset_right = 95.0
+offset_bottom = 91.0
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="CurrentManaLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=813814025]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_font_sizes/font_size = 39
+
+[node name="SlashLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=1933476839]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("22_08wqo")
+theme_override_font_sizes/font_size = 39
+text = "/"
+
+[node name="MaxManaLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=1273605751]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_font_sizes/font_size = 39

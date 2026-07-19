@@ -11,39 +11,37 @@
 font_size = 11
 
 [node name="Card" type="Control" unique_id=97315397]
-custom_minimum_size = Vector2(150, 200)
+custom_minimum_size = Vector2(240, 300)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
+offset_right = 240.0
+offset_bottom = 317.0
 script = ExtResource("1_fa4yn")
 
 [node name="Panel" type="Panel" parent="." unique_id=1847458020]
+custom_minimum_size = Vector2(240, 300)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 9.0
-offset_bottom = 14.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
 layout_mode = 0
-offset_left = -5.0
-offset_top = -3.0
-offset_right = 813.0
-offset_bottom = 1081.0
+offset_top = 0.99999934
+offset_right = 1189.9999
+offset_bottom = 1577.9683
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("2_5xlns")
 
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
-offset_left = 127.0
-offset_top = 20.0
-offset_right = 155.0
-offset_bottom = 48.0
+offset_left = 161.0
+offset_top = 29.0
+offset_right = 194.0
+offset_bottom = 63.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
 offset_transform_position = Vector2(-15, 3)
@@ -54,17 +52,18 @@ vertical_alignment = 1
 autowrap_trim_flags = 0
 
 [node name="CardName" type="Label" parent="Panel" unique_id=1475386707]
-custom_minimum_size = Vector2(98.775, 23)
-custom_maximum_size = Vector2(98.775, 23)
+custom_minimum_size = Vector2(110, 28)
+custom_maximum_size = Vector2(110, 28)
 layout_mode = 0
-offset_left = 25.224998
-offset_top = 104.0
-offset_right = 124.0
-offset_bottom = 127.0
+offset_left = 42.0
+offset_top = 131.0
+offset_right = 152.0
+offset_bottom = 160.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 offset_transform_enabled = true
 theme_override_fonts/font = ExtResource("3_5xlns")
+theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
@@ -72,11 +71,12 @@ clip_text = true
 [node name="CardDescription" type="Label" parent="Panel" unique_id=86117268]
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 0
-offset_left = 19.0
-offset_top = 142.0
-offset_right = 130.0
-offset_bottom = 196.0
+offset_left = 33.0
+offset_top = 176.0
+offset_right = 161.0
+offset_bottom = 245.0
 theme_override_fonts/font = ExtResource("4_m2018")
+theme_override_font_sizes/font_size = 18
 label_settings = SubResource("LabelSettings_h2sm1")
 horizontal_alignment = 1
 vertical_alignment = 1

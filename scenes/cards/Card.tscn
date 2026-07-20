@@ -30,18 +30,19 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
 layout_mode = 0
-offset_top = 0.99999934
-offset_right = 1189.9999
-offset_bottom = 1577.9683
+offset_left = -9.999999
+offset_top = 1.9999998
+offset_right = 1179.9999
+offset_bottom = 1578.9683
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("2_5xlns")
 
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
-offset_left = 161.0
-offset_top = 29.0
-offset_right = 194.0
-offset_bottom = 63.0
+offset_left = 185.0
+offset_top = 38.0
+offset_right = 218.0
+offset_bottom = 72.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
 offset_transform_position = Vector2(-15, 3)
@@ -55,10 +56,10 @@ autowrap_trim_flags = 0
 custom_minimum_size = Vector2(110, 28)
 custom_maximum_size = Vector2(110, 28)
 layout_mode = 0
-offset_left = 42.0
-offset_top = 131.0
-offset_right = 152.0
-offset_bottom = 160.0
+offset_left = 48.0
+offset_top = 159.0
+offset_right = 158.0
+offset_bottom = 187.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 offset_transform_enabled = true
@@ -71,10 +72,10 @@ clip_text = true
 [node name="CardDescription" type="Label" parent="Panel" unique_id=86117268]
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 0
-offset_left = 33.0
-offset_top = 176.0
-offset_right = 161.0
-offset_bottom = 245.0
+offset_left = 39.0
+offset_top = 217.0
+offset_right = 167.0
+offset_bottom = 286.0
 theme_override_fonts/font = ExtResource("4_m2018")
 theme_override_font_sizes/font_size = 18
 label_settings = SubResource("LabelSettings_h2sm1")

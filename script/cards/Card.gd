@@ -13,7 +13,6 @@ var drag_start_mouse: Vector2
 var drag_start_position: Vector2
 var drag_start_local_position: Vector2
 var base_z_index: int = 0
-@export var hover_scale: float = 1.15
 
 const DRAG_THRESHOLD: float = 200.0
 var interactive: bool = true
@@ -26,6 +25,14 @@ var hover_target_y: float = 0.0
 
 enum CardState { IDLE, DRAGGING, AWAITING_TARGET, PLAYED }
 var state: CardState = CardState.IDLE
+
+@export var hover_scale: float = 1.3
+@export var hover_screen_margin: float = 100.0
+
+var pre_hover_position: Vector2
+var active_tween: Tween
+
+@export var hover_x_offset: float = -30.0
 
 
 func _ready() -> void:
@@ -53,31 +60,60 @@ func set_interactive(value: bool) -> void:
 	else:
 		_update_affordability()
 
-# --- Grossissement / rétrécissement ---
-func _grow(lift_position: bool = true) -> void:
+func _grow() -> void:
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+	
+	pivot_offset = Vector2(size.x / 2, size.y)
 	z_index = 1
-	var tween: Tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
-	tween.tween_property(self, "rotation_degrees", 0.0, 0.15)
-	if lift_position:
-		tween.tween_property(self, "position:y", hover_target_y, 0.06)
+	
+	var viewport_height: float = get_viewport_rect().size.y
+	var target_global_y: float = viewport_height - hover_screen_margin - size.y
+	var target_global_x: float = get_parent().global_position.x + base_position.x + hover_x_offset
+	var target_global_pos: Vector2 = Vector2(target_global_x, target_global_y)
+	
+	active_tween = create_tween()
+	active_tween.set_parallel(true)
+	active_tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
+	active_tween.tween_property(self, "global_position", target_global_pos, 0.15)
+	active_tween.tween_property(self, "rotation_degrees", 0.0, 0.15)
 
 func _shrink() -> void:
-	var tween: Tween = create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.15)
-	tween.tween_property(self, "rotation_degrees", base_rotation_degrees, 0.15)
-	tween.tween_property(self, "position:y", base_position.y, 0.15)
-	tween.chain().tween_callback(func(): z_index = base_z_index)
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+	
+	z_index = base_z_index
+	pivot_offset = Vector2(size.x / 2, size.y)
+	
+	active_tween = create_tween()
+	active_tween.set_parallel(true)
+	active_tween.tween_property(self, "scale", Vector2.ONE, 0.15)
+	active_tween.tween_property(self, "position", base_position, 0.15)
+	active_tween.tween_property(self, "rotation_degrees", base_rotation_degrees, 0.15)
+	
+func move_to_base(duration: float = 0.15) -> void:
+	if active_tween and active_tween.is_valid():
+		active_tween.kill()
+	
+	active_tween = create_tween()
+	active_tween.set_parallel(true)
+	active_tween.tween_property(self, "position", base_position, duration)
+	active_tween.tween_property(self, "rotation_degrees", base_rotation_degrees, duration)
+	active_tween.tween_property(self, "scale", Vector2.ONE, duration)
 
 func _on_mouse_entered() -> void:
 	if interactive and state == CardState.IDLE:
 		_grow()
+		var hand = get_parent()
+		if hand and hand.has_method("set_hovered_index"):
+			hand.set_hovered_index(get_index())
 
 func _on_mouse_exited() -> void:
 	if interactive and state == CardState.IDLE:
 		_shrink()
+		var hand = get_parent()
+		if hand and hand.has_method("set_hovered_index"):
+			hand.set_hovered_index(-1)
 
 # --- Ciblage ---
 func _on_targeting_started(_data: CardData) -> void:
@@ -140,7 +176,7 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			state = CardState.DRAGGING
-			_grow(false)
+			_grow()
 			dragging = true
 			
 			if card_data.requires_target:

@@ -21,7 +21,7 @@ class_name Hand
 
 var cards: Array[Card] = []
 
-var hovered_index: int = -1
+var hovered_card: Card = null
 @export var push_strength: float = 0.5  # 50% de l'effet de remplacement complet
 @export var push_falloff_range: int = 3  # nombre de cartes affectées de chaque côté
 
@@ -39,6 +39,7 @@ func add_card(data: CardData) -> void:
 	_update_hand_layout()
 
 func discard_hand() -> void:
+	hovered_card = null
 	for card_instance in cards:
 		if is_instance_valid(card_instance) and card_instance.get_parent() == self:
 			DeckManager.discard_card(card_instance.card_data)
@@ -57,9 +58,15 @@ func new_turn() -> void:
 
 func _update_hand_layout() -> void:
 	cards = cards.filter(func(c): return is_instance_valid(c) and c.get_parent() == self)
-	var count: int = cards.size()
+	
+	# Seules les cartes "au repos" participent au calcul de l'éventail —
+	# celles en cours de clic/glisser/ciblage sont exclues, donc les autres se resserrent
+	var settled: Array[Card] = cards.filter(func(c): return c.state == Card.CardState.IDLE)
+	var count: int = settled.size()
 	if count == 0:
 		return
+	
+	var hovered_i: int = settled.find(hovered_card)
 	
 	var params: Dictionary = _compute_dynamic_params(count)
 	var current_max_angle: float = params["angle"]
@@ -68,14 +75,13 @@ func _update_hand_layout() -> void:
 	var center_index: float = (count - 1) / 2.0
 	
 	for i in range(count):
-		var card: Card = cards[i]
-		card.base_z_index = -i
+		var card: Card = settled[i]
 		var offset_from_center: float = i - center_index
 		
 		var x: float = offset_from_center * card_spacing
 		
-		if hovered_index >= 0 and i != hovered_index:
-			var distance: int = i - hovered_index
+		if hovered_i >= 0 and i != hovered_i:
+			var distance: int = i - hovered_i
 			var direction: float = sign(distance)
 			var falloff: float = clamp(1.0 - (abs(distance) - 1) / float(push_falloff_range), 0.0, 1.0)
 			x += direction * card_spacing * push_strength * falloff
@@ -91,17 +97,16 @@ func _update_hand_layout() -> void:
 		card.base_position = target_pos
 		card.base_rotation_degrees = rotation_deg
 		
-		if i == hovered_index:
+		if i == hovered_i:
 			continue
 		
-		if card.state == Card.CardState.IDLE:
-			card.z_index = -i
-			card.move_to_base()
+		card.z_index = -i
+		card.move_to_base()
 
 func _on_card_played(_card_data: CardData, _target: Character) -> void:
-	# On retire la carte jouée après un court délai (le temps de son animation)
 	await get_tree().create_timer(0.1).timeout
 	cards = cards.filter(func(c): return is_instance_valid(c))
+	hovered_card = null
 	_update_hand_layout()
 	
 func _compute_dynamic_params(count: int) -> Dictionary:
@@ -113,6 +118,6 @@ func _compute_dynamic_params(count: int) -> Dictionary:
 		"arc": lerp(min_arc_height, max_arc_height, t)
 	}
 
-func set_hovered_index(index: int) -> void:
-	hovered_index = index
+func set_hovered_card(card: Card) -> void:
+	hovered_card = card
 	_update_hand_layout()

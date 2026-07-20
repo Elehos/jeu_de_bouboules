@@ -6,9 +6,10 @@ var source_card: Control = null
 var currently_highlighted: Enemy = null
 
 const ARROW_COLOR: Color = Color(0.9, 0.15, 0.15)
-const ARROW_WIDTH: float = 5.0
+const MIN_WIDTH: float = 2.0
+const MAX_WIDTH: float = 10.0
 const CURVE_HEIGHT: float = 100.0
-const ARROW_HEAD_SIZE: float = 18.0
+const ARROW_HEAD_SIZE: float = 22.0
 const SEGMENTS: int = 24
 
 
@@ -43,7 +44,6 @@ func _draw() -> void:
 	var start_point: Vector2 = to_local(source_card.global_position + (source_card.size * source_card.scale) / 2.0)
 	var end_point: Vector2 = to_local(get_global_mouse_position())
 	
-	# Point de contrôle pour une courbe douce vers le haut
 	var control_point: Vector2 = (start_point + end_point) / 2.0 + Vector2(0, -CURVE_HEIGHT)
 	
 	var points: PackedVector2Array = []
@@ -53,9 +53,31 @@ func _draw() -> void:
 		var b: Vector2 = control_point.lerp(end_point, t)
 		points.append(a.lerp(b, t))
 	
-	draw_polyline(points, ARROW_COLOR, ARROW_WIDTH, true)
+	# Construit un ruban dont la largeur augmente progressivement vers la pointe
+	var left_edge: PackedVector2Array = []
+	var right_edge: PackedVector2Array = []
 	
-	# Pointe de flèche à l'extrémité
+	for i in range(points.size()):
+		var t: float = float(i) / (points.size() - 1)
+		var width: float = lerp(MIN_WIDTH, MAX_WIDTH, t)
+		
+		var dir: Vector2
+		if i == 0:
+			dir = (points[1] - points[0]).normalized()
+		elif i == points.size() - 1:
+			dir = (points[i] - points[i - 1]).normalized()
+		else:
+			dir = (points[i + 1] - points[i - 1]).normalized()
+		
+		var perpendicular: Vector2 = Vector2(-dir.y, dir.x)
+		left_edge.append(points[i] + perpendicular * width / 2.0)
+		right_edge.append(points[i] - perpendicular * width / 2.0)
+	
+	right_edge.reverse()
+	var ribbon: PackedVector2Array = left_edge + right_edge
+	draw_colored_polygon(ribbon, ARROW_COLOR)
+	
+	# Pointe de flèche, un peu plus large pour prolonger l'effet
 	var tip: Vector2 = points[points.size() - 1]
 	var direction: Vector2 = (tip - points[points.size() - 2]).normalized()
 	var perpendicular: Vector2 = Vector2(-direction.y, direction.x)
@@ -64,7 +86,7 @@ func _draw() -> void:
 	var right: Vector2 = tip - direction * ARROW_HEAD_SIZE - perpendicular * ARROW_HEAD_SIZE * 0.5
 	
 	draw_polygon(PackedVector2Array([tip, left, right]), PackedColorArray([ARROW_COLOR]))
-	
+
 func _update_target_highlight() -> void:
 	var hovered: Enemy = _find_enemy_under_mouse()
 	if hovered != currently_highlighted:

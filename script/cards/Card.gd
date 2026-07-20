@@ -102,6 +102,8 @@ func move_to_base(duration: float = 0.15) -> void:
 	active_tween.tween_property(self, "scale", Vector2.ONE, duration)
 
 func _on_mouse_entered() -> void:
+	if CombatEvents.targeting_arrow and CombatEvents.targeting_arrow.active:
+		return
 	if interactive and state == CardState.IDLE:
 		_grow()
 		var hand = get_parent()
@@ -123,6 +125,9 @@ func _on_targeting_started(_data: CardData) -> void:
 func _on_targeting_cancelled() -> void:
 	if state == CardState.AWAITING_TARGET:
 		state = CardState.IDLE
+		var hand = get_parent()
+		if hand and hand.has_method("_update_hand_layout"):
+			hand._update_hand_layout()
 		_shrink()
 	CombatEvents.targeting_arrow.hide_arrow()
 	_update_affordability()
@@ -131,6 +136,9 @@ func _on_targeting_cancelled() -> void:
 func confirm_play(target: Character) -> void:
 	if CombatEvents.current_mana < card_data.cost:
 		state = CardState.IDLE
+		var hand = get_parent()
+		if hand and hand.has_method("_update_hand_layout"):
+			hand._update_hand_layout()
 		_return_to_hand()
 		_shrink()
 		return
@@ -146,7 +154,7 @@ func _play_confirmation_animation() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
 	var current_global: Vector2 = global_position
-	var ui_layer: Node = get_tree().current_scene.get_node("UI")  # récupéré AVANT de détacher
+	var ui_layer: Node = get_tree().current_scene.get_node("UI")
 	var hand_parent := get_parent()
 	
 	if hand_parent:
@@ -159,9 +167,10 @@ func _play_confirmation_animation() -> void:
 	var target_position: Vector2 = viewport_size / 2 - (size * hover_scale) / 2
 	
 	var tween: Tween = create_tween()
-	tween.tween_property(self, "global_position", target_position, 0.2)
-	tween.parallel().tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.2)
-	tween.tween_interval(0.6)
+	tween.tween_property(self, "global_position", target_position, 0.1)  # trajet raccourci
+	tween.parallel().tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.1)
+	tween.tween_interval(0.4)  # pause raccourcie
+	tween.tween_callback(queue_free)
 	tween.tween_callback(queue_free)
 
 # --- Interaction souris / glisser-déposer ---
@@ -183,8 +192,8 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 			dragging = true
 			
 			var hand = get_parent()
-			if hand and hand.has_method("_update_hand_layout"):
-				hand._update_hand_layout()
+			if hand and hand.has_method("set_hovered_card"):
+				hand.set_hovered_card(null)
 			
 			if card_data.requires_target:
 				CombatEvents.targeting_arrow.show_arrow(self)
@@ -214,20 +223,20 @@ func _end_drag() -> void:
 			confirm_play(target)
 		else:
 			state = CardState.IDLE
-			_shrink()
 			var hand = get_parent()
 			if hand and hand.has_method("_update_hand_layout"):
 				hand._update_hand_layout()
+			_shrink()
 	else:
 		if _has_dragged_far_enough():
 			confirm_play(null)
 		else:
 			state = CardState.IDLE
-			_return_to_hand()
-			_shrink()
 			var hand = get_parent()
 			if hand and hand.has_method("_update_hand_layout"):
 				hand._update_hand_layout()
+			_return_to_hand()
+			_shrink()
 
 func _return_to_hand() -> void:
 	top_level = false

@@ -59,8 +59,6 @@ func new_turn() -> void:
 func _update_hand_layout() -> void:
 	cards = cards.filter(func(c): return is_instance_valid(c) and c.get_parent() == self)
 	
-	# Seules les cartes "au repos" participent au calcul de l'éventail —
-	# celles en cours de clic/glisser/ciblage sont exclues, donc les autres se resserrent
 	var settled: Array[Card] = cards.filter(func(c): return c.state == Card.CardState.IDLE)
 	var count: int = settled.size()
 	if count == 0:
@@ -96,6 +94,7 @@ func _update_hand_layout() -> void:
 		
 		card.base_position = target_pos
 		card.base_rotation_degrees = rotation_deg
+		card.base_z_index = -i
 		
 		if i == hovered_i:
 			continue

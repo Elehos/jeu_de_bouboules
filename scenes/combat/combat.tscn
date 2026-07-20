@@ -12,11 +12,11 @@
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
 [ext_resource type="PackedScene" uid="uid://d1uw6tjyj3h3d" path="res://scenes/ui/damage_number.tscn" id="7_xt4lv"]
 [ext_resource type="Texture2D" uid="uid://c0dkpritmuasc" path="res://assets/backgrounds/landscape.png" id="8_crn1f"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
-[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="9_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 [ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
+[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="15_xt4lv"]
 [ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="18_05d77"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="19_akrri"]
 [ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
@@ -113,7 +113,7 @@ grow_horizontal = 2
 grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
-deck_data = Array[ExtResource("7_3dmww")]([ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk"), ExtResource("9_gwckk")])
+deck_data = Array[ExtResource("7_3dmww")]([ExtResource("15_xt4lv"), ExtResource("15_xt4lv"), ExtResource("15_xt4lv"), ExtResource("15_xt4lv"), ExtResource("15_xt4lv")])
 card_spacing = 140.0
 max_angle = 5.0
 min_arc_height = 10.0

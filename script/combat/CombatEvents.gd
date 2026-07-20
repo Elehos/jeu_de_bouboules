@@ -12,7 +12,7 @@ signal targeting_cancelled
 var pending_card: Card = null
 var targeting_arrow: TargetingArrow = null
 
-@export var max_mana: int = 3
+@export var max_mana: int = 10
 var current_mana: int = max_mana
 
 func refill_mana() -> void:

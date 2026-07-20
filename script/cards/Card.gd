@@ -74,9 +74,9 @@ func _grow() -> void:
 	
 	active_tween = create_tween()
 	active_tween.set_parallel(true)
-	active_tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.15)
-	active_tween.tween_property(self, "global_position", target_global_pos, 0.15)
-	active_tween.tween_property(self, "rotation_degrees", 0.0, 0.15)
+	active_tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.10)
+	active_tween.tween_property(self, "global_position", target_global_pos, 0.10)
+	active_tween.tween_property(self, "rotation_degrees", 0.0, 0.10)
 
 func _shrink() -> void:
 	if active_tween and active_tween.is_valid():
@@ -87,9 +87,9 @@ func _shrink() -> void:
 	
 	active_tween = create_tween()
 	active_tween.set_parallel(true)
-	active_tween.tween_property(self, "scale", Vector2.ONE, 0.15)
-	active_tween.tween_property(self, "position", base_position, 0.15)
-	active_tween.tween_property(self, "rotation_degrees", base_rotation_degrees, 0.15)
+	active_tween.tween_property(self, "scale", Vector2.ONE, 0.10)
+	active_tween.tween_property(self, "position", base_position, 0.10)
+	active_tween.tween_property(self, "rotation_degrees", base_rotation_degrees, 0.10)
 	
 func move_to_base(duration: float = 0.15) -> void:
 	if active_tween and active_tween.is_valid():
@@ -105,15 +105,15 @@ func _on_mouse_entered() -> void:
 	if interactive and state == CardState.IDLE:
 		_grow()
 		var hand = get_parent()
-		if hand and hand.has_method("set_hovered_index"):
-			hand.set_hovered_index(get_index())
+		if hand and hand.has_method("set_hovered_card"):
+			hand.set_hovered_card(self)
 
 func _on_mouse_exited() -> void:
 	if interactive and state == CardState.IDLE:
 		_shrink()
 		var hand = get_parent()
-		if hand and hand.has_method("set_hovered_index"):
-			hand.set_hovered_index(-1)
+		if hand and hand.has_method("set_hovered_card"):
+			hand.set_hovered_card(null)
 
 # --- Ciblage ---
 func _on_targeting_started(_data: CardData) -> void:
@@ -175,12 +175,18 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 	
 	if event is InputEventMouseButton:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if active_tween and active_tween.is_valid():
+				active_tween.kill()
+			
 			state = CardState.DRAGGING
-			_grow()
+			z_index = 1
 			dragging = true
 			
+			var hand = get_parent()
+			if hand and hand.has_method("_update_hand_layout"):
+				hand._update_hand_layout()
+			
 			if card_data.requires_target:
-				# Pas de déplacement physique : juste la flèche qui suit la souris
 				CombatEvents.targeting_arrow.show_arrow(self)
 			else:
 				drag_start_local_position = position
@@ -209,14 +215,19 @@ func _end_drag() -> void:
 		else:
 			state = CardState.IDLE
 			_shrink()
+			var hand = get_parent()
+			if hand and hand.has_method("_update_hand_layout"):
+				hand._update_hand_layout()
 	else:
-		var moved_distance: float = global_position.distance_to(drag_start_position)
 		if _has_dragged_far_enough():
 			confirm_play(null)
 		else:
 			state = CardState.IDLE
 			_return_to_hand()
 			_shrink()
+			var hand = get_parent()
+			if hand and hand.has_method("_update_hand_layout"):
+				hand._update_hand_layout()
 
 func _return_to_hand() -> void:
 	top_level = false

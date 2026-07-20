@@ -39,15 +39,16 @@ texture = ExtResource("2_5xlns")
 
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
-offset_left = 185.0
-offset_top = 38.0
-offset_right = 218.0
-offset_bottom = 72.0
+offset_left = 182.0
+offset_top = 35.0
+offset_right = 223.0
+offset_bottom = 74.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
 offset_transform_position = Vector2(-15, 3)
+theme_override_constants/line_spacing = 0
 theme_override_fonts/font = ExtResource("3_5xlns")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 25
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_trim_flags = 0

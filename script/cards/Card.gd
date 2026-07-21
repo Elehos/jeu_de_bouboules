@@ -187,6 +187,8 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 			if active_tween and active_tween.is_valid():
 				active_tween.kill()
 			
+			rotation_degrees = 0.0
+			
 			state = CardState.DRAGGING
 			z_index = 1
 			dragging = true

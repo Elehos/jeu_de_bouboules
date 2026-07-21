@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_vt1s7")
-card_name = "Superr attaque"
+card_name = "Big punch"
 cost = 2
-description = "Fait 10 de dégats !! Wouah"
-damage = 10
+description = "Fait 12 de dégats !! Wouah"
+damage = 12
 requires_target = true
 metadata/_custom_type_script = "uid://f3o7b7woxojq"

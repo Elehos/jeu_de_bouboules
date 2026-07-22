@@ -116,7 +116,6 @@ grow_vertical = 0
 script = ExtResource("5_4a6i5")
 card_scene = ExtResource("8_gwckk")
 deck_data = Array[ExtResource("7_3dmww")]([ExtResource("15_08wqo"), ExtResource("15_08wqo"), ExtResource("15_08wqo"), ExtResource("15_08wqo"), ExtResource("15_08wqo"), ExtResource("15_xt4lv"), ExtResource("17_crn1f"), ExtResource("15_08wqo"), ExtResource("17_crn1f"), ExtResource("15_08wqo")])
-cards_per_turn = 10
 card_spacing = 140.0
 max_angle = 5.0
 min_arc_height = 10.0

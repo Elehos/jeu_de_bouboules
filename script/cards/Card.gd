@@ -20,8 +20,6 @@ var interactive: bool = true
 # Pour stocker la rotation de base
 var base_rotation_degrees: float = 0.0
 var base_position: Vector2 = Vector2.ZERO
-@export var hover_lift: float = 60.0  # ajuste selon ce qui te plaît visuellement
-var hover_target_y: float = 0.0
 
 enum CardState { IDLE, DRAGGING, AWAITING_TARGET, PLAYED }
 var state: CardState = CardState.IDLE
@@ -29,7 +27,6 @@ var state: CardState = CardState.IDLE
 @export var hover_scale: float = 1.3
 @export var hover_screen_margin: float = 100.0
 
-var pre_hover_position: Vector2
 var active_tween: Tween
 
 @export var hover_x_offset: float = -30.0
@@ -173,13 +170,9 @@ func _play_confirmation_animation() -> void:
 	tween.parallel().tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.1)
 	tween.tween_interval(0.4)  # pause raccourcie
 	tween.tween_callback(queue_free)
-	tween.tween_callback(queue_free)
 
 # --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		print("Clic reçu | state: ", state, " | dragging: ", dragging)
-	
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if state == CardState.DRAGGING or state == CardState.AWAITING_TARGET:
 			_cancel_action()
@@ -193,7 +186,7 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 		return
 	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
 			if click_follow_active:
 				click_follow_active = false
 				_end_drag()
@@ -244,7 +237,6 @@ func _process(_delta: float) -> void:
 	if dragging and not card_data.requires_target:
 		var offset: Vector2 = get_global_mouse_position() - drag_start_mouse
 		global_position = drag_start_position + offset
-		print("top_level: ", top_level, " | global_position après assignation: ", global_position)
 		
 func _end_drag() -> void:
 	dragging = false
@@ -302,8 +294,6 @@ func _has_dragged_far_enough() -> bool:
 
 func _update_affordability() -> void:
 	if not interactive or not card_data:
-		return
-	if not interactive:
 		return
 	if state == CardState.AWAITING_TARGET or state == CardState.PLAYED:
 		return

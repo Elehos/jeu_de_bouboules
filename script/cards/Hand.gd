@@ -4,7 +4,6 @@ class_name Hand
 @export var card_scene: PackedScene
 @export var deck_data: Array[CardData] = []
 @export var cards_per_turn: int = 5
-@export var hover_lift: float = 80.0
 
 # Réglages de l'éventail
 @export var card_spacing: float = 120.0      # distance horizontale entre cartes

@@ -34,6 +34,9 @@ var active_tween: Tween
 
 @export var hover_x_offset: float = -30.0
 
+var click_follow_active: bool = false
+const CLICK_MOVE_THRESHOLD: float = 12.0
+
 
 func _ready() -> void:
 	update_display()
@@ -119,8 +122,7 @@ func _on_mouse_exited() -> void:
 
 # --- Ciblage ---
 func _on_targeting_started(_data: CardData) -> void:
-	if CombatEvents.pending_card == self:
-		modulate = Color(1.2, 1.2, 0.6)
+	pass
 
 func _on_targeting_cancelled() -> void:
 	if state == CardState.AWAITING_TARGET:
@@ -175,6 +177,14 @@ func _play_confirmation_animation() -> void:
 
 # --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		print("Clic reçu | state: ", state, " | dragging: ", dragging)
+	
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if state == CardState.DRAGGING or state == CardState.AWAITING_TARGET:
+			_cancel_action()
+			return
+	
 	if not interactive:
 		return
 	if state == CardState.PLAYED:
@@ -182,16 +192,33 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 	if CombatEvents.current_mana < card_data.cost:
 		return
 	
-	if event is InputEventMouseButton:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			if click_follow_active:
+				click_follow_active = false
+				_end_drag()
+				return
+			
+			if state != CardState.IDLE:
+				return
+			
 			if active_tween and active_tween.is_valid():
 				active_tween.kill()
 			
+			# Finalise instantanément l'état "zoomé", peu importe où en était l'animation
+			pivot_offset = Vector2(size.x / 2, size.y)
+			scale = Vector2(hover_scale, hover_scale)
 			rotation_degrees = 0.0
+			var viewport_height: float = get_viewport_rect().size.y
+			var target_global_y: float = viewport_height - hover_screen_margin - size.y
+			var target_global_x: float = get_parent().global_position.x + base_position.x + hover_x_offset
+			global_position = Vector2(target_global_x, target_global_y)
 			
 			state = CardState.DRAGGING
 			z_index = 1
 			dragging = true
+			drag_start_mouse = get_global_mouse_position()
+			drag_start_position = global_position
 			
 			var hand = get_parent()
 			if hand and hand.has_method("set_hovered_card"):
@@ -201,12 +228,15 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 				CombatEvents.targeting_arrow.show_arrow(self)
 			else:
 				drag_start_local_position = position
-				var current_global_pos: Vector2 = global_position
 				top_level = true
-				global_position = current_global_pos
-				drag_start_mouse = get_global_mouse_position()
-				drag_start_position = global_position
-		elif not event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				global_position = drag_start_position
+		
+		else:
+			if dragging and not card_data.requires_target:
+				var moved: float = get_global_mouse_position().distance_to(drag_start_mouse)
+				if moved < CLICK_MOVE_THRESHOLD:
+					click_follow_active = true
+					return
 			if dragging:
 				_end_drag()
 
@@ -214,11 +244,19 @@ func _process(_delta: float) -> void:
 	if dragging and not card_data.requires_target:
 		var offset: Vector2 = get_global_mouse_position() - drag_start_mouse
 		global_position = drag_start_position + offset
-
+		print("top_level: ", top_level, " | global_position après assignation: ", global_position)
+		
 func _end_drag() -> void:
 	dragging = false
 	
 	if card_data.requires_target:
+		var moved_distance: float = get_global_mouse_position().distance_to(drag_start_mouse)
+		
+		if moved_distance < 10.0:
+			state = CardState.AWAITING_TARGET
+			CombatEvents.request_targeting(self)
+			return
+		
 		var target: Character = _find_target_under_mouse()
 		CombatEvents.targeting_arrow.hide_arrow()
 		if target:
@@ -282,3 +320,28 @@ func _fit_label_text(label: Label, max_width: float, max_font_size: int = 14, mi
 	while label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x > max_width and font_size > min_font_size:
 		font_size -= 1
 		label.add_theme_font_size_override("font_size", font_size)
+		
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if state == CardState.DRAGGING or state == CardState.AWAITING_TARGET:
+			_cancel_action()
+
+func _cancel_action() -> void:
+	dragging = false
+	state = CardState.IDLE
+	click_follow_active = false
+	
+	if card_data.requires_target:
+		CombatEvents.targeting_arrow.hide_arrow()
+		if CombatEvents.pending_card == self:
+			CombatEvents.pending_card = null
+	else:
+		var current_global_pos: Vector2 = global_position
+		top_level = false
+		global_position = current_global_pos
+	
+	var hand = get_parent()
+	if hand and hand.has_method("_update_hand_layout"):
+		hand._update_hand_layout()
+	
+	_shrink()

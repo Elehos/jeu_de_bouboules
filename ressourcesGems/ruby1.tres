@@ -1,10 +1,12 @@
 [gd_resource type="Resource" script_class="GemData" format=3 uid="uid://cdytd8w6xkwf8"]
 
+[ext_resource type="Texture2D" uid="uid://b8dv2gfc27ph1" path="res://assets/gems/ruby.png" id="1_4ncwd"]
 [ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="1_cqv3y"]
 
 [resource]
 script = ExtResource("1_cqv3y")
 gem_name = "Small Ruby"
 description = "Attack +2"
+icon = ExtResource("1_4ncwd")
 damage_bonus = 2
 metadata/_custom_type_script = "uid://b02w7737ctf1b"

@@ -36,6 +36,9 @@ bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ckr0i"]
 size = Vector2(276, 391)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oxr7k"]
+bg_color = Color(0.09620472, 0.09620475, 0.09620469, 1)
+
 [node name="Combat" type="Node2D" unique_id=1943509951]
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
@@ -273,27 +276,33 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("19_akrri")
 theme_override_font_sizes/font_size = 39
 
-[node name="GemBagButton" type="TextureButton" parent="UI" unique_id=121839318]
-offset_left = 28.0
-offset_top = 213.0
-offset_right = 238.0
-offset_bottom = 503.0
-scale = Vector2(0.5, 0.5)
-texture_normal = ExtResource("26_xsobv")
-
 [node name="GemBagPanel" type="Panel" parent="UI" unique_id=1109758043]
 offset_left = -1304.0
 offset_top = 102.0
-offset_bottom = 1078.0
+offset_bottom = 977.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_oxr7k")
 script = ExtResource("27_5gaff")
 gem_icon_scene = ExtResource("28_a2dhc")
 card_row_scene = ExtResource("29_oxr7k")
+
+[node name="GemBagButton" type="TextureButton" parent="UI/GemBagPanel" unique_id=121839318]
+layout_mode = 0
+offset_left = 1332.0
+offset_top = 111.0
+offset_right = 1542.0
+offset_bottom = 401.0
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("26_xsobv")
 
 [node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=984067812]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -4.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
@@ -310,8 +319,13 @@ layout_mode = 2
 text = "Mon Deck"
 
 [node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=680636174]
-custom_minimum_size = Vector2(0, 400)
+custom_minimum_size = Vector2(0, 700)
 layout_mode = 2
+horizontal_scroll_mode = 0
 
-[node name="DeckList" type="VBoxContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1606764037]
+[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=664889065]
+custom_minimum_size = Vector2(1280, 0)
 layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 40
+alignment = 1

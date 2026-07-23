@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bgc2demvv24yu"]
+
+[ext_resource type="Script" uid="uid://ds2wwr6rlwocx" path="res://script/gems/CardGemSlotRow.gd" id="1_vdw8s"]
+
+[node name="CardGemSlotRow" type="HBoxContainer" unique_id=1193486498]
+script = ExtResource("1_vdw8s")
+
+[node name="CardNameLabel" type="Label" parent="." unique_id=211277058]
+layout_mode = 2
+
+[node name="GemSlot" type="Panel" parent="." unique_id=713245421]
+layout_mode = 2

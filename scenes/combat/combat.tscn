@@ -25,6 +25,10 @@
 [ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
 [ext_resource type="Texture2D" uid="uid://dfdw2ai6ys5cm" path="res://assets/ui/mana_count.png" id="21_qs84n"]
 [ext_resource type="FontFile" uid="uid://cweuoumjq3fpl" path="res://assets/fonts/GeneralSans-Regular.otf" id="22_08wqo"]
+[ext_resource type="Texture2D" uid="uid://b8dv2gfc27ph1" path="res://assets/gems/ruby.png" id="26_xsobv"]
+[ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="27_5gaff"]
+[ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="28_a2dhc"]
+[ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="29_oxr7k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -268,3 +272,46 @@ text = "/"
 layout_mode = 2
 theme_override_fonts/font = ExtResource("19_akrri")
 theme_override_font_sizes/font_size = 39
+
+[node name="GemBagButton" type="TextureButton" parent="UI" unique_id=121839318]
+offset_left = 28.0
+offset_top = 213.0
+offset_right = 238.0
+offset_bottom = 503.0
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("26_xsobv")
+
+[node name="GemBagPanel" type="Panel" parent="UI" unique_id=1109758043]
+offset_left = -1304.0
+offset_top = 102.0
+offset_bottom = 1078.0
+script = ExtResource("27_5gaff")
+gem_icon_scene = ExtResource("28_a2dhc")
+card_row_scene = ExtResource("29_oxr7k")
+
+[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=984067812]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=1041237963]
+layout_mode = 2
+text = "Mes Gems"
+
+[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=216749305]
+layout_mode = 2
+
+[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=850009372]
+layout_mode = 2
+text = "Mon Deck"
+
+[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=680636174]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+
+[node name="DeckList" type="VBoxContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1606764037]
+layout_mode = 2

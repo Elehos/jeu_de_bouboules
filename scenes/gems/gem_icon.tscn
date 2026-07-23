@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://d0tb3k3iwaipx"]
+
+[ext_resource type="Script" uid="uid://bnev4ygutki70" path="res://script/gems/GemIcon.gd" id="1_bs8xs"]
+
+[node name="GemIcon" type="Control" unique_id=866917980]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_bs8xs")
+
+[node name="Panel" type="Panel" parent="." unique_id=1262222953]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="." unique_id=1576234064]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0

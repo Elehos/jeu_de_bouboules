@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://dljbij33aq0sy"]
+
+[ext_resource type="Script" uid="uid://bklu617xpm02i" path="res://script/gems/GemInventory.gd" id="1_poxtt"]
+[ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="2_mkw5x"]
+[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="3_oputv"]
+
+[node name="GemInventory" type="Node2D" unique_id=524607973]
+script = ExtResource("1_poxtt")
+owned_gems = Array[ExtResource("2_mkw5x")]([ExtResource("3_oputv")])

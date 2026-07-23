@@ -4,7 +4,9 @@ var draw_pile: Array[CardData] = []
 var discard_pile: Array[CardData] = []
 
 func setup_deck(starting_deck: Array[CardData]) -> void:
-	draw_pile = starting_deck.duplicate()
+	draw_pile.clear()
+	for card in starting_deck:
+		draw_pile.append(card.duplicate(true))
 	draw_pile.shuffle()
 	discard_pile.clear()
 	_notify_counts()
@@ -31,3 +33,7 @@ func reshuffle_discard_into_draw() -> void:
 
 func _notify_counts() -> void:
 	CombatEvents.deck_counts_changed.emit(draw_pile.size(), discard_pile.size())
+
+# Combine pioche + défausse : l'intégralité du deck, peu importe l'avancée du combat
+func get_full_deck() -> Array[CardData]:
+	return draw_pile + discard_pile

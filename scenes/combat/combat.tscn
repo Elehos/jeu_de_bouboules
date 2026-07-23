@@ -11,8 +11,8 @@
 [ext_resource type="Resource" uid="uid://bvb8uvx2ovggf" path="res://ressourcesEncounters/encounter_3.tres" id="5_05d77"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
 [ext_resource type="PackedScene" uid="uid://d1uw6tjyj3h3d" path="res://scenes/ui/damage_number.tscn" id="7_xt4lv"]
-[ext_resource type="Texture2D" uid="uid://c0dkpritmuasc" path="res://assets/backgrounds/landscape.png" id="8_crn1f"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
+[ext_resource type="Texture2D" uid="uid://ckwhuaef6dby6" path="res://assets/backgrounds/backgroundtest2.png" id="8_08wqo"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="FontFile" uid="uid://bh3i3bipjqs8c" path="res://assets/fonts/GeneralSans-Semibold.otf" id="11_jr0f0"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
@@ -49,10 +49,9 @@ metadata/_edit_horizontal_guides_ = [1030.0]
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 
 [node name="Background" type="Sprite2D" parent="WorldRoot" unique_id=376794718]
-visible = false
 position = Vector2(963, 540)
-scale = Vector2(1.3186814, 1.25)
-texture = ExtResource("8_crn1f")
+scale = Vector2(1.1, 1.043)
+texture = ExtResource("8_08wqo")
 
 [node name="ReferenceBackground" type="Sprite2D" parent="WorldRoot" unique_id=1691740053]
 visible = false
@@ -62,7 +61,7 @@ texture = ExtResource("1_ltalu")
 metadata/_edit_lock_ = true
 
 [node name="Player" type="CharacterBody2D" parent="WorldRoot" unique_id=1391993159]
-position = Vector2(480, 450)
+position = Vector2(440, 550)
 script = ExtResource("1_5vqsm")
 
 [node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Player" unique_id=1523442336]
@@ -126,7 +125,7 @@ position = Vector2(5, 118)
 shape = SubResource("RectangleShape2D_ckr0i")
 
 [node name="EnemyZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=865605184]
-position = Vector2(1450, 565)
+position = Vector2(1450, 618)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 

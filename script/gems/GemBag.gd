@@ -1,7 +1,7 @@
 extends Panel
 class_name GemBag
 
-@export var closed_position_x: float = -1300.0
+@export var closed_position_x: float = -1304.0
 @export var open_position_x: float = 0.0
 @export var slide_duration: float = 0.25
 
@@ -9,7 +9,7 @@ class_name GemBag
 @export var card_row_scene: PackedScene
 
 @onready var gem_list: HFlowContainer = $Content/GemList
-@onready var deck_list: VBoxContainer = $Content/DeckScroll/DeckList
+@onready var deck_list: HFlowContainer = $Content/DeckScroll/DeckList
 
 var is_open: bool = false
 
@@ -47,7 +47,13 @@ func refresh_deck() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 	
-	for card in DeckManager.get_full_deck():
+	var full_deck: Array[CardData] = DeckManager.get_full_deck()
+	
+	var hand_node = get_tree().get_first_node_in_group("hand")
+	if hand_node:
+		full_deck += hand_node.get_card_data_list()
+	
+	for card in full_deck:
 		var row_instance = card_row_scene.instantiate()
 		row_instance.card_data = card
 		deck_list.add_child(row_instance)

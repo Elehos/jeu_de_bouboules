@@ -25,6 +25,7 @@ var hovered_card: Card = null
 @export var push_falloff_range: int = 3  # nombre de cartes affectées de chaque côté
 
 func _ready() -> void:
+	add_to_group("hand")
 	CombatEvents.player_turn_started.connect(new_turn)
 	CombatEvents.card_played.connect(_on_card_played)
 	DeckManager.setup_deck(deck_data)
@@ -119,3 +120,10 @@ func _compute_dynamic_params(count: int) -> Dictionary:
 func set_hovered_card(card: Card) -> void:
 	hovered_card = card
 	_update_hand_layout()
+	
+func get_card_data_list() -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card in cards:
+		if is_instance_valid(card) and card.card_data:
+			result.append(card.card_data)
+	return result

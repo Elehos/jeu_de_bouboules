@@ -21,7 +21,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
 @onready var draw_pile_icon: Control = $UI/DrawPileIcon
 @onready var discard_pile_icon: Control = $UI/DiscardPileIcon
-@onready var gem_bag_button: TextureButton = $UI/GemBagButton
+@onready var gem_bag_button: TextureButton = $UI/GemBagPanel/GemBagButton
 @onready var gem_bag: GemBag = $UI/GemBagPanel
 
 var combat_over: bool = false
@@ -38,6 +38,7 @@ signal turn_ended(state: TurnState)
 @export var possible_encounters: Array[EncounterData] = []
 var current_encounter: EncounterData
 @export var damage_number_scene: PackedScene  # glisse DamageNumber.tscn dans l'Inspecteur
+
 
 func _ready() -> void:
 	CombatEvents.damage_taken.connect(_on_damage_taken)

@@ -15,6 +15,8 @@ var targeting_arrow: TargetingArrow = null
 @export var max_mana: int = 3
 var current_mana: int = max_mana
 
+signal gem_equip_changed
+
 func refill_mana() -> void:
 	current_mana = max_mana
 	mana_changed.emit(current_mana, max_mana)

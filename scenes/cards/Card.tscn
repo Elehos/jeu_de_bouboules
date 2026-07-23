@@ -3,18 +3,16 @@
 [ext_resource type="Script" uid="uid://1urewgq58c01" path="res://script/cards/Card.gd" id="1_fa4yn"]
 [ext_resource type="Texture2D" uid="uid://bggcn6yldwd3m" path="res://assets/cards/background_card.png" id="2_5xlns"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="3_5xlns"]
-[ext_resource type="FontFile" uid="uid://cweuoumjq3fpl" path="res://assets/fonts/GeneralSans-Regular.otf" id="4_m2018"]
+[ext_resource type="Script" uid="uid://dfgluag3f2y8s" path="res://script/gems/GemSlot.gd" id="5_1q37b"]
+[ext_resource type="FontFile" uid="uid://bpr7ek26kbdeq" path="res://assets/fonts/GeneralSans-MediumItalic.otf" id="5_mo7yc"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7s3sq"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_h2sm1"]
-font_size = 11
 
 [node name="Card" type="Control" unique_id=97315397]
 custom_minimum_size = Vector2(240, 300)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 240.0
+offset_right = 244.0
 offset_bottom = 317.0
 script = ExtResource("1_fa4yn")
 
@@ -24,24 +22,25 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 4.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
 layout_mode = 0
-offset_left = -9.999999
-offset_top = 1.9999998
-offset_right = 1179.9999
+offset_left = 4.999999
+offset_top = 1.9999999
+offset_right = 1194.9999
 offset_bottom = 1578.9683
 scale = Vector2(0.2, 0.2)
 texture = ExtResource("2_5xlns")
 
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
-offset_left = 182.0
+offset_left = 198.0
 offset_top = 35.0
-offset_right = 223.0
+offset_right = 239.0
 offset_bottom = 74.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
@@ -54,12 +53,12 @@ vertical_alignment = 1
 autowrap_trim_flags = 0
 
 [node name="CardName" type="Label" parent="Panel" unique_id=1475386707]
-custom_minimum_size = Vector2(110, 28)
-custom_maximum_size = Vector2(110, 28)
+custom_minimum_size = Vector2(130, 28)
+custom_maximum_size = Vector2(130, 28)
 layout_mode = 0
-offset_left = 48.0
+offset_left = 55.0
 offset_top = 159.0
-offset_right = 158.0
+offset_right = 185.0
 offset_bottom = 187.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
@@ -70,16 +69,50 @@ horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
-[node name="CardDescription" type="Label" parent="Panel" unique_id=86117268]
+[node name="CardDescription" type="RichTextLabel" parent="Panel" unique_id=1670690184]
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 0
-offset_left = 39.0
+offset_left = 56.0
 offset_top = 217.0
-offset_right = 167.0
+offset_right = 184.0
 offset_bottom = 286.0
-theme_override_fonts/font = ExtResource("4_m2018")
-theme_override_font_sizes/font_size = 18
-label_settings = SubResource("LabelSettings_h2sm1")
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
-autowrap_mode = 2
+
+[node name="TypeLabel" type="Label" parent="Panel" unique_id=1353106803]
+layout_mode = 0
+offset_left = 81.0
+offset_top = 188.0
+offset_right = 161.0
+offset_bottom = 211.0
+theme_override_fonts/font = ExtResource("5_mo7yc")
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GemSlot" type="Panel" parent="." unique_id=1960030779]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = -68.0
+offset_right = 42.0
+offset_bottom = -32.0
+grow_vertical = 0
+script = ExtResource("5_1q37b")
+
+[node name="EquippedIcon" type="TextureRect" parent="GemSlot" unique_id=1599473847]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5

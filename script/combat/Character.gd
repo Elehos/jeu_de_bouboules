@@ -29,8 +29,8 @@ signal damage_taken(amount: int)
 
 @onready var hp_bar_outline: Panel = $HPBarOutline
 
-const OUTLINE_COLOR: Color = Color(1.0, 1.0, 1.0, 1.0)
-const OUTLINE_WIDTH: int = 2
+const OUTLINE_COLOR: Color = Color(0.09, 0.09, 0.09, 0.898)
+const OUTLINE_WIDTH: int = 3
 @export var outline_margin: float = 4.0
 
 @onready var hp_bar_shading: TextureRect = $HPBarShading

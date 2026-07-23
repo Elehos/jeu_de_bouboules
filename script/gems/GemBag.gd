@@ -15,6 +15,11 @@ var is_open: bool = false
 
 func _ready() -> void:
 	position.x = closed_position_x
+	CombatEvents.gem_equip_changed.connect(_on_gem_equip_changed)
+
+func _on_gem_equip_changed() -> void:
+	if is_open:
+		refresh_gems()
 
 func toggle() -> void:
 	if is_open:
@@ -38,7 +43,11 @@ func refresh_gems() -> void:
 	for child in gem_list.get_children():
 		child.queue_free()
 	
+	var equipped_gems: Array[GemData] = _get_all_equipped_gems()
+	
 	for gem in GemInventory.owned_gems:
+		if gem in equipped_gems:
+			continue
 		var gem_instance = gem_icon_scene.instantiate()
 		gem_instance.gem_data = gem
 		gem_list.add_child(gem_instance)
@@ -57,3 +66,17 @@ func refresh_deck() -> void:
 		var row_instance = card_row_scene.instantiate()
 		row_instance.card_data = card
 		deck_list.add_child(row_instance)
+
+func _get_all_equipped_gems() -> Array[GemData]:
+	var result: Array[GemData] = []
+	var full_deck: Array[CardData] = DeckManager.get_full_deck()
+	
+	var hand_node = get_tree().get_first_node_in_group("hand")
+	if hand_node:
+		full_deck += hand_node.get_card_data_list()
+	
+	for card in full_deck:
+		if card.equipped_gem:
+			result.append(card.equipped_gem)
+	
+	return result

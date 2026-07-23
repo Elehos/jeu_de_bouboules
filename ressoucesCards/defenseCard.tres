@@ -6,5 +6,6 @@
 script = ExtResource("1_p503o")
 card_name = "Défense de base"
 description = "Donne 5 de bouclier"
+card_type = 1
 block = 5
 metadata/_custom_type_script = "uid://f3o7b7woxojq"

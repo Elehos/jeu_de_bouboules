@@ -6,7 +6,7 @@ class_name Card
 @onready var panel: Panel = $Panel
 @onready var name_label: Label = $Panel/CardName
 @onready var cost_label: Label = $Panel/CardCost
-@onready var description_label: Label = $Panel/CardDescription
+@onready var description_label: RichTextLabel = $Panel/CardDescription
 @export var card_name_max_width: float = 110.0
 var dragging: bool = false
 var drag_start_mouse: Vector2
@@ -34,6 +34,9 @@ var active_tween: Tween
 var click_follow_active: bool = false
 const CLICK_MOVE_THRESHOLD: float = 12.0
 
+@onready var gem_slot: GemSlot = $GemSlot
+@onready var type_label: Label = $Panel/TypeLabel
+
 
 func _ready() -> void:
 	update_display()
@@ -43,14 +46,23 @@ func _ready() -> void:
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	CombatEvents.targeting_started.connect(_on_targeting_started)
 	CombatEvents.targeting_cancelled.connect(_on_targeting_cancelled)
+	CombatEvents.gem_equip_changed.connect(_on_gem_equip_changed)
 	_update_affordability()
+
+func _on_gem_equip_changed() -> void:
+	update_display()
 
 func update_display() -> void:
 	if card_data:
 		name_label.text = card_data.card_name
 		_fit_label_text(name_label, card_name_max_width)
 		cost_label.text = str(card_data.cost)
-		description_label.text = card_data.description
+		description_label.text = card_data.get_display_description()
+		type_label.text = card_data.get_type_label()
+	
+	if gem_slot:
+		gem_slot.card_data = card_data
+		gem_slot.update_display()
 
 
 func set_interactive(value: bool) -> void:

@@ -2,31 +2,9 @@
 
 [ext_resource type="Script" uid="uid://ds2wwr6rlwocx" path="res://script/gems/CardGemSlotRow.gd" id="1_vdw8s"]
 [ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="2_x5qge"]
-[ext_resource type="Script" uid="uid://dfgluag3f2y8s" path="res://script/gems/GemSlot.gd" id="3_qsew4"]
 
 [node name="CardGemSlotRow" type="Control" unique_id=1543372900]
 layout_mode = 3
 anchors_preset = 0
 script = ExtResource("1_vdw8s")
 card_scene = ExtResource("2_x5qge")
-
-[node name="GemSlot" type="Panel" parent="." unique_id=713245421]
-layout_mode = 1
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_right = 36.0
-offset_bottom = 36.0
-grow_vertical = 0
-script = ExtResource("3_qsew4")
-
-[node name="EquippedIcon" type="TextureRect" parent="GemSlot" unique_id=1057184229]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-expand_mode = 1
-stretch_mode = 5

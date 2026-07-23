@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_74i71")
 card_name = "Slap !"
-description = "Fait 5 de dégats"
+description = "Fait {damage} de dégats"
 damage = 5
 requires_target = true
 metadata/_custom_type_script = "uid://f3o7b7woxojq"

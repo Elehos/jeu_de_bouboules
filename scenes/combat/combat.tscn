@@ -29,6 +29,7 @@
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="27_5gaff"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="28_a2dhc"]
 [ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="29_oxr7k"]
+[ext_resource type="Script" uid="uid://d37fab13664ao" path="res://script/gems/GemUnequipZone.gd" id="30_oxr7k"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mrrmw"]
 bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
@@ -311,7 +312,9 @@ layout_mode = 2
 text = "Mes Gems"
 
 [node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=216749305]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
+script = ExtResource("30_oxr7k")
 
 [node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=850009372]
 layout_mode = 2

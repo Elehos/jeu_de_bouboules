@@ -21,6 +21,8 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
 @onready var draw_pile_icon: Control = $UI/DrawPileIcon
 @onready var discard_pile_icon: Control = $UI/DiscardPileIcon
+@onready var gem_bag_button: TextureButton = $UI/GemBagButton
+@onready var gem_bag: GemBag = $UI/GemBagPanel
 
 var combat_over: bool = false
 @onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
@@ -52,6 +54,7 @@ func _ready() -> void:
 	player.damage_taken.connect(_on_damage_taken)
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
+	gem_bag_button.pressed.connect(gem_bag.toggle)
 	start_turn(TurnState.PLAYER_TURN)
 	
 
@@ -111,7 +114,7 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 		return
 	
 	if card_data.damage > 0 and target:
-		target.take_damage(card_data.damage)
+		target.take_damage(card_data.get_effective_damage())
 	
 	if card_data.block > 0:
 		player.gain_block(card_data.block)

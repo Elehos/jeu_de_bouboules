@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 CombatEvents="*uid://bs5460a8lsq78"
 DeckManager="*uid://d3b8sfuwxuw2f"
+GemInventory="*uid://dljbij33aq0sy"
 
 [display]
 

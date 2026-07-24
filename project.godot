@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Jeu de bouboules"
-run/main_scene="uid://ch02vlp7pbhbu"
+run/main_scene="uid://tn17m53p1ddh"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 CombatEvents="*uid://bs5460a8lsq78"
 DeckManager="*uid://d3b8sfuwxuw2f"
 GemInventory="*uid://dljbij33aq0sy"
+RunManager="*uid://djmsa7mv87rdg"
 
 [display]
 

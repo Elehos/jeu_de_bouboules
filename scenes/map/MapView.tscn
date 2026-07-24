@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://tn17m53p1ddh"]
+
+[ext_resource type="Script" uid="uid://bcxihlmwbh3my" path="res://script/map/MapView.gd" id="1_xnhjo"]
+[ext_resource type="PackedScene" uid="uid://bo3yke6qitm6a" path="res://scenes/map/MapNodeView.tscn" id="2_jev2o"]
+
+[node name="MapView" type="Node2D" unique_id=634893464]
+script = ExtResource("1_xnhjo")
+map_node_scene = ExtResource("2_jev2o")
+
+[node name="NodesContainer" type="Node2D" parent="." unique_id=64763309]

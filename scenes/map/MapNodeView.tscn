@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://bo3yke6qitm6a"]
+
+[ext_resource type="Script" uid="uid://bllth4kvptv3n" path="res://script/map/MapNodeView.gd" id="1_cvdme"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_fh5yr"]
+size = Vector2(40, 40)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kpnqr"]
+
+[node name="MapNodeView" type="Area2D" unique_id=1901458146]
+script = ExtResource("1_cvdme")
+
+[node name="Icon" type="Sprite2D" parent="." unique_id=1859024127]
+modulate = Color(1, 0.40774983, 0.88240844, 1)
+position = Vector2(0, 0.75)
+scale = Vector2(0.57, 1.425)
+texture = SubResource("PlaceholderTexture2D_fh5yr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=361079800]
+shape = SubResource("CircleShape2D_kpnqr")

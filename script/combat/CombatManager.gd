@@ -25,6 +25,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var gem_bag: GemBag = $UI/GemBagPanel
 
 var combat_over: bool = false
+var _pending_victory: bool = false
 @onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
 @export var enemy_spacing: float = 300.0
 @export var enemy_scene: PackedScene  # glisse Enemy.tscn dans l'Inspecteur
@@ -126,11 +127,11 @@ func _on_mana_changed(current: int, max: int) -> void:
 	max_mana_label.text = str(max)
 	
 func _on_player_died() -> void:
-	show_end_screen("Défaite...")
+	show_end_screen("Défaite...", false)
 
 func _on_enemy_died(dead_enemy: Enemy) -> void:
 	enemies.erase(dead_enemy)
-	dead_enemy.queue_free()
+	dead_enemy.queue_free()  
 	
 	var all_dead = true
 	for e in enemies:
@@ -139,15 +140,25 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			break
 	
 	if all_dead:
-		show_end_screen("Victoire !")
+		show_end_screen("Victoire !", true)
 
-func show_end_screen(text: String) -> void:
+func show_end_screen(text: String, is_victory: bool) -> void:
 	combat_over = true
 	end_label.text = text
 	end_screen.visible = true
 	
+	if is_victory:
+		restart_button.text = "Continuer"
+	else:
+		restart_button.text = "Recommencer"
+	
+	_pending_victory = is_victory
+	
 func _on_restart_pressed() -> void:
-	get_tree().reload_current_scene()
+	if _pending_victory:
+		get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+	else:
+		get_tree().reload_current_scene()
 
 func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	draw_count_label.text = str(draw_count)

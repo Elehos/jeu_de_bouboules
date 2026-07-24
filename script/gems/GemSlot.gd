@@ -5,6 +5,9 @@ class_name GemSlot
 
 @onready var equipped_icon: TextureRect = $EquippedIcon
 
+const FORBIDDEN_COLOR: Color = Color(0.9, 0.15, 0.15, 0.85)
+const FORBIDDEN_WIDTH: float = 4.0
+
 func _ready() -> void:
 	update_display()
 
@@ -16,6 +19,24 @@ func update_display() -> void:
 		equipped_icon.visible = true
 	else:
 		equipped_icon.visible = false
+
+func _process(_delta: float) -> void:
+	queue_redraw()
+
+func _draw() -> void:
+	if not get_viewport().gui_is_dragging():
+		return
+	
+	var drag_data = get_viewport().gui_get_drag_data()
+	if typeof(drag_data) != TYPE_DICTIONARY or not drag_data.has("gem_data"):
+		return
+	
+	var gem: GemData = drag_data["gem_data"]
+	if not card_data or gem.allowed_card_type == card_data.card_type:
+		return
+	
+	draw_line(Vector2.ZERO, size, FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
+	draw_line(Vector2(size.x, 0), Vector2(0, size.y), FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
 
 func _can_drop_data(_at_position: Vector2, data) -> bool:
 	if typeof(data) != TYPE_DICTIONARY or not data.has("gem_data"):

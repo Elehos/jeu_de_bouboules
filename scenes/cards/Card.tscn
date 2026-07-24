@@ -1,12 +1,20 @@
 [gd_scene format=3 uid="uid://d0g5hjsgl0b2j"]
 
 [ext_resource type="Script" uid="uid://1urewgq58c01" path="res://script/cards/Card.gd" id="1_fa4yn"]
+[ext_resource type="Shader" uid="uid://cu3r8fhxcajwf" path="res://scenes/cards/card.gdshader" id="2_4tkg3"]
 [ext_resource type="Texture2D" uid="uid://bggcn6yldwd3m" path="res://assets/cards/background_card.png" id="2_5xlns"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="3_5xlns"]
+[ext_resource type="FontFile" uid="uid://bspmchetr07q2" path="res://assets/fonts/GeneralSans-Medium.otf" id="4_mo7yc"]
 [ext_resource type="Script" uid="uid://dfgluag3f2y8s" path="res://script/gems/GemSlot.gd" id="5_1q37b"]
 [ext_resource type="FontFile" uid="uid://bpr7ek26kbdeq" path="res://assets/fonts/GeneralSans-MediumItalic.otf" id="5_mo7yc"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7s3sq"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ifpyu"]
+shader = ExtResource("2_4tkg3")
+shader_parameter/glow_color = Color(1, 1, 1, 0.5)
+shader_parameter/glow_size = 0.015
+shader_parameter/margin_uv = Vector2(0.07, 0.07)
 
 [node name="Card" type="Control" unique_id=97315397]
 custom_minimum_size = Vector2(240, 300)
@@ -15,6 +23,7 @@ anchors_preset = 0
 offset_right = 244.0
 offset_bottom = 317.0
 script = ExtResource("1_fa4yn")
+glow_margin = 0.0
 
 [node name="Panel" type="Panel" parent="." unique_id=1847458020]
 custom_minimum_size = Vector2(240, 300)
@@ -26,6 +35,16 @@ offset_right = 4.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
+
+[node name="CardGlow" type="TextureRect" parent="Panel" unique_id=1816707590]
+material = SubResource("ShaderMaterial_ifpyu")
+layout_mode = 0
+offset_left = 8.999998
+offset_top = -6.0
+offset_right = 1213.9999
+offset_bottom = 1653.9999
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_5xlns")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
 layout_mode = 0
@@ -76,6 +95,9 @@ offset_left = 56.0
 offset_top = 217.0
 offset_right = 184.0
 offset_bottom = 286.0
+mouse_filter = 2
+theme_override_fonts/normal_font = ExtResource("4_mo7yc")
+theme_override_font_sizes/normal_font_size = 14
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
@@ -104,6 +126,7 @@ offset_top = -68.0
 offset_right = 42.0
 offset_bottom = -32.0
 grow_vertical = 0
+mouse_filter = 1
 script = ExtResource("5_1q37b")
 
 [node name="EquippedIcon" type="TextureRect" parent="GemSlot" unique_id=1599473847]

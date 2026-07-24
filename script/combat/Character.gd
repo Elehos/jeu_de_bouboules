@@ -13,28 +13,32 @@ var current_block: int = 0
 @onready var hp_bar: ProgressBar = $HPBar
 @onready var hp_bar_delayed: ProgressBar = $HPBarDelayed
 @onready var click_area: Area2D = $ClickArea
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var hp_bar_outline: Panel = $HPBarOutline
+@onready var hp_bar_shading: TextureRect = $HPBarShading
+@onready var hp_bar_highlight: TextureRect = $HPBarHighlight
 
 const TWEEN_DURATION: float = 0.4
 const DAMAGE_TRAIL_DELAY: float = 1.0
 const CORNER_RADIUS: int = 10
 
+const OUTLINE_COLOR: Color = Color(0.52, 0.11, 0.159, 1.0)
+const OUTLINE_COLOR_SHIELDED: Color = Color(0.15, 0.35, 0.55, 1.0)
+const OUTLINE_WIDTH: int = 4
+
+const LABEL_OUTLINE_COLOR: Color = Color(0, 0, 0, 1)
+const LABEL_OUTLINE_COLOR_SHIELDED: Color = Color(0.15, 0.35, 0.55, 1.0)
+const LABEL_OUTLINE_SIZE: int = 4
+
+@export var hp_bar_padding: float = 10.0
+@export var outline_margin: float = 4.0
+
 var fill_normal: StyleBoxFlat
 var fill_shielded: StyleBoxFlat
+var outline_style_ref: StyleBoxFlat
 
 signal died
 signal damage_taken(amount: int)
-
-@onready var sprite: Sprite2D = $Sprite2D
-@export var hp_bar_padding: float = 10.0  # marge de chaque côté, au-delà de la largeur du sprite
-
-@onready var hp_bar_outline: Panel = $HPBarOutline
-
-const OUTLINE_COLOR: Color = Color(0.09, 0.09, 0.09, 0.898)
-const OUTLINE_WIDTH: int = 3
-@export var outline_margin: float = 4.0
-
-@onready var hp_bar_shading: TextureRect = $HPBarShading
-@onready var hp_bar_highlight: TextureRect = $HPBarHighlight
 
 func _ready() -> void:
 	current_hp = max_hp
@@ -54,19 +58,19 @@ func _ready() -> void:
 	hp_bar_delayed.add_theme_stylebox_override("fill", fill_delayed)
 	hp_bar_delayed.add_theme_stylebox_override("background", transparent_bg)
 	
-	var outline_style := StyleBoxFlat.new()
-	outline_style.bg_color = Color(0, 0, 0, 0)
-	outline_style.border_width_left = OUTLINE_WIDTH
-	outline_style.border_width_right = OUTLINE_WIDTH
-	outline_style.border_width_top = OUTLINE_WIDTH
-	outline_style.border_width_bottom = OUTLINE_WIDTH
-	outline_style.border_color = OUTLINE_COLOR
-	outline_style.corner_radius_top_left = CORNER_RADIUS
-	outline_style.corner_radius_top_right = CORNER_RADIUS
-	outline_style.corner_radius_bottom_left = CORNER_RADIUS
-	outline_style.corner_radius_bottom_right = CORNER_RADIUS
-	outline_style.anti_aliasing = false
-	hp_bar_outline.add_theme_stylebox_override("panel", outline_style)
+	outline_style_ref = StyleBoxFlat.new()
+	outline_style_ref.bg_color = Color(0, 0, 0, 0)
+	outline_style_ref.border_width_left = OUTLINE_WIDTH
+	outline_style_ref.border_width_right = OUTLINE_WIDTH
+	outline_style_ref.border_width_top = OUTLINE_WIDTH
+	outline_style_ref.border_width_bottom = OUTLINE_WIDTH
+	outline_style_ref.border_color = OUTLINE_COLOR
+	outline_style_ref.corner_radius_top_left = CORNER_RADIUS
+	outline_style_ref.corner_radius_top_right = CORNER_RADIUS
+	outline_style_ref.corner_radius_bottom_left = CORNER_RADIUS
+	outline_style_ref.corner_radius_bottom_right = CORNER_RADIUS
+	outline_style_ref.anti_aliasing = false
+	hp_bar_outline.add_theme_stylebox_override("panel", outline_style_ref)
 	
 	var shading_gradient := Gradient.new()
 	shading_gradient.set_color(0, Color(0, 0, 0, 0))
@@ -79,26 +83,30 @@ func _ready() -> void:
 	shading_texture.fill_from = Vector2(0, 0)
 	shading_texture.fill_to = Vector2(0, 1)
 	
+	hp_bar_shading.texture = shading_texture
+	hp_bar_shading.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	hp_bar_shading.stretch_mode = TextureRect.STRETCH_SCALE
+	hp_bar_shading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	
 	var highlight_gradient := Gradient.new()
 	highlight_gradient.set_color(0, Color(1, 1, 1, 0.4))
 	highlight_gradient.set_color(1, Color(1, 1, 1, 0))
 	highlight_gradient.add_point(0.3, Color(1, 1, 1, 0))
-
+	
 	var highlight_texture := GradientTexture2D.new()
 	highlight_texture.gradient = highlight_gradient
 	highlight_texture.fill = GradientTexture2D.FILL_LINEAR
 	highlight_texture.fill_from = Vector2(0, 0)
 	highlight_texture.fill_to = Vector2(0, 1)
-
+	
 	hp_bar_highlight.texture = highlight_texture
 	hp_bar_highlight.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	hp_bar_highlight.stretch_mode = TextureRect.STRETCH_SCALE
 	hp_bar_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	hp_bar_shading.texture = shading_texture
-	hp_bar_shading.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hp_bar_shading.stretch_mode = TextureRect.STRETCH_SCALE
-	hp_bar_shading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if hp_label:
+		hp_label.add_theme_color_override("font_outline_color", LABEL_OUTLINE_COLOR)
+		hp_label.add_theme_constant_override("outline_size", LABEL_OUTLINE_SIZE)
 	
 	_resize_hp_bar_to_sprite()
 	
@@ -126,6 +134,7 @@ func _resize_hp_bar_to_sprite() -> void:
 	
 	hp_bar_outline.size = hp_bar.size + Vector2(outline_margin * 2, outline_margin * 2)
 	hp_bar_outline.position = hp_bar.position - Vector2(outline_margin, outline_margin)
+	
 	hp_bar_shading.size = hp_bar.size
 	hp_bar_shading.position = hp_bar.position
 	
@@ -137,7 +146,6 @@ func _resize_hp_bar_to_sprite() -> void:
 		hp_label.position.x = round(-bar_width / 2)
 		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
-# Crée un style de remplissage avec une couleur donnée, coins arrondis inclus
 func make_fill_style(color: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = color
@@ -180,13 +188,11 @@ func reset_block() -> void:
 	current_block = 0
 	update_block_display()
 
-# Mise à jour instantanée (utilisée à l'init et au soin)
 func update_hp_display() -> void:
 	hp_bar.value = current_hp
 	if hp_label:
 		hp_label.text = str(current_hp) + " / " + str(max_hp)
 
-# Effet de dégâts : chute instantanée + traînée claire qui rattrape après un délai
 func show_damage_trail() -> void:
 	hp_bar.value = current_hp
 	if hp_label:
@@ -198,6 +204,11 @@ func show_damage_trail() -> void:
 
 func update_block_display() -> void:
 	hp_bar.add_theme_stylebox_override("fill", fill_shielded if current_block > 0 else fill_normal)
+	outline_style_ref.border_color = OUTLINE_COLOR_SHIELDED if current_block > 0 else OUTLINE_COLOR
+	
+	if hp_label:
+		var label_outline: Color = LABEL_OUTLINE_COLOR_SHIELDED if current_block > 0 else LABEL_OUTLINE_COLOR
+		hp_label.add_theme_color_override("font_outline_color", label_outline)
 	
 	if block_label:
 		block_label.text = "🛡 " + str(current_block) if current_block > 0 else ""
@@ -206,7 +217,7 @@ func update_block_display() -> void:
 func die() -> void:
 	print(name + " est mort.")
 	died.emit()
-	
+
 func _on_click_area_input_event(viewport, event: InputEvent, shape_idx: int) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if self is Enemy:

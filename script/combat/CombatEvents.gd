@@ -17,6 +17,8 @@ var current_mana: int = max_mana
 
 signal gem_equip_changed
 
+var any_card_active: bool = false
+
 func refill_mana() -> void:
 	current_mana = max_mana
 	mana_changed.emit(current_mana, max_mana)

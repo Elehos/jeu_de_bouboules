@@ -2,11 +2,15 @@
 
 [ext_resource type="Script" uid="uid://bllth4kvptv3n" path="res://script/map/MapNodeView.gd" id="1_cvdme"]
 [ext_resource type="Texture2D" uid="uid://cydhdsmwjsrx2" path="res://assets/map/combat_icon.png" id="2_pakq0"]
+[ext_resource type="Texture2D" uid="uid://cf3h01prpvnb3" path="res://assets/map/start_icon.png" id="3_eyip0"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_kpnqr"]
+radius = 11.510864
 
 [node name="MapNodeView" type="Area2D" unique_id=1901458146]
 script = ExtResource("1_cvdme")
+combat_icon = ExtResource("2_pakq0")
+start_icon = ExtResource("3_eyip0")
 
 [node name="Icon" type="Sprite2D" parent="." unique_id=1859024127]
 modulate = Color(1, 0.40774983, 0.88240844, 1)

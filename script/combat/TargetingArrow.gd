@@ -44,6 +44,9 @@ func _draw() -> void:
 	var start_point: Vector2 = to_local(source_card.global_position + (source_card.size * source_card.scale) / 2.0)
 	var end_point: Vector2 = to_local(get_global_mouse_position())
 	
+	if start_point.distance_to(end_point) < 5.0:
+		return
+	
 	var control_point: Vector2 = (start_point + end_point) / 2.0 + Vector2(0, -CURVE_HEIGHT)
 	
 	var points: PackedVector2Array = []
@@ -53,7 +56,6 @@ func _draw() -> void:
 		var b: Vector2 = control_point.lerp(end_point, t)
 		points.append(a.lerp(b, t))
 	
-	# Construit un ruban dont la largeur augmente progressivement vers la pointe
 	var left_edge: PackedVector2Array = []
 	var right_edge: PackedVector2Array = []
 	
@@ -63,11 +65,16 @@ func _draw() -> void:
 		
 		var dir: Vector2
 		if i == 0:
-			dir = (points[1] - points[0]).normalized()
+			dir = (points[1] - points[0])
 		elif i == points.size() - 1:
-			dir = (points[i] - points[i - 1]).normalized()
+			dir = (points[i] - points[i - 1])
 		else:
-			dir = (points[i + 1] - points[i - 1]).normalized()
+			dir = (points[i + 1] - points[i - 1])
+		
+		if dir.length() < 0.001:
+			dir = Vector2.DOWN
+		else:
+			dir = dir.normalized()
 		
 		var perpendicular: Vector2 = Vector2(-dir.y, dir.x)
 		left_edge.append(points[i] + perpendicular * width / 2.0)
@@ -77,9 +84,11 @@ func _draw() -> void:
 	var ribbon: PackedVector2Array = left_edge + right_edge
 	draw_colored_polygon(ribbon, ARROW_COLOR)
 	
-	# Pointe de flèche, un peu plus large pour prolonger l'effet
 	var tip: Vector2 = points[points.size() - 1]
-	var direction: Vector2 = (tip - points[points.size() - 2]).normalized()
+	var tip_dir: Vector2 = tip - points[points.size() - 2]
+	if tip_dir.length() < 0.001:
+		return
+	var direction: Vector2 = tip_dir.normalized()
 	var perpendicular: Vector2 = Vector2(-direction.y, direction.x)
 	
 	var left: Vector2 = tip - direction * ARROW_HEAD_SIZE + perpendicular * ARROW_HEAD_SIZE * 0.5

@@ -53,7 +53,6 @@ func _ready() -> void:
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	player.died.connect(_on_player_died)
 	restart_button.pressed.connect(_on_restart_pressed)
-	player.damage_taken.connect(_on_damage_taken)
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	gem_bag_button.pressed.connect(gem_bag.toggle)
@@ -218,7 +217,6 @@ func spawn_enemies() -> void:
 		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
-		new_enemy.damage_taken.connect(_on_damage_taken)
 
 func _compute_enemy_position(index: int, total: int) -> Vector2:
 	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing

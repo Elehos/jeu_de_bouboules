@@ -46,6 +46,17 @@ func _ready() -> void:
 	current_encounter = possible_encounters.pick_random()
 	print("Combat choisi : ", current_encounter.encounter_name)
 	spawn_enemies()
+	if RunManager.player_current_hp >= 0:
+		player.max_hp = RunManager.player_max_hp
+		player.current_hp = RunManager.player_current_hp
+		player.sync_hp_bars_instantly()
+	else:
+		# Premier combat de la run : on initialise RunManager avec les PV de départ du joueur
+		RunManager.player_max_hp = player.max_hp
+		RunManager.player_current_hp = player.current_hp
+	
+	CombatEvents.damage_taken.connect(_on_player_hp_changed)
+	
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
@@ -223,3 +234,7 @@ func spawn_enemies() -> void:
 func _compute_enemy_position(index: int, total: int) -> Vector2:
 	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing
 	return enemy_zone_center.global_position + Vector2(offset_x, 0)
+
+func _on_player_hp_changed(character: Character, _amount: int) -> void:
+	if character == player:
+		RunManager.player_current_hp = player.current_hp

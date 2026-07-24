@@ -193,6 +193,10 @@ func update_hp_display() -> void:
 	if hp_label:
 		hp_label.text = str(current_hp) + " / " + str(max_hp)
 
+func sync_hp_bars_instantly() -> void:
+	hp_bar.value = current_hp
+	hp_bar_delayed.value = current_hp
+
 func show_damage_trail() -> void:
 	hp_bar.value = current_hp
 	if hp_label:

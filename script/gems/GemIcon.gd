@@ -15,6 +15,9 @@ func update_display() -> void:
 		icon.texture = gem_data.icon
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
+	if GemInventory.gems_locked:
+		return null
+	
 	var preview := TextureRect.new()
 	preview.texture = gem_data.icon
 	preview.custom_minimum_size = Vector2(50, 50)

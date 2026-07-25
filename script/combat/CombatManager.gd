@@ -42,6 +42,7 @@ var current_encounter: EncounterData
 
 
 func _ready() -> void:
+	GemInventory.gems_locked = true
 	CombatEvents.damage_taken.connect(_on_damage_taken)
 	current_encounter = possible_encounters.pick_random()
 	print("Combat choisi : ", current_encounter.encounter_name)

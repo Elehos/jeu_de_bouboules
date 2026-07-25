@@ -76,6 +76,7 @@ func _start_combat() -> void:
 	get_tree().change_scene_to_file("res://scenes/combat/Combat.tscn")
 	
 func _ready() -> void:
+	GemInventory.gems_locked = false
 	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 	if not RunManager.map_generated:
 		RunManager.start_new_run(8, starting_deck)

@@ -36,7 +36,7 @@ bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_ckr0i"]
 size = Vector2(276, 391)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b5vxe"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a2dhc"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
 border_width_left = 10
 border_width_top = 10
@@ -46,8 +46,24 @@ corner_radius_top_right = 40
 corner_radius_bottom_right = 40
 corner_detail = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ifpyu"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oxr7k"]
 bg_color = Color(0.35531357, 0.35531357, 0.35531345, 1)
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xxixh"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_naquc"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
 border_width_top = 20
 border_width_right = 20
 border_width_bottom = 20
@@ -290,16 +306,17 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("19_akrri")
 theme_override_font_sizes/font_size = 39
 
-[node name="GemBagPanel" type="Panel" parent="UI" unique_id=1109758043]
-offset_left = -1304.0
+[node name="GemBagPanel" type="Panel" parent="UI" unique_id=142963650]
+offset_left = -1398.0
 offset_top = 102.0
+offset_right = -94.0
 offset_bottom = 977.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_b5vxe")
+theme_override_styles/panel = SubResource("StyleBoxFlat_a2dhc")
 script = ExtResource("27_5gaff")
 gem_icon_scene = ExtResource("28_a2dhc")
 card_row_scene = ExtResource("29_oxr7k")
 
-[node name="GemBagButton" type="Button" parent="UI/GemBagPanel" unique_id=1912258425]
+[node name="GemBagButton" type="Button" parent="UI/GemBagPanel" unique_id=1596554738]
 layout_mode = 1
 anchors_preset = 6
 anchor_left = 1.0
@@ -308,50 +325,56 @@ anchor_right = 1.0
 anchor_bottom = 0.5
 offset_left = -10.0
 offset_top = -112.0
-offset_right = 132.0
+offset_right = 134.0
 offset_bottom = 178.0
 grow_horizontal = 0
 grow_vertical = 2
 scale = Vector2(0.5, 0.5)
 theme_override_fonts/font = ExtResource("19_akrri")
 theme_override_font_sizes/font_size = 80
-theme_override_styles/normal = SubResource("StyleBoxFlat_ifpyu")
+theme_override_styles/normal = SubResource("StyleBoxFlat_oxr7k")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_xxixh")
+theme_override_styles/hover = SubResource("StyleBoxFlat_naquc")
 text = ">"
 
-[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=984067812]
+[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=1909142140]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 26.0
-offset_top = 22.0
+offset_left = 29.0
+offset_top = 27.0
 offset_right = -25.0
-offset_bottom = -26.0
+offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=1041237963]
+[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=583646128]
 layout_mode = 2
 text = "Mes Gems"
 
-[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=216749305]
+[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=742798551]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 script = ExtResource("30_oxr7k")
 
-[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=850009372]
+[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=46591238]
 layout_mode = 2
 text = "Mon Deck"
 
-[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=680636174]
-custom_minimum_size = Vector2(0, 640)
+[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=1488392240]
+custom_minimum_size = Vector2(0, 656)
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=664889065]
+[node name="MarginContainer" type="MarginContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1923839027]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+
+[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll/MarginContainer" unique_id=689131198]
 custom_minimum_size = Vector2(1240, 0)
 layout_mode = 2
-theme_override_constants/h_separation = 10
+theme_override_constants/h_separation = 5
 theme_override_constants/v_separation = 40
 alignment = 1

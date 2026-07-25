@@ -1,7 +1,7 @@
 extends Resource
 class_name CardData
 
-enum CardType { ATTACK, DEFENSE, SKILL }
+enum CardType { ATTACK, DEFENSE, SKILL, ANY }
 
 @export var card_name: String = ""
 @export var cost: int = 1
@@ -33,13 +33,16 @@ func get_type_label() -> String:
 			return ""
 			
 func get_display_description() -> String:
-	if not description.contains("{damage}"):
-		return description
+	var result: String = description
 	
-	var effective: int = get_effective_damage()
-	var damage_text: String = str(effective)
+	if result.contains("{damage}"):
+		var effective: int = get_effective_damage()
+		var damage_text: String = str(effective)
+		if effective > damage:
+			damage_text = "[color=#7CFC7C]" + damage_text + "[/color]"
+		result = result.replace("{damage}", damage_text)
 	
-	if effective > damage:
-		damage_text = "[color=#7CFC7C]" + damage_text + "[/color]"
+	if result.contains("{heal}") and equipped_gem:
+		result = result.replace("{heal}", "[color=#7CFC7C]" + str(equipped_gem.heal_on_play) + "[/color]")
 	
-	return description.replace("{damage}", damage_text)
+	return result

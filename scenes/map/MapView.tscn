@@ -11,11 +11,42 @@
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="9_7k8nd"]
 [ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="10_rja35"]
-[ext_resource type="Texture2D" uid="uid://b8dv2gfc27ph1" path="res://assets/gems/ruby.png" id="11_7b4b4"]
+[ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="12_ksfdk"]
 [ext_resource type="Script" uid="uid://d37fab13664ao" path="res://script/gems/GemUnequipZone.gd" id="12_mmlwv"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7sxfg"]
-bg_color = Color(0.09620472, 0.09620475, 0.09620469, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7k8nd"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+corner_radius_top_right = 40
+corner_radius_bottom_right = 40
+corner_detail = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rja35"]
+bg_color = Color(0.35531357, 0.35531357, 0.35531345, 1)
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7b4b4"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ksfdk"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
 
 [node name="MapView" type="Node2D" unique_id=634893464]
 script = ExtResource("1_xnhjo")
@@ -32,58 +63,74 @@ texture = ExtResource("7_ksfdk")
 
 [node name="GemInventory" parent="UI" unique_id=524607973 instance=ExtResource("7_y4mpu")]
 
-[node name="GemBagPanel" type="Panel" parent="UI" unique_id=1404207065]
+[node name="GemBagPanel" type="Panel" parent="UI" unique_id=1942942163]
 offset_left = -1304.0
 offset_top = 102.0
 offset_bottom = 977.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_7sxfg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_7k8nd")
 script = ExtResource("8_ksfdk")
 gem_icon_scene = ExtResource("9_7k8nd")
 card_row_scene = ExtResource("10_rja35")
 
-[node name="GemBagButton" type="TextureButton" parent="UI/GemBagPanel" unique_id=2069268897]
-layout_mode = 0
-offset_left = 1332.0
-offset_top = 111.0
-offset_right = 1542.0
-offset_bottom = 401.0
+[node name="GemBagButton" type="Button" parent="UI/GemBagPanel" unique_id=644491728]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -10.0
+offset_top = -112.0
+offset_right = 134.0
+offset_bottom = 178.0
+grow_horizontal = 0
+grow_vertical = 2
 scale = Vector2(0.5, 0.5)
-texture_normal = ExtResource("11_7b4b4")
+theme_override_fonts/font = ExtResource("12_ksfdk")
+theme_override_font_sizes/font_size = 80
+theme_override_styles/normal = SubResource("StyleBoxFlat_rja35")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_7b4b4")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ksfdk")
+text = ">"
 
-[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=790260240]
+[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=2059593068]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -4.0
-offset_bottom = -20.0
+offset_left = 29.0
+offset_top = 27.0
+offset_right = -25.0
+offset_bottom = -9.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 12
 
-[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=1678594068]
+[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=166439307]
 layout_mode = 2
 text = "Mes Gems"
 
-[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=217714172]
+[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=1407955934]
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 script = ExtResource("12_mmlwv")
 
-[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=1191139860]
+[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=74885569]
 layout_mode = 2
 text = "Mon Deck"
 
-[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=247014790]
-custom_minimum_size = Vector2(0, 700)
+[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=48392519]
+custom_minimum_size = Vector2(0, 656)
 layout_mode = 2
 horizontal_scroll_mode = 0
 
-[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1463036611]
-custom_minimum_size = Vector2(1280, 0)
+[node name="MarginContainer" type="MarginContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1024451985]
 layout_mode = 2
-theme_override_constants/h_separation = 10
+theme_override_constants/margin_left = 10
+
+[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll/MarginContainer" unique_id=456891246]
+custom_minimum_size = Vector2(1240, 0)
+layout_mode = 2
+theme_override_constants/h_separation = 5
 theme_override_constants/v_separation = 40
 alignment = 1

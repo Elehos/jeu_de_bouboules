@@ -7,7 +7,7 @@ class_name MapView
 @export var view_offset: Vector2 = Vector2(200, 540)  # centre horizontal, bas de l'écran (le départ en bas, la fin en haut)
 @export var starting_deck: Array[CardData] = []
 
-@onready var gem_bag_button: TextureButton = $UI/GemBagPanel/GemBagButton
+@onready var gem_bag_button: Button = $UI/GemBagPanel/GemBagButton
 @onready var gem_bag_panel: GemBag = $UI/GemBagPanel
 
 @onready var nodes_container: Node2D = $NodesContainer

@@ -9,7 +9,7 @@ class_name GemBag
 @export var card_row_scene: PackedScene
 
 @onready var gem_list: HFlowContainer = $Content/GemList
-@onready var deck_list: HFlowContainer = $Content/DeckScroll/DeckList
+@onready var deck_list: HFlowContainer = $Content/DeckScroll/MarginContainer/DeckList
 
 var is_open: bool = false
 

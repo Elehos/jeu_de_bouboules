@@ -21,7 +21,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 @onready var card_list_popup: CardListPopup = $UI/CardListPopup
 @onready var draw_pile_icon: Control = $UI/DrawPileIcon
 @onready var discard_pile_icon: Control = $UI/DiscardPileIcon
-@onready var gem_bag_button: TextureButton = $UI/GemBagPanel/GemBagButton
+@onready var gem_bag_button: Button = $UI/GemBagPanel/GemBagButton
 @onready var gem_bag: GemBag = $UI/GemBagPanel
 
 var combat_over: bool = false
@@ -131,6 +131,9 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 	
 	if card_data.block > 0:
 		player.gain_block(card_data.block)
+	
+	if card_data.equipped_gem and card_data.equipped_gem.heal_on_play > 0:
+		player.heal(card_data.equipped_gem.heal_on_play)
 		
 		
 func _on_mana_changed(current: int, max: int) -> void:

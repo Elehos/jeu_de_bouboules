@@ -32,7 +32,7 @@ func _draw() -> void:
 		return
 	
 	var gem: GemData = drag_data["gem_data"]
-	if not card_data or gem.allowed_card_type == card_data.card_type:
+	if not card_data or gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == card_data.card_type:
 		return
 	
 	draw_line(Vector2.ZERO, size, FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
@@ -49,7 +49,7 @@ func _can_drop_data(_at_position: Vector2, data) -> bool:
 	if not card_data:
 		return false
 	
-	return gem.allowed_card_type == card_data.card_type
+	return gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == card_data.card_type
 
 func _drop_data(_at_position: Vector2, data) -> void:
 	if data.has("source_slot") and data["source_slot"] == self:

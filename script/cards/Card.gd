@@ -109,7 +109,9 @@ func set_interactive(value: bool) -> void:
 	interactive = value
 	if not interactive:
 		modulate = Color(1, 1, 1, 1)
+		card_glow.visible = false
 	else:
+		card_glow.visible = true
 		_update_affordability()
 
 # --- Grossissement / rétrécissement ---

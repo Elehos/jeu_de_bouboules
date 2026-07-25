@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="GemData" format=3 uid="uid://cdytd8w6xkwf8"]
 
-[ext_resource type="Texture2D" uid="uid://b8dv2gfc27ph1" path="res://assets/gems/ruby.png" id="1_4ncwd"]
+[ext_resource type="Texture2D" uid="uid://b06bqhwx7fpex" path="res://assets/gems/ruby1.png" id="1_4ncwd"]
 [ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="1_cqv3y"]
 
 [resource]

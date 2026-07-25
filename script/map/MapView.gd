@@ -5,6 +5,10 @@ class_name MapView
 @export var floor_spacing: float = 200.0  # distance verticale entre étages
 @export var node_spacing: float = 150.0   # distance horizontale entre nœuds d'un même étage
 @export var view_offset: Vector2 = Vector2(200, 540)  # centre horizontal, bas de l'écran (le départ en bas, la fin en haut)
+@export var starting_deck: Array[CardData] = []
+
+@onready var gem_bag_button: TextureButton = $UI/GemBagPanel/GemBagButton
+@onready var gem_bag_panel: GemBag = $UI/GemBagPanel
 
 @onready var nodes_container: Node2D = $NodesContainer
 
@@ -72,8 +76,9 @@ func _start_combat() -> void:
 	get_tree().change_scene_to_file("res://scenes/combat/Combat.tscn")
 	
 func _ready() -> void:
+	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 	if not RunManager.map_generated:
-		RunManager.start_new_run(8)
+		RunManager.start_new_run(8, starting_deck)
 	
 	current_floor_index = RunManager.current_floor_index
 	current_position_in_floor = RunManager.current_position_in_floor

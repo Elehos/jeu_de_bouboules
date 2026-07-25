@@ -5,8 +5,7 @@ var discard_pile: Array[CardData] = []
 
 func setup_deck(starting_deck: Array[CardData]) -> void:
 	draw_pile.clear()
-	for card in starting_deck:
-		draw_pile.append(card.duplicate(true))
+	draw_pile.append_array(starting_deck)
 	draw_pile.shuffle()
 	discard_pile.clear()
 	_notify_counts()

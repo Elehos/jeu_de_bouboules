@@ -56,27 +56,20 @@ func refresh_deck() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 	
-	var full_deck: Array[CardData] = DeckManager.get_full_deck()
-	
-	var hand_node = get_tree().get_first_node_in_group("hand")
-	if hand_node:
-		full_deck += hand_node.get_card_data_list()
-	
-	for card in full_deck:
+	for card in RunManager.player_deck:
 		var row_instance = card_row_scene.instantiate()
 		row_instance.card_data = card
 		deck_list.add_child(row_instance)
 
 func _get_all_equipped_gems() -> Array[GemData]:
 	var result: Array[GemData] = []
-	var full_deck: Array[CardData] = DeckManager.get_full_deck()
 	
-	var hand_node = get_tree().get_first_node_in_group("hand")
-	if hand_node:
-		full_deck += hand_node.get_card_data_list()
-	
-	for card in full_deck:
+	for card in RunManager.player_deck:
 		if card.equipped_gem:
 			result.append(card.equipped_gem)
 	
 	return result
+
+
+func _on_gem_bag_button_pressed() -> void:
+	pass # Replace with function body.

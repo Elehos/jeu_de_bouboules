@@ -28,7 +28,7 @@ func _ready() -> void:
 	add_to_group("hand")
 	CombatEvents.player_turn_started.connect(new_turn)
 	CombatEvents.card_played.connect(_on_card_played)
-	DeckManager.setup_deck(deck_data)
+	DeckManager.setup_deck(RunManager.player_deck)
 
 func add_card(data: CardData) -> void:
 	var card_instance = card_scene.instantiate()

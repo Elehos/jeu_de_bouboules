@@ -2,9 +2,83 @@
 
 [ext_resource type="Script" uid="uid://bcxihlmwbh3my" path="res://script/map/MapView.gd" id="1_xnhjo"]
 [ext_resource type="PackedScene" uid="uid://bo3yke6qitm6a" path="res://scenes/map/MapNodeView.tscn" id="2_jev2o"]
+[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="3_e2qlp"]
+[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="4_3ulgv"]
+[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="5_porwx"]
+[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="6_fejxw"]
+[ext_resource type="PackedScene" uid="uid://dljbij33aq0sy" path="res://scenes/gems/gem_inventory.tscn" id="7_y4mpu"]
+[ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
+[ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="9_7k8nd"]
+[ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="10_rja35"]
+[ext_resource type="Texture2D" uid="uid://b8dv2gfc27ph1" path="res://assets/gems/ruby.png" id="11_7b4b4"]
+[ext_resource type="Script" uid="uid://d37fab13664ao" path="res://script/gems/GemUnequipZone.gd" id="12_mmlwv"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7sxfg"]
+bg_color = Color(0.09620472, 0.09620475, 0.09620469, 1)
 
 [node name="MapView" type="Node2D" unique_id=634893464]
 script = ExtResource("1_xnhjo")
 map_node_scene = ExtResource("2_jev2o")
+starting_deck = Array[ExtResource("3_e2qlp")]([ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("6_fejxw"), ExtResource("6_fejxw")])
 
 [node name="NodesContainer" type="Node2D" parent="." unique_id=64763309]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1268101918]
+
+[node name="GemInventory" parent="UI" unique_id=524607973 instance=ExtResource("7_y4mpu")]
+
+[node name="GemBagPanel" type="Panel" parent="UI" unique_id=1404207065]
+offset_left = -1304.0
+offset_top = 102.0
+offset_bottom = 977.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_7sxfg")
+script = ExtResource("8_ksfdk")
+gem_icon_scene = ExtResource("9_7k8nd")
+card_row_scene = ExtResource("10_rja35")
+
+[node name="GemBagButton" type="TextureButton" parent="UI/GemBagPanel" unique_id=2069268897]
+layout_mode = 0
+offset_left = 1332.0
+offset_top = 111.0
+offset_right = 1542.0
+offset_bottom = 401.0
+scale = Vector2(0.5, 0.5)
+texture_normal = ExtResource("11_7b4b4")
+
+[node name="Content" type="VBoxContainer" parent="UI/GemBagPanel" unique_id=790260240]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -4.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+
+[node name="Titre" type="Label" parent="UI/GemBagPanel/Content" unique_id=1678594068]
+layout_mode = 2
+text = "Mes Gems"
+
+[node name="GemList" type="HFlowContainer" parent="UI/GemBagPanel/Content" unique_id=217714172]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+script = ExtResource("12_mmlwv")
+
+[node name="Deck" type="Label" parent="UI/GemBagPanel/Content" unique_id=1191139860]
+layout_mode = 2
+text = "Mon Deck"
+
+[node name="DeckScroll" type="ScrollContainer" parent="UI/GemBagPanel/Content" unique_id=247014790]
+custom_minimum_size = Vector2(0, 700)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll" unique_id=1463036611]
+custom_minimum_size = Vector2(1280, 0)
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 40
+alignment = 1

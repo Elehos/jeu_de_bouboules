@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="4_3ulgv"]
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="5_porwx"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="6_fejxw"]
+[ext_resource type="Texture2D" uid="uid://mlek7a58fwdx" path="res://assets/backgrounds/background_map.png" id="7_ksfdk"]
 [ext_resource type="PackedScene" uid="uid://dljbij33aq0sy" path="res://scenes/gems/gem_inventory.tscn" id="7_y4mpu"]
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="9_7k8nd"]
@@ -20,6 +21,10 @@ bg_color = Color(0.09620472, 0.09620475, 0.09620469, 1)
 script = ExtResource("1_xnhjo")
 map_node_scene = ExtResource("2_jev2o")
 starting_deck = Array[ExtResource("3_e2qlp")]([ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("6_fejxw"), ExtResource("6_fejxw")])
+
+[node name="Background" type="Sprite2D" parent="." unique_id=1467989241]
+position = Vector2(960, 540)
+texture = ExtResource("7_ksfdk")
 
 [node name="NodesContainer" type="Node2D" parent="." unique_id=64763309]
 

@@ -39,6 +39,9 @@ func _draw() -> void:
 	draw_line(Vector2(size.x, 0), Vector2(0, size.y), FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
 
 func _can_drop_data(_at_position: Vector2, data) -> bool:
+	if GemInventory.gems_locked:
+		return false
+	
 	if typeof(data) != TYPE_DICTIONARY or not data.has("gem_data"):
 		return false
 	
@@ -64,6 +67,9 @@ func _drop_data(_at_position: Vector2, data) -> void:
 	CombatEvents.gem_equip_changed.emit()
 
 func _get_drag_data(_at_position: Vector2) -> Variant:
+	if GemInventory.gems_locked:
+		return null
+	
 	if not card_data or not card_data.equipped_gem:
 		return null
 	

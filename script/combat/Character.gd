@@ -69,7 +69,8 @@ func _ready() -> void:
 	outline_style_ref.corner_radius_top_right = CORNER_RADIUS
 	outline_style_ref.corner_radius_bottom_left = CORNER_RADIUS
 	outline_style_ref.corner_radius_bottom_right = CORNER_RADIUS
-	outline_style_ref.anti_aliasing = false
+	outline_style_ref.corner_detail = 12
+	outline_style_ref.anti_aliasing = true
 	hp_bar_outline.add_theme_stylebox_override("panel", outline_style_ref)
 	
 	var shading_gradient := Gradient.new()
@@ -79,6 +80,8 @@ func _ready() -> void:
 	
 	var shading_texture := GradientTexture2D.new()
 	shading_texture.gradient = shading_gradient
+	shading_texture.width = 512
+	shading_texture.height = 512
 	shading_texture.fill = GradientTexture2D.FILL_LINEAR
 	shading_texture.fill_from = Vector2(0, 0)
 	shading_texture.fill_to = Vector2(0, 1)
@@ -95,6 +98,8 @@ func _ready() -> void:
 	
 	var highlight_texture := GradientTexture2D.new()
 	highlight_texture.gradient = highlight_gradient
+	highlight_texture.width = 512
+	highlight_texture.height = 512
 	highlight_texture.fill = GradientTexture2D.FILL_LINEAR
 	highlight_texture.fill_from = Vector2(0, 0)
 	highlight_texture.fill_to = Vector2(0, 1)
@@ -153,6 +158,8 @@ func make_fill_style(color: Color) -> StyleBoxFlat:
 	style.corner_radius_top_right = CORNER_RADIUS
 	style.corner_radius_bottom_left = CORNER_RADIUS
 	style.corner_radius_bottom_right = CORNER_RADIUS
+	style.corner_detail = 12
+	style.anti_aliasing = true
 	return style
 
 func take_damage(amount: int) -> void:

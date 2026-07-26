@@ -60,8 +60,9 @@ func _draw_connections() -> void:
 				line.add_point(to_view.position)
 				line.width = 4.0
 				line.default_color = Color(1, 1, 1, 0.6)
+				line.antialiased = true
 				nodes_container.add_child(line)
-				nodes_container.move_child(line, 0)  # les lignes passent DERRIÈRE les nœuds
+				nodes_container.move_child(line, 0)
 
 func _on_node_clicked(map_node: MapNode) -> void:
 	RunManager.move_to(map_node)

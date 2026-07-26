@@ -40,6 +40,7 @@ grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
 
 [node name="CardGlow" type="TextureRect" parent="Panel" unique_id=1816707590]
+texture_filter = 4
 material = SubResource("ShaderMaterial_ifpyu")
 layout_mode = 0
 offset_left = 8.999999
@@ -50,6 +51,7 @@ scale = Vector2(0.2, 0.2)
 texture = ExtResource("2_5xlns")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
+texture_filter = 4
 layout_mode = 0
 offset_left = 2.0000007
 offset_top = 1.000001

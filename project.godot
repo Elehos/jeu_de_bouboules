@@ -21,6 +21,7 @@ CombatEvents="*uid://bs5460a8lsq78"
 DeckManager="*uid://d3b8sfuwxuw2f"
 GemInventory="*uid://dljbij33aq0sy"
 RunManager="*uid://djmsa7mv87rdg"
+RewardManager="*uid://dmftwvulbm2ea"
 
 [display]
 

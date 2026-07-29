@@ -34,7 +34,7 @@ func set_state(is_current: bool, accessible: bool) -> void:
 	is_accessible = accessible
 	
 	if is_current:
-		modulate = Color(1, 1, 0)       # jaune : position actuelle
+		modulate = Color(1.0, 1.0, 0.0, 1.0)       # jaune : position actuelle
 	elif accessible:
 		modulate = Color(1, 1, 1)       # blanc : accessible, cliquable
 	else:

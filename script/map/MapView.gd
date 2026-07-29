@@ -43,7 +43,11 @@ func display_map(generated_floors: Array[Array]) -> void:
 	_draw_connections()
 	_update_node_states()
 
+@onready var connections_drawer: ConnectionsDrawer = $NodesContainer/ConnectionsDrawer
+
 func _draw_connections() -> void:
+	var segments: Array = []
+	
 	for f in range(floors.size() - 1):
 		var current_floor: Array = floors[f]
 		var current_views: Array = node_views[f]
@@ -55,14 +59,9 @@ func _draw_connections() -> void:
 			
 			for target_index in node_data.connections:
 				var to_view: MapNodeView = next_views[target_index]
-				var line := Line2D.new()
-				line.add_point(from_view.position)
-				line.add_point(to_view.position)
-				line.width = 4.0
-				line.default_color = Color(1, 1, 1, 0.6)
-				line.antialiased = true
-				nodes_container.add_child(line)
-				nodes_container.move_child(line, 0)
+				segments.append({"from": from_view.position, "to": to_view.position})
+	
+	connections_drawer.set_segments(segments)
 
 func _on_node_clicked(map_node: MapNode) -> void:
 	RunManager.move_to(map_node)

@@ -38,8 +38,8 @@ signal turn_ended(state: TurnState)
 
 @export var possible_encounters: Array[EncounterData] = []
 var current_encounter: EncounterData
-@export var damage_number_scene: PackedScene  # glisse DamageNumber.tscn dans l'Inspecteur
-
+@export var damage_number_scene: PackedScene  
+@export var reward_popup_scene: PackedScene   
 
 func _ready() -> void:
 	GemInventory.gems_locked = true
@@ -154,7 +154,11 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			break
 	
 	if all_dead:
-		show_end_screen("Victoire !", true)
+		_show_rewards()
+
+func _show_rewards() -> void:
+	var popup: RewardPopup = reward_popup_scene.instantiate()
+	$UI.add_child(popup)
 
 func show_end_screen(text: String, is_victory: bool) -> void:
 	combat_over = true

@@ -14,6 +14,9 @@ class_name Card
 
 @export var card_name_max_width: float = 110.0
 
+signal card_selected(card_data: CardData)
+var reward_mode: bool = false
+
 var dragging: bool = false
 var drag_start_mouse: Vector2
 var drag_start_position: Vector2
@@ -243,6 +246,11 @@ func _play_confirmation_animation() -> void:
 
 # --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
+	if reward_mode:
+		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+			card_selected.emit(card_data)
+		return
+		
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
 		if state == CardState.DRAGGING or state == CardState.AWAITING_TARGET:
 			_cancel_action()

@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://dorg366dsurdj"]
+
+[ext_resource type="Script" uid="uid://bhdtrktoik65t" path="res://script/rewards/CardChoicePopup.gd" id="1_q5twd"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="2_npbru"]
+
+[node name="Control" type="Control" unique_id=365093056]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_q5twd")
+card_scene = ExtResource("2_npbru")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1109442123]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6745098)
+
+[node name="Panel" type="Panel" parent="." unique_id=988310486]
+custom_minimum_size = Vector2(900, 500)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1018736353]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=395348686]
+layout_mode = 2
+text = "Choisis une carte (ou pas)"
+
+[node name="CardsRow" type="HBoxContainer" parent="Panel/VBoxContainer" unique_id=1521289388]
+layout_mode = 2
+
+[node name="Spacer" type="Control" parent="Panel/VBoxContainer" unique_id=1129099197]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkipButton" type="Button" parent="Panel/VBoxContainer" unique_id=5036229]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Passer"

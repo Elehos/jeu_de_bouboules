@@ -1,0 +1,81 @@
+[gd_scene format=3 uid="uid://fu7ucjlcnptb"]
+
+[ext_resource type="Script" uid="uid://pcavydlhg1a3" path="res://script/rewards/RewardPopup.gd" id="1_r4f5b"]
+[ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="2_a8x2g"]
+[ext_resource type="PackedScene" uid="uid://dorg366dsurdj" path="res://scenes/rewards/CardChoicePopup.tscn" id="2_ycq1u"]
+[ext_resource type="Texture2D" uid="uid://b564n6qn5ewy5" path="res://assets/gems/diamond.png" id="3_ycq1u"]
+
+[node name="RewardPopup" type="Control" unique_id=1643709989]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_r4f5b")
+card_choice_scene = ExtResource("2_ycq1u")
+
+[node name="Background" type="ColorRect" parent="." unique_id=976745582]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.69411767)
+
+[node name="Panel" type="Panel" parent="." unique_id=1744951369]
+custom_minimum_size = Vector2(700, 400)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=811383022]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=757054383]
+layout_mode = 2
+text = "Choisis ton destin"
+
+[node name="ChoicesRow" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1986223525]
+layout_mode = 2
+
+[node name="CardRewardIcon" type="TextureButton" parent="Panel/VBoxContainer/ChoicesRow" unique_id=1102296603]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 0
+offset_transform_enabled = true
+texture_normal = ExtResource("2_a8x2g")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="GemRewardIcon" type="TextureButton" parent="Panel/VBoxContainer/ChoicesRow" unique_id=431296472]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+size_flags_horizontal = 0
+offset_transform_enabled = true
+texture_normal = ExtResource("3_ycq1u")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Spacer" type="Control" parent="Panel/VBoxContainer" unique_id=1189388812]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="Panel/VBoxContainer" unique_id=1211754194]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Fermer"

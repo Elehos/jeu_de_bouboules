@@ -3,6 +3,26 @@
 [ext_resource type="Script" uid="uid://pcavydlhg1a3" path="res://script/rewards/RewardPopup.gd" id="1_r4f5b"]
 [ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="2_a8x2g"]
 [ext_resource type="PackedScene" uid="uid://dorg366dsurdj" path="res://scenes/rewards/CardChoicePopup.tscn" id="2_ycq1u"]
+[ext_resource type="Texture2D" uid="uid://dxreshjd57ef6" path="res://assets/ui/rewardpopup.png" id="3_a8x2g"]
+[ext_resource type="FontFile" uid="uid://bh3i3bipjqs8c" path="res://assets/fonts/GeneralSans-Semibold.otf" id="4_ycq1u"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_r4f5b"]
+texture = ExtResource("3_a8x2g")
+
+[sub_resource type="LabelSettings" id="LabelSettings_a8x2g"]
+paragraph_spacing = 4.0
+font = ExtResource("4_ycq1u")
+font_size = 19
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kpnqr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dr1ou"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tlyru"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_egbsh"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ek6vu"]
 
 [node name="RewardPopup" type="Control" unique_id=1643709989]
 layout_mode = 3
@@ -21,10 +41,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.69411767)
+color = Color(0, 0, 0, 0.6862745)
 
 [node name="Panel" type="Panel" parent="." unique_id=1744951369]
-custom_minimum_size = Vector2(700, 400)
+custom_minimum_size = Vector2(450, 550)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -37,6 +57,7 @@ offset_right = 20.0
 offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxTexture_r4f5b")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=811383022]
 layout_mode = 1
@@ -46,25 +67,86 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer" unique_id=757054383]
+[node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer" unique_id=1501112520]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+
+[node name="TitleLabel" type="Label" parent="Panel/VBoxContainer/MarginContainer" unique_id=757054383]
+custom_minimum_size = Vector2(0, 84)
 layout_mode = 2
 text = "Choisis ton destin"
+label_settings = SubResource("LabelSettings_a8x2g")
 
 [node name="ChoicesRow" type="VBoxContainer" parent="Panel/VBoxContainer" unique_id=1986223525]
 layout_mode = 2
 
-[node name="CardRewardIcon" type="TextureButton" parent="Panel/VBoxContainer/ChoicesRow" unique_id=1102296603]
-custom_minimum_size = Vector2(100, 100)
+[node name="Choix1" type="Panel" parent="Panel/VBoxContainer/ChoicesRow" unique_id=1518157431]
+custom_minimum_size = Vector2(320, 100)
 layout_mode = 2
-size_flags_horizontal = 0
-offset_transform_enabled = true
-texture_normal = ExtResource("2_a8x2g")
-ignore_texture_size = true
-stretch_mode = 5
+size_flags_horizontal = 4
 
-[node name="GemRewardIcon" type="TextureButton" parent="Panel/VBoxContainer/ChoicesRow" unique_id=431296472]
-custom_minimum_size = Vector2(100, 100)
+[node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer/ChoicesRow/Choix1" unique_id=1588831692]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="CardRewardIcon" type="Button" parent="Panel/VBoxContainer/ChoicesRow/Choix1/MarginContainer" unique_id=169199573]
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_kpnqr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_dr1ou")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_tlyru")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_egbsh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ek6vu")
+text = "Choisis une carte"
+icon = ExtResource("2_a8x2g")
+expand_icon = true
+
+[node name="Choix2" type="Panel" parent="Panel/VBoxContainer/ChoicesRow" unique_id=150517802]
+custom_minimum_size = Vector2(320, 100)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel/VBoxContainer/ChoicesRow/Choix2" unique_id=1204787020]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="GemRewardIcon" type="Button" parent="Panel/VBoxContainer/ChoicesRow/Choix2/MarginContainer" unique_id=1612549409]
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_kpnqr")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_dr1ou")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_tlyru")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_egbsh")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ek6vu")
+text = "Nom gemme"
+expand_icon = true
+
+[node name="GemRewardIcon" type="TextureButton" parent="Panel/VBoxContainer/ChoicesRow/Choix2" unique_id=431296472]
+visible = false
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 19.0
+offset_top = -29.0
+offset_right = 119.0
+offset_bottom = 71.0
+grow_vertical = 2
+scale = Vector2(0.6, 0.6)
 size_flags_horizontal = 0
 offset_transform_enabled = true
 ignore_texture_size = true

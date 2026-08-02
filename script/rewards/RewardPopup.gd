@@ -3,8 +3,8 @@ class_name RewardPopup
 
 signal rewards_finished
 
-@onready var card_reward_icon: TextureButton = $Panel/VBoxContainer/ChoicesRow/CardRewardIcon
-@onready var gem_reward_icon: TextureButton = $Panel/VBoxContainer/ChoicesRow/GemRewardIcon
+@onready var card_reward_icon: Button = $Panel/VBoxContainer/ChoicesRow/Choix1/MarginContainer/CardRewardIcon
+@onready var gem_reward_icon: Button = $Panel/VBoxContainer/ChoicesRow/Choix2/MarginContainer/GemRewardIcon
 @onready var close_button: Button = $Panel/VBoxContainer/CloseButton
 @export var card_choice_scene: PackedScene   # glisse CardChoicePopup.tscn dans l'Inspecteur
 var current_gem: GemData
@@ -17,7 +17,8 @@ func _ready() -> void:
 	current_gem = RewardManager.get_random_gem()
 	print("Gemme tirée : ", current_gem)
 	if current_gem:
-		gem_reward_icon.texture_normal = current_gem.icon
+		gem_reward_icon.icon = current_gem.icon
+		gem_reward_icon.text = current_gem.description
 	else:
 		gem_reward_icon.visible = false
 
@@ -29,12 +30,12 @@ func _on_card_reward_pressed() -> void:
 	popup.show_choices(RewardManager.get_random_cards(3))
 	popup.choice_made.connect(func(chosen: bool): 
 		if chosen:
-			card_reward_icon.visible = false
+			card_reward_icon.get_parent().get_parent().visible = false
 )
 
 func _on_gem_reward_pressed() -> void:
-	GemInventory.owned_gems.append(current_gem)
-	gem_reward_icon.visible = false
+	GemInventory.owned_gems.append(current_gem.duplicate(true))
+	gem_reward_icon.get_parent().get_parent().visible = false
 
 func _on_close_pressed() -> void:
 	rewards_finished.emit()

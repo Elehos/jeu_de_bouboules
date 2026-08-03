@@ -94,12 +94,12 @@ func _update_hand_layout() -> void:
 		
 		card.base_position = target_pos
 		card.base_rotation_degrees = rotation_deg
-		card.base_z_index = -i
-		
+		card.base_z_index = i
+
 		if i == hovered_i:
 			continue
-		
-		card.z_index = -i
+
+		card.z_index = i
 		card.move_to_base()
 
 func _on_card_played(_card_data: CardData, _target: Character) -> void:

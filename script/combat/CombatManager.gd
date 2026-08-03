@@ -41,6 +41,16 @@ var current_encounter: EncounterData
 @export var damage_number_scene: PackedScene  
 @export var reward_popup_scene: PackedScene   
 
+@onready var mana_ui_icon: TextureRect = $UI/ManaIcon/Icon
+@export var mana_frames_texture: Texture2D
+
+const MANA_FRAME_COUNT: int = 5
+const MANA_ANIM_STEP_TIME: float = 0.05
+
+var mana_frame_textures: Array[Texture2D] = []
+var mana_ui_current_frame: int = 4
+var mana_ui_anim_id: int = 0
+
 func _ready() -> void:
 	GemInventory.gems_locked = true
 	CombatEvents.damage_taken.connect(_on_damage_taken)
@@ -68,6 +78,7 @@ func _ready() -> void:
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	gem_bag_button.pressed.connect(gem_bag.toggle)
+	_setup_mana_ui_frames()
 	start_turn(TurnState.PLAYER_TURN)
 	
 
@@ -139,6 +150,11 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 func _on_mana_changed(current: int, max: int) -> void:
 	current_mana_label.text = str(current)
 	max_mana_label.text = str(max)
+	
+	if current <= 0:
+		_play_mana_ui_animation(0)
+	else:
+		_play_mana_ui_animation(MANA_FRAME_COUNT - 1)
 	
 func _on_player_died() -> void:
 	show_end_screen("Défaite...", false)
@@ -244,3 +260,36 @@ func _compute_enemy_position(index: int, total: int) -> Vector2:
 func _on_player_hp_changed(character: Character, _amount: int) -> void:
 	if character == player:
 		RunManager.player_current_hp = player.current_hp
+		
+func _setup_mana_ui_frames() -> void:
+	if not mana_frames_texture:
+		return
+	
+	var frame_width: float = mana_frames_texture.get_width() / float(MANA_FRAME_COUNT)
+	var frame_height: float = mana_frames_texture.get_height()
+	
+	mana_frame_textures.clear()
+	for i in range(MANA_FRAME_COUNT):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = mana_frames_texture
+		atlas.region = Rect2(i * frame_width, 0, frame_width, frame_height)
+		mana_frame_textures.append(atlas)
+	
+	mana_ui_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mana_ui_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	mana_ui_icon.texture = mana_frame_textures[mana_ui_current_frame]
+
+func _play_mana_ui_animation(target_frame: int) -> void:
+	if mana_frame_textures.is_empty():
+		return
+	
+	mana_ui_anim_id += 1
+	var my_id: int = mana_ui_anim_id
+	var direction: int = 1 if target_frame > mana_ui_current_frame else -1
+	
+	while mana_ui_current_frame != target_frame:
+		if my_id != mana_ui_anim_id:
+			return
+		mana_ui_current_frame += direction
+		mana_ui_icon.texture = mana_frame_textures[mana_ui_current_frame]
+		await get_tree().create_timer(MANA_ANIM_STEP_TIME).timeout

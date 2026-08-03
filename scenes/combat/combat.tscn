@@ -11,10 +11,10 @@
 [ext_resource type="Resource" uid="uid://bvb8uvx2ovggf" path="res://ressourcesEncounters/encounter_3.tres" id="5_05d77"]
 [ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="7_3dmww"]
 [ext_resource type="PackedScene" uid="uid://d1uw6tjyj3h3d" path="res://scenes/ui/damage_number.tscn" id="7_xt4lv"]
-[ext_resource type="Texture2D" uid="uid://ckwhuaef6dby6" path="res://assets/backgrounds/backgroundtest2.png" id="8_08wqo"]
-[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/Card.tscn" id="8_gwckk"]
+[ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
 [ext_resource type="PackedScene" uid="uid://fu7ucjlcnptb" path="res://scenes/rewards/RewardPopup.tscn" id="8_oxr7k"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
+[ext_resource type="Texture2D" uid="uid://dspen55daqvns" path="res://assets/backgrounds/donjon.png" id="9_oxr7k"]
 [ext_resource type="FontFile" uid="uid://bh3i3bipjqs8c" path="res://assets/fonts/GeneralSans-Semibold.otf" id="11_jr0f0"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 [ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
@@ -24,8 +24,8 @@
 [ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="18_05d77"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="19_akrri"]
 [ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
-[ext_resource type="Texture2D" uid="uid://dfdw2ai6ys5cm" path="res://assets/ui/mana_count.png" id="21_qs84n"]
-[ext_resource type="FontFile" uid="uid://cweuoumjq3fpl" path="res://assets/fonts/GeneralSans-Regular.otf" id="22_08wqo"]
+[ext_resource type="Texture2D" uid="uid://rwa43l1d8amf" path="res://assets/ui/mana.png" id="25_oxr7k"]
+[ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="26_oxr7k"]
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="27_5gaff"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="28_a2dhc"]
 [ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="29_oxr7k"]
@@ -77,14 +77,14 @@ enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
 damage_number_scene = ExtResource("7_xt4lv")
 reward_popup_scene = ExtResource("8_oxr7k")
-metadata/_edit_horizontal_guides_ = [1030.0]
+metadata/_edit_horizontal_guides_ = [1030.0, 761.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
 
 [node name="Background" type="Sprite2D" parent="WorldRoot" unique_id=376794718]
-position = Vector2(963, 540)
-scale = Vector2(1.1, 1.043)
-texture = ExtResource("8_08wqo")
+position = Vector2(963, 499.00006)
+scale = Vector2(0.7153065, 0.6782407)
+texture = ExtResource("9_oxr7k")
 
 [node name="ReferenceBackground" type="Sprite2D" parent="WorldRoot" unique_id=1691740053]
 visible = false
@@ -94,7 +94,7 @@ texture = ExtResource("1_ltalu")
 metadata/_edit_lock_ = true
 
 [node name="Player" type="CharacterBody2D" parent="WorldRoot" unique_id=1391993159]
-position = Vector2(440, 550)
+position = Vector2(440, 523)
 script = ExtResource("1_5vqsm")
 
 [node name="HPBarDelayed" type="ProgressBar" parent="WorldRoot/Player" unique_id=1523442336]
@@ -158,7 +158,7 @@ position = Vector2(5, 118)
 shape = SubResource("RectangleShape2D_ckr0i")
 
 [node name="EnemyZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=865605184]
-position = Vector2(1450, 618)
+position = Vector2(1429, 630)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1345790589]
 
@@ -278,10 +278,12 @@ offset_bottom = 883.0
 
 [node name="Icon" type="TextureRect" parent="UI/ManaIcon" unique_id=889670759]
 layout_mode = 0
-offset_right = 176.0
-offset_bottom = 176.0
+offset_left = 2.0
+offset_top = -39.0
+offset_right = 178.0
+offset_bottom = 192.0
 scale = Vector2(0.6, 0.6)
-texture = ExtResource("21_qs84n")
+texture = ExtResource("25_oxr7k")
 
 [node name="ManaLabel" type="HBoxContainer" parent="UI/ManaIcon" unique_id=788055940]
 layout_mode = 0
@@ -294,18 +296,21 @@ alignment = 1
 
 [node name="CurrentManaLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=813814025]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("26_oxr7k")
 theme_override_font_sizes/font_size = 39
 
 [node name="SlashLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=1933476839]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("22_08wqo")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("26_oxr7k")
 theme_override_font_sizes/font_size = 39
 text = "/"
 
 [node name="MaxManaLabel" type="Label" parent="UI/ManaIcon/ManaLabel" unique_id=1273605751]
 layout_mode = 2
-theme_override_fonts/font = ExtResource("19_akrri")
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("26_oxr7k")
 theme_override_font_sizes/font_size = 39
 
 [node name="GemBagPanel" type="Panel" parent="UI" unique_id=142963650]

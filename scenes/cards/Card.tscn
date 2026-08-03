@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://1urewgq58c01" path="res://script/cards/Card.gd" id="1_fa4yn"]
 [ext_resource type="Shader" uid="uid://cu3r8fhxcajwf" path="res://scenes/cards/card.gdshader" id="2_4tkg3"]
-[ext_resource type="Texture2D" uid="uid://bggcn6yldwd3m" path="res://assets/cards/background_card.png" id="2_5xlns"]
-[ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="3_5xlns"]
-[ext_resource type="FontFile" uid="uid://bspmchetr07q2" path="res://assets/fonts/GeneralSans-Medium.otf" id="4_mo7yc"]
+[ext_resource type="Texture2D" uid="uid://bktoh81obhufx" path="res://assets/cards/mana.png" id="4_8cu2g"]
+[ext_resource type="Texture2D" uid="uid://bxafqy6hpjy11" path="res://assets/cards/bg_card.png" id="4_61bms"]
 [ext_resource type="Script" uid="uid://dfgluag3f2y8s" path="res://script/gems/GemSlot.gd" id="5_1q37b"]
+[ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="5_mj4jy"]
 [ext_resource type="FontFile" uid="uid://bpr7ek26kbdeq" path="res://assets/fonts/GeneralSans-MediumItalic.otf" id="5_mo7yc"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7s3sq"]
@@ -24,8 +24,8 @@ layout_mode = 3
 anchors_preset = 0
 offset_left = -18.0
 offset_top = -5.0
-offset_right = 225.0
-offset_bottom = 315.0
+offset_right = 243.0
+offset_bottom = 322.0
 script = ExtResource("1_fa4yn")
 glow_margin = 0.0
 
@@ -43,66 +43,79 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_7s3sq")
 texture_filter = 4
 material = SubResource("ShaderMaterial_ifpyu")
 layout_mode = 0
-offset_left = 8.999999
-offset_top = 2.9999995
-offset_right = 1213.9999
-offset_bottom = 1662.9999
+offset_left = 8.0
+offset_top = 8.658
+offset_right = 1218.0
+offset_bottom = 1553.1069
 scale = Vector2(0.2, 0.2)
-texture = ExtResource("2_5xlns")
+texture = ExtResource("4_61bms")
 
 [node name="CardBackground" type="TextureRect" parent="Panel" unique_id=280004564]
 texture_filter = 4
 layout_mode = 0
-offset_left = 2.0000007
-offset_top = 1.000001
-offset_right = 1271.9999
-offset_bottom = 1622.0336
+offset_left = 7.999998
+offset_top = 8.658424
+offset_right = 1217.9999
+offset_bottom = 1553.1078
 scale = Vector2(0.2, 0.2)
-texture = ExtResource("2_5xlns")
+texture = ExtResource("4_61bms")
+
+[node name="ManaBackground" type="TextureRect" parent="Panel" unique_id=44141868]
+layout_mode = 0
+offset_left = 3.0
+offset_top = -44.0
+offset_right = 171.0
+offset_bottom = 187.0
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("4_8cu2g")
 
 [node name="CardCost" type="Label" parent="Panel" unique_id=2014171580]
 layout_mode = 0
-offset_left = 195.0
-offset_top = 42.0
-offset_right = 236.0
-offset_bottom = 81.0
+offset_left = 23.0
+offset_top = 7.0
+offset_right = 64.0
+offset_bottom = 62.0
 size_flags_horizontal = 8
 size_flags_stretch_ratio = 0.0
 offset_transform_position = Vector2(-15, 3)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_constants/line_spacing = 0
-theme_override_fonts/font = ExtResource("3_5xlns")
-theme_override_font_sizes/font_size = 25
+theme_override_fonts/font = ExtResource("5_mj4jy")
+theme_override_font_sizes/font_size = 40
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_trim_flags = 0
 
 [node name="CardName" type="Label" parent="Panel" unique_id=1475386707]
-custom_minimum_size = Vector2(130, 28)
-custom_maximum_size = Vector2(130, 28)
+custom_minimum_size = Vector2(168, 35)
+custom_maximum_size = Vector2(168, 35)
 layout_mode = 0
-offset_left = 55.0
+offset_left = 46.0
 offset_top = 154.0
-offset_right = 185.0
+offset_right = 214.0
 offset_bottom = 182.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 offset_transform_enabled = true
-theme_override_fonts/font = ExtResource("3_5xlns")
-theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("5_mj4jy")
+theme_override_font_sizes/font_size = 25
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true
 
 [node name="CardDescription" type="RichTextLabel" parent="Panel" unique_id=1670690184]
-custom_minimum_size = Vector2(110, 0)
+custom_minimum_size = Vector2(166, 94)
+custom_maximum_size = Vector2(166, 94)
 layout_mode = 0
-offset_left = 53.0
-offset_top = 208.0
-offset_right = 190.0
-offset_bottom = 293.0
+offset_left = 47.0
+offset_top = 191.0
+offset_right = 213.0
+offset_bottom = 285.0
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("4_mo7yc")
-theme_override_font_sizes/normal_font_size = 14
+theme_override_colors/default_color = Color(0, 0, 0, 1)
+theme_override_fonts/normal_font = ExtResource("5_mj4jy")
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
 fit_content = true
 scroll_active = false

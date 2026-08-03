@@ -12,7 +12,7 @@ class_name Card
 @onready var card_background: TextureRect = $Panel/CardBackground
 @onready var card_glow: TextureRect = $Panel/CardGlow
 
-@export var card_name_max_width: float = 110.0
+@export var card_name_max_width: float = 168.0
 
 signal card_selected(card_data: CardData)
 var reward_mode: bool = false
@@ -51,6 +51,16 @@ const GLOW_MARGIN: float = 20.0
 
 @export var glow_margin: float = 10.0
 @export var glow_offset: Vector2 = Vector2.ZERO
+
+@onready var mana_background: TextureRect = $Panel/ManaBackground
+@export var mana_frames_texture: Texture2D
+
+const MANA_FRAME_COUNT: int = 5
+const MANA_ANIM_STEP_TIME: float = 0.10
+
+var mana_frame_textures: Array[Texture2D] = []
+var mana_current_frame: int = 4
+var mana_anim_id: int = 0
 
 func _ready() -> void:
 	update_display()
@@ -92,11 +102,12 @@ func _ready() -> void:
 	card_glow.material = glow_material_playable
 	
 	_update_affordability()
+	_setup_mana_frames()
 
 func update_display() -> void:
 	if card_data:
 		name_label.text = card_data.card_name
-		_fit_label_text(name_label, card_name_max_width)
+		_fit_label_text(name_label, card_name_max_width, 25)
 		cost_label.text = str(card_data.cost)
 		description_label.text = card_data.get_display_description()
 		type_label.text = card_data.get_type_label()
@@ -123,7 +134,7 @@ func _grow() -> void:
 		active_tween.kill()
 	
 	pivot_offset = Vector2(size.x / 2, size.y)
-	z_index = 1
+	z_index = 500
 	rotation_degrees = 0.0
 	
 	var viewport_height: float = get_viewport_rect().size.y
@@ -279,7 +290,7 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 			rotation_degrees = 0.0
 			state = CardState.DRAGGING
 			CombatEvents.any_card_active = true
-			z_index = 1
+			z_index = 500
 			dragging = true
 			drag_start_mouse = get_global_mouse_position()
 			drag_start_position = global_position
@@ -393,15 +404,55 @@ func _update_affordability() -> void:
 	
 	var affordable: bool = CombatEvents.current_mana >= card_data.cost
 	modulate = Color(1, 1, 1, 1)
-	card_glow.material = glow_material_playable if affordable else glow_material_unplayable
+	
+	if affordable:
+		card_glow.visible = false
+		_play_mana_animation(MANA_FRAME_COUNT - 1)
+	else:
+		card_glow.visible = true
+		card_glow.material = glow_material_unplayable
+		_play_mana_animation(0)
 
 func _on_mana_changed(_current: int, _max: int) -> void:
 	_update_affordability()
 
-func _fit_label_text(label: Label, max_width: float, max_font_size: int = 14, min_font_size: int = 8) -> void:
+func _fit_label_text(label: Label, max_width: float, max_font_size: int = 18, min_font_size: int = 8) -> void:
 	var font_size = max_font_size
 	label.add_theme_font_size_override("font_size", font_size)
 	
 	while label.get_theme_font("font").get_string_size(label.text, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size).x > max_width and font_size > min_font_size:
 		font_size -= 1
 		label.add_theme_font_size_override("font_size", font_size)
+		
+func _setup_mana_frames() -> void:
+	if not mana_frames_texture:
+		return
+	
+	var frame_width: float = mana_frames_texture.get_width() / float(MANA_FRAME_COUNT)
+	var frame_height: float = mana_frames_texture.get_height()
+	
+	mana_frame_textures.clear()
+	for i in range(MANA_FRAME_COUNT):
+		var atlas := AtlasTexture.new()
+		atlas.atlas = mana_frames_texture
+		atlas.region = Rect2(i * frame_width, 0, frame_width, frame_height)
+		mana_frame_textures.append(atlas)
+	
+	mana_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	mana_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	mana_background.texture = mana_frame_textures[mana_current_frame]
+
+func _play_mana_animation(target_frame: int) -> void:
+	if mana_frame_textures.is_empty():
+		return
+	
+	mana_anim_id += 1
+	var my_id: int = mana_anim_id
+	var direction: int = 1 if target_frame > mana_current_frame else -1
+	
+	while mana_current_frame != target_frame:
+		if my_id != mana_anim_id:
+			return
+		mana_current_frame += direction
+		mana_background.texture = mana_frame_textures[mana_current_frame]
+		await get_tree().create_timer(MANA_ANIM_STEP_TIME).timeout

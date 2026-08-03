@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="GemData" format=3 uid="uid://c4rjauh7v7662"]
 
 [ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="1_s4dn3"]
-[ext_resource type="Texture2D" uid="uid://xl4rfx1qnx6l" path="res://assets/gems/heart.png" id="1_ssn1r"]
+[ext_resource type="Texture2D" uid="uid://bwp1kphevr18m" path="res://assets/gems/gemcoeur.png" id="1_ssn1r"]
 
 [resource]
 script = ExtResource("1_s4dn3")

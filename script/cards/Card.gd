@@ -63,6 +63,7 @@ var mana_current_frame: int = 4
 var mana_anim_id: int = 0
 
 func _ready() -> void:
+	print("Card _ready appelée pour : ", card_data.card_name if card_data else "sans données")
 	update_display()
 	panel.gui_input.connect(_on_panel_gui_input)
 	panel.mouse_entered.connect(_on_mouse_entered)

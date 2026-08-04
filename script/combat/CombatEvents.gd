@@ -29,6 +29,12 @@ func try_spend_mana(amount: int) -> bool:
 	mana_changed.emit(current_mana, max_mana)
 	return true
 
+func gain_mana(amount: int) -> void:
+	# Pas de plafond ici : le mana gagné peut dépasser le max pour ce tour
+	# (comme une potion d'énergie), pour que la carte serve à jouer une carte en plus.
+	current_mana += amount
+	mana_changed.emit(current_mana, max_mana)
+
 func request_targeting(card: Card) -> void:
 	pending_card = card
 

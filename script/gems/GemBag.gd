@@ -8,6 +8,9 @@ class_name GemBag
 @export var gem_icon_scene: PackedScene
 @export var card_row_scene: PackedScene
 
+@export var deck_list_h_separation: int = 25
+@export var deck_list_v_separation: int = 50
+
 @onready var gem_list: HFlowContainer = $Content/GemList
 @onready var deck_list: HFlowContainer = $Content/DeckScroll/MarginContainer/DeckList
 
@@ -16,6 +19,8 @@ var is_open: bool = false
 func _ready() -> void:
 	position.x = closed_position_x
 	CombatEvents.gem_equip_changed.connect(_on_gem_equip_changed)
+	deck_list.add_theme_constant_override("h_separation", deck_list_h_separation)
+	deck_list.add_theme_constant_override("v_separation", deck_list_v_separation)
 
 func _on_gem_equip_changed() -> void:
 	if is_open:

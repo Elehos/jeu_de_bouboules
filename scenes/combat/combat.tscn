@@ -433,6 +433,6 @@ theme_override_constants/margin_left = 10
 [node name="DeckList" type="HFlowContainer" parent="UI/GemBagPanel/Content/DeckScroll/MarginContainer" unique_id=689131198]
 custom_minimum_size = Vector2(1240, 0)
 layout_mode = 2
-theme_override_constants/h_separation = 5
-theme_override_constants/v_separation = 40
+theme_override_constants/h_separation = 0
+theme_override_constants/v_separation = 0
 alignment = 1

@@ -258,6 +258,9 @@ func _play_confirmation_animation() -> void:
 
 # --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed:
+		print("Clic capté sur Panel | reward_mode: ", reward_mode, " | interactive: ", interactive, " | state: ", state)
+	
 	if reward_mode:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			card_selected.emit(card_data)

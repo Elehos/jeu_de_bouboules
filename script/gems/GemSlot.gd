@@ -13,6 +13,7 @@ const FORBIDDEN_WIDTH: float = 4.0
 var active_ghost: TextureRect = null
 
 func _ready() -> void:
+	add_to_group("gem_slots")
 	update_display()
 
 func update_display() -> void:
@@ -39,69 +40,31 @@ func _process(_delta: float) -> void:
 	if active_ghost and is_instance_valid(active_ghost):
 		active_ghost.size = Vector2(ICON_SIZE, ICON_SIZE)
 		active_ghost.global_position = get_global_mouse_position() - Vector2(ICON_SIZE, ICON_SIZE) / 2.0
-		if not get_viewport().gui_is_dragging():
-			active_ghost.queue_free()
-			active_ghost = null
+		
+		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_resolve_drop()
 
 func _draw() -> void:
-	if not get_viewport().gui_is_dragging():
+	if not CombatEvents.dragging_gem:
 		return
 	
-	var drag_data = get_viewport().gui_get_drag_data()
-	if typeof(drag_data) != TYPE_DICTIONARY or not drag_data.has("gem_data"):
-		return
-	
-	var gem: GemData = drag_data["gem_data"]
+	var gem: GemData = CombatEvents.dragging_gem
 	if not card_data or gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == card_data.card_type:
 		return
 	
 	draw_line(Vector2.ZERO, size, FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
 	draw_line(Vector2(size.x, 0), Vector2(0, size.y), FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
 
-func _can_drop_data(_at_position: Vector2, data) -> bool:
-	print("gems_locked: ", GemInventory.gems_locked, " | data valide: ", typeof(data) == TYPE_DICTIONARY and data.has("gem_data"), " | card_data: ", card_data)
-	
+func start_pickup_drag() -> void:
 	if GemInventory.gems_locked:
-		return false
-	if typeof(data) != TYPE_DICTIONARY or not data.has("gem_data"):
-		return false
-	
-	var gem: GemData = data["gem_data"]
-	if not card_data:
-		return false
-	
-	print("gem type: ", gem.allowed_card_type, " | card type: ", card_data.card_type)
-	
-	return gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == card_data.card_type
-
-func _drop_data(at_position: Vector2, data) -> void:
-	if data.has("source_slot") and data["source_slot"] == self:
-		card_data.equipped_gem_position = at_position
-		update_display()
-		CombatEvents.gem_equip_changed.emit()
+		return
+	if not card_data or not card_data.equipped_gem:
 		return
 	
-	if data.has("source_slot"):
-		var source: GemSlot = data["source_slot"]
-		if source and source.card_data:
-			source.card_data.equipped_gem = null
-			source.update_display()
+	var gem: GemData = card_data.equipped_gem
+	CombatEvents.dragging_gem = gem
+	CombatEvents.dragging_gem_source = self
 	
-	if card_data:
-		card_data.equipped_gem = data["gem_data"]
-		card_data.equipped_gem_position = at_position
-		update_display()
-	
-	CombatEvents.gem_equip_changed.emit()
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_DRAG_END:
-		if active_ghost and is_instance_valid(active_ghost):
-			active_ghost.queue_free()
-			active_ghost = null
-		update_display()
-
-func start_pickup_drag(gem: GemData) -> Dictionary:
 	var ui_layer: Node = get_tree().current_scene.get_node("UI")
 	active_ghost = TextureRect.new()
 	active_ghost.texture = gem.icon
@@ -113,5 +76,61 @@ func start_pickup_drag(gem: GemData) -> Dictionary:
 	ui_layer.add_child(active_ghost)
 	
 	equipped_icon.visible = false
+
+func _resolve_drop() -> void:
+	var gem: GemData = CombatEvents.dragging_gem
+	var source: Node = CombatEvents.dragging_gem_source
+	var mouse_pos: Vector2 = get_global_mouse_position()
 	
-	return {"gem_data": gem, "source_slot": self}
+	var target_slot: GemSlot = _find_slot_at(mouse_pos)
+	var target_unequip: Node = _find_unequip_zone_at(mouse_pos)
+	
+	if target_slot and (gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == target_slot.card_data.card_type):
+		var drop_local_pos: Vector2 = mouse_pos - target_slot.global_position
+		
+		if target_slot != source:
+			if source is GemSlot and source.card_data:
+				source.card_data.equipped_gem = null
+				source.update_display()
+			target_slot.card_data.equipped_gem = gem
+		
+		target_slot.card_data.equipped_gem_position = drop_local_pos
+		target_slot.update_display()
+		CombatEvents.gem_equip_changed.emit()
+	
+	elif target_unequip:
+		if source is GemSlot and source.card_data:
+			source.card_data.equipped_gem = null
+			source.update_display()
+		CombatEvents.gem_equip_changed.emit()
+	
+	_cancel_drag()
+
+func _find_slot_at(mouse_pos: Vector2) -> GemSlot:
+	var best_slot: GemSlot = null
+	var best_z: int = -999999
+	
+	for candidate in get_tree().get_nodes_in_group("gem_slots"):
+		if not candidate.get_global_rect().has_point(mouse_pos):
+			continue
+		var card_parent = candidate.get_parent()
+		var z: int = card_parent.z_index if card_parent else 0
+		if best_slot == null or z >= best_z:
+			best_slot = candidate
+			best_z = z
+	
+	return best_slot
+
+func _find_unequip_zone_at(mouse_pos: Vector2) -> Node:
+	for candidate in get_tree().get_nodes_in_group("gem_unequip_zones"):
+		if candidate.get_global_rect().has_point(mouse_pos):
+			return candidate
+	return null
+
+func _cancel_drag() -> void:
+	CombatEvents.dragging_gem = null
+	CombatEvents.dragging_gem_source = null
+	if active_ghost and is_instance_valid(active_ghost):
+		active_ghost.queue_free()
+		active_ghost = null
+	update_display()

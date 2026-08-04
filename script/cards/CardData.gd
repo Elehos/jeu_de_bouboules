@@ -14,7 +14,6 @@ enum CardType { ATTACK, DEFENSE, SKILL, ANY }
 @export var requires_target: bool = false
 
 @export var equipped_gem: GemData = null
-
 @export var equipped_gem_position: Vector2 = Vector2.ZERO
 
 func get_effective_damage() -> int:
@@ -33,7 +32,7 @@ func get_type_label() -> String:
 			return "Compétence"
 		_:
 			return ""
-			
+
 func get_display_description() -> String:
 	var result: String = description
 	
@@ -41,10 +40,10 @@ func get_display_description() -> String:
 		var effective: int = get_effective_damage()
 		var damage_text: String = str(effective)
 		if effective > damage:
-			damage_text = "[color=#136e1c]" + damage_text + "[/color]"
+			damage_text = "[color=#7CFC7C]" + damage_text + "[/color]"
 		result = result.replace("{damage}", damage_text)
 	
 	if equipped_gem and equipped_gem.heal_on_play > 0:
-		result += "\n[color=#136e1c]Soigne " + str(equipped_gem.heal_on_play) + " PV[/color]"
+		result += "\n[color=#7CFC7C]Soigne " + str(equipped_gem.heal_on_play) + " PV[/color]"
 	
 	return result

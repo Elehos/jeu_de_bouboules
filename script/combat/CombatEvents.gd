@@ -4,20 +4,20 @@ signal card_played(card_data: CardData, target: Character)
 signal mana_changed(current: int, max: int)
 signal player_turn_started
 signal deck_counts_changed(draw_count: int, discard_count: int)
-
 signal damage_taken(character: Character, amount: int)
 signal targeting_started(card_data: CardData)
 signal targeting_cancelled
+signal gem_equip_changed
 
 var pending_card: Card = null
 var targeting_arrow: TargetingArrow = null
+var any_card_active: bool = false
+
+var dragging_gem: GemData = null
+var dragging_gem_source: Node = null
 
 @export var max_mana: int = 3
 var current_mana: int = max_mana
-
-signal gem_equip_changed
-
-var any_card_active: bool = false
 
 func refill_mana() -> void:
 	current_mana = max_mana

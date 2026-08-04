@@ -1,15 +1,20 @@
 extends Button
 
 @onready var anim_overlay: TextureRect = $AnimOverlay
+@onready var button_label: Label = $ButtonLabel
 
 @export var anim_texture: Texture2D
 const FRAME_COUNT: int = 6
 const FRAME_TIME: float = 0.05
 
+const FADE_TIME: float = 0.05
+const WRITE_TIME: float = 0.20
+
 var frames: Array[Texture2D] = []
 
 func _ready() -> void:
 	pressed.connect(_play_animation)
+	pressed.connect(_fade_out_text)
 	_setup_frames()
 
 func _setup_frames() -> void:
@@ -41,3 +46,14 @@ func _play_animation() -> void:
 		await get_tree().create_timer(FRAME_TIME).timeout
 	
 	anim_overlay.visible = false
+
+func _fade_out_text() -> void:
+	var tween: Tween = create_tween()
+	tween.tween_property(button_label, "modulate:a", 0.0, FADE_TIME)
+
+func reveal_text() -> void:
+	button_label.modulate.a = 1.0
+	button_label.visible_ratio = 0.0
+	
+	var tween: Tween = create_tween()
+	tween.tween_property(button_label, "visible_ratio", 1.0, WRITE_TIME)

@@ -132,6 +132,8 @@ func _on_end_turn_pressed() -> void:
 
 func _on_turn_started(state: TurnState) -> void:
 	end_turn_button.disabled = (state != TurnState.PLAYER_TURN)
+	if state == TurnState.PLAYER_TURN:
+		end_turn_button.reveal_text()
 
 
 func _on_card_played(card_data: CardData, target: Character) -> void:

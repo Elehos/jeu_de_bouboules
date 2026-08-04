@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" uid="uid://fu7ucjlcnptb" path="res://scenes/rewards/RewardPopup.tscn" id="8_oxr7k"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="Texture2D" uid="uid://dspen55daqvns" path="res://assets/backgrounds/donjon.png" id="9_oxr7k"]
+[ext_resource type="Texture2D" uid="uid://byad1n8f2i53g" path="res://assets/cards/mana_anim.png" id="9_xxixh"]
 [ext_resource type="FontFile" uid="uid://bh3i3bipjqs8c" path="res://assets/fonts/GeneralSans-Semibold.otf" id="11_jr0f0"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 [ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
@@ -49,9 +50,11 @@ texture = ExtResource("23_cdbvw")
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_um7nr"]
 texture = ExtResource("23_cdbvw")
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g8vsr"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_38hne"]
+texture = ExtResource("22_naquc")
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e0qeh"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_g8vsr"]
+texture = ExtResource("22_naquc")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a2dhc"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -93,6 +96,7 @@ enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
 damage_number_scene = ExtResource("7_xt4lv")
 reward_popup_scene = ExtResource("8_oxr7k")
+mana_frames_texture = ExtResource("9_xxixh")
 metadata/_edit_horizontal_guides_ = [1030.0, 761.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
@@ -210,8 +214,8 @@ theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxTexture_oxr7k")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_xsobv")
 theme_override_styles/hover = SubResource("StyleBoxTexture_um7nr")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_g8vsr")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_e0qeh")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_38hne")
+theme_override_styles/focus = SubResource("StyleBoxTexture_g8vsr")
 script = ExtResource("24_38hne")
 anim_texture = ExtResource("25_g8vsr")
 

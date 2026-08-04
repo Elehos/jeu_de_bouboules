@@ -8,6 +8,7 @@ func _ready() -> void:
 		load("res://ressoucesCards/attackCard.tres"),
 		load("res://ressoucesCards/defenseCard.tres"),
 		load("res://ressoucesCards/superAttackCard.tres"),
+		load("res://ressoucesCards/manaCard.tres")
 		# ajoute ici tous tes autres fichiers .tres de cartes
 	]
 	

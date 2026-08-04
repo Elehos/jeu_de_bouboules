@@ -10,6 +10,7 @@ enum CardType { ATTACK, DEFENSE, SKILL, ANY }
 
 @export var damage: int = 0
 @export var block: int = 0
+@export var mana_gain: int = 0
 
 @export var requires_target: bool = false
 
@@ -42,6 +43,9 @@ func get_display_description() -> String:
 		if effective > damage:
 			damage_text = "[color=#7CFC7C]" + damage_text + "[/color]"
 		result = result.replace("{damage}", damage_text)
+	
+	if result.contains("{mana}"):
+		result = result.replace("{mana}", str(mana_gain))
 	
 	if equipped_gem and equipped_gem.heal_on_play > 0:
 		result += "\n[color=#7CFC7C]Soigne " + str(equipped_gem.heal_on_play) + " PV[/color]"

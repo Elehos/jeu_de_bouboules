@@ -7,14 +7,57 @@ class_name GemSlot
 @onready var pickup_area: Control = $GemPickupArea
 
 const ICON_SIZE: float = 60.0
-const FORBIDDEN_COLOR: Color = Color(0.9, 0.15, 0.15, 0.85)
-const FORBIDDEN_WIDTH: float = 4.0
+
+# --- Animation "gem incompatible avec cette carte" ---
+const FORBIDDEN_ANIM_TEXTURE: Texture2D = preload("res://assets/ui/nointeract_anim.png")
+const FORBIDDEN_ANIM_FRAME_COUNT: int = 10
+# La feuille va de gauche (scribble complet) à droite (petit trait).
+# Pour l'apparition on la lit de droite à gauche (petit trait -> complet),
+# donc on stocke ici l'index "feuille" correspondant à chaque étape 0..9.
+const FORBIDDEN_ANIM_FRAME_ORDER: Array[int] = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+const FORBIDDEN_ANIM_DURATION: float = 0.25 # durée pour une apparition/disparition complète
 
 var active_ghost: TextureRect = null
+
+var forbidden_anim: TextureRect = null
+var forbidden_atlas: AtlasTexture
+var forbidden_anim_step: float = 0.0 # 0 = caché, FORBIDDEN_ANIM_FRAME_COUNT-1 = complet
+var forbidden_anim_tween: Tween
+var forbidden_is_shown: bool = false
 
 func _ready() -> void:
 	add_to_group("gem_slots")
 	update_display()
+	_setup_forbidden_anim()
+
+func _setup_forbidden_anim() -> void:
+	var frame_width: float = FORBIDDEN_ANIM_TEXTURE.get_width() / float(FORBIDDEN_ANIM_FRAME_COUNT)
+	var frame_height: float = FORBIDDEN_ANIM_TEXTURE.get_height()
+
+	forbidden_atlas = AtlasTexture.new()
+	forbidden_atlas.atlas = FORBIDDEN_ANIM_TEXTURE
+	forbidden_atlas.region = Rect2(0, 0, frame_width, frame_height)
+
+	forbidden_anim = TextureRect.new()
+	forbidden_anim.texture = forbidden_atlas
+	forbidden_anim.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	forbidden_anim.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	forbidden_anim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	forbidden_anim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	forbidden_anim.visible = false
+	add_child(forbidden_anim)
+	_update_forbidden_frame()
+
+func _update_forbidden_frame() -> void:
+	var frame_width: float = FORBIDDEN_ANIM_TEXTURE.get_width() / float(FORBIDDEN_ANIM_FRAME_COUNT)
+	var frame_height: float = FORBIDDEN_ANIM_TEXTURE.get_height()
+	var step_index: int = clampi(int(round(forbidden_anim_step)), 0, FORBIDDEN_ANIM_FRAME_COUNT - 1)
+	var sheet_frame: int = FORBIDDEN_ANIM_FRAME_ORDER[step_index]
+	forbidden_atlas.region = Rect2(sheet_frame * frame_width, 0, frame_width, frame_height)
+
+func _set_forbidden_anim_step(value: float) -> void:
+	forbidden_anim_step = value
+	_update_forbidden_frame()
 
 func update_display() -> void:
 	if not equipped_icon:
@@ -26,7 +69,7 @@ func update_display() -> void:
 		equipped_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		equipped_icon.size = Vector2(ICON_SIZE, ICON_SIZE)
 		equipped_icon.position = card_data.equipped_gem_position - Vector2(ICON_SIZE, ICON_SIZE) / 2.0
-		
+
 		pickup_area.size = Vector2(ICON_SIZE, ICON_SIZE)
 		pickup_area.position = card_data.equipped_gem_position - Vector2(ICON_SIZE, ICON_SIZE) / 2.0
 		pickup_area.visible = true
@@ -35,36 +78,59 @@ func update_display() -> void:
 		pickup_area.visible = false
 
 func _process(_delta: float) -> void:
-	queue_redraw()
-	
 	if active_ghost and is_instance_valid(active_ghost):
 		active_ghost.size = Vector2(ICON_SIZE, ICON_SIZE)
 		active_ghost.global_position = get_global_mouse_position() - Vector2(ICON_SIZE, ICON_SIZE) / 2.0
-		
+
 		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			_resolve_drop()
 
-func _draw() -> void:
-	if not CombatEvents.dragging_gem:
-		return
-	
-	var gem: GemData = CombatEvents.dragging_gem
-	if not card_data or gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == card_data.card_type:
-		return
-	
-	draw_line(Vector2.ZERO, size, FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
-	draw_line(Vector2(size.x, 0), Vector2(0, size.y), FORBIDDEN_COLOR, FORBIDDEN_WIDTH)
+	_update_forbidden_state()
+
+func _update_forbidden_state() -> void:
+	var should_show: bool = false
+	if CombatEvents.dragging_gem and card_data:
+		var gem: GemData = CombatEvents.dragging_gem
+		if gem.allowed_card_type != CardData.CardType.ANY and gem.allowed_card_type != card_data.card_type:
+			should_show = true
+
+	if should_show and not forbidden_is_shown:
+		_show_forbidden_anim()
+	elif not should_show and forbidden_is_shown:
+		_hide_forbidden_anim()
+
+func _show_forbidden_anim() -> void:
+	forbidden_is_shown = true
+	forbidden_anim.visible = true
+	if forbidden_anim_tween and forbidden_anim_tween.is_valid():
+		forbidden_anim_tween.kill()
+
+	var max_step: float = float(FORBIDDEN_ANIM_FRAME_COUNT - 1)
+	var remaining_ratio: float = 1.0 - (forbidden_anim_step / max_step)
+	forbidden_anim_tween = create_tween()
+	forbidden_anim_tween.tween_method(_set_forbidden_anim_step, forbidden_anim_step, max_step, FORBIDDEN_ANIM_DURATION * remaining_ratio)
+
+func _hide_forbidden_anim() -> void:
+	forbidden_is_shown = false
+	if forbidden_anim_tween and forbidden_anim_tween.is_valid():
+		forbidden_anim_tween.kill()
+
+	var max_step: float = float(FORBIDDEN_ANIM_FRAME_COUNT - 1)
+	var progress_ratio: float = forbidden_anim_step / max_step
+	forbidden_anim_tween = create_tween()
+	forbidden_anim_tween.tween_method(_set_forbidden_anim_step, forbidden_anim_step, 0.0, FORBIDDEN_ANIM_DURATION * progress_ratio)
+	forbidden_anim_tween.tween_callback(func(): forbidden_anim.visible = false)
 
 func start_pickup_drag() -> void:
 	if GemInventory.gems_locked:
 		return
 	if not card_data or not card_data.equipped_gem:
 		return
-	
+
 	var gem: GemData = card_data.equipped_gem
 	CombatEvents.dragging_gem = gem
 	CombatEvents.dragging_gem_source = self
-	
+
 	var ui_layer: Node = get_tree().current_scene.get_node("UI")
 	active_ghost = TextureRect.new()
 	active_ghost.texture = gem.icon
@@ -74,36 +140,36 @@ func start_pickup_drag() -> void:
 	active_ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	active_ghost.top_level = true
 	ui_layer.add_child(active_ghost)
-	
+
 	equipped_icon.visible = false
 
 func _resolve_drop() -> void:
 	var gem: GemData = CombatEvents.dragging_gem
 	var source: Node = CombatEvents.dragging_gem_source
 	var mouse_pos: Vector2 = get_global_mouse_position()
-	
+
 	var target_slot: GemSlot = _find_slot_at(mouse_pos)
 	var target_unequip: Node = _find_unequip_zone_at(mouse_pos)
-	
+
 	if target_slot and (gem.allowed_card_type == CardData.CardType.ANY or gem.allowed_card_type == target_slot.card_data.card_type):
 		var drop_local_pos: Vector2 = mouse_pos - target_slot.global_position
-		
+
 		if target_slot != source:
 			if source is GemSlot and source.card_data:
 				source.card_data.equipped_gem = null
 				source.update_display()
 			target_slot.card_data.equipped_gem = gem
-		
+
 		target_slot.card_data.equipped_gem_position = drop_local_pos
 		target_slot.update_display()
 		CombatEvents.gem_equip_changed.emit()
-	
+
 	elif target_unequip:
 		if source is GemSlot and source.card_data:
 			source.card_data.equipped_gem = null
 			source.update_display()
 		CombatEvents.gem_equip_changed.emit()
-	
+
 	_cancel_drag()
 
 func _find_slot_at(mouse_pos: Vector2) -> GemSlot:

@@ -147,6 +147,9 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 	if card_data.block > 0:
 		player.gain_block(card_data.block)
 	
+	if card_data.mana_gain > 0:
+		CombatEvents.gain_mana(card_data.mana_gain)
+	
 	if card_data.equipped_gem and card_data.equipped_gem.heal_on_play > 0:
 		player.heal(card_data.equipped_gem.heal_on_play)
 		

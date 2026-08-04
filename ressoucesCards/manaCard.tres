@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardData" format=3 uid="uid://cehqv7relgasi"]
+
+[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="1_jvjpr"]
+
+[resource]
+script = ExtResource("1_jvjpr")
+card_name = "Boost"
+cost = 0
+description = "Gain 1 Mana"
+card_type = 2
+mana_gain = 1
+metadata/_custom_type_script = "uid://f3o7b7woxojq"

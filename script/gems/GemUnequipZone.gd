@@ -1,14 +1,21 @@
 extends HFlowContainer
+class_name GemUnequipZone
 
 const DASH_COLOR: Color = Color(1, 1, 1, 0.6)
 const DASH_LENGTH: float = 6.0
 const DASH_GAP: float = 4.0
 
+func _ready() -> void:
+	add_to_group("gem_unequip_zones")
+
+func is_gem_unequip_zone() -> bool:
+	return true
+
 func _process(_delta: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	if get_viewport().gui_is_dragging():
+	if CombatEvents.dragging_gem:
 		_draw_dashed_rect(Rect2(Vector2.ZERO, size), DASH_COLOR, 2.0)
 
 func _draw_dashed_rect(rect: Rect2, color: Color, width: float) -> void:
@@ -32,13 +39,3 @@ func _draw_dashed_line(from: Vector2, to: Vector2, color: Color, width: float) -
 		var end: Vector2 = start + direction * min(DASH_LENGTH, length - i * step)
 		if start.distance_to(from) < length:
 			draw_line(start, end, color, width)
-
-func _can_drop_data(_at_position: Vector2, data) -> bool:
-	return typeof(data) == TYPE_DICTIONARY and data.has("gem_data") and data.has("source_slot")
-
-func _drop_data(_at_position: Vector2, data) -> void:
-	var source: GemSlot = data["source_slot"]
-	if source and source.card_data:
-		source.card_data.equipped_gem = null
-		source.update_display()
-	CombatEvents.gem_equip_changed.emit()

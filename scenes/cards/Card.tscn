@@ -19,8 +19,6 @@ shader_parameter/margin_uv = Vector2(0.07, 0.07)
 shader_parameter/radius_steps = 8
 shader_parameter/angle_samples = 12
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_61bms"]
-
 [node name="Card" type="Control" unique_id=97315397]
 custom_minimum_size = Vector2(240, 300)
 layout_mode = 3
@@ -147,7 +145,7 @@ theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GemSlot" type="Panel" parent="." unique_id=1960030779]
+[node name="GemSlot" type="Control" parent="." unique_id=156885135]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -158,8 +156,7 @@ offset_right = -17.0
 offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 1
-theme_override_styles/panel = SubResource("StyleBoxEmpty_61bms")
+mouse_filter = 2
 script = ExtResource("5_1q37b")
 
 [node name="EquippedIcon" type="TextureRect" parent="GemSlot" unique_id=1599473847]

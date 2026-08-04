@@ -15,7 +15,6 @@
 [ext_resource type="PackedScene" uid="uid://fu7ucjlcnptb" path="res://scenes/rewards/RewardPopup.tscn" id="8_oxr7k"]
 [ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="Texture2D" uid="uid://dspen55daqvns" path="res://assets/backgrounds/donjon.png" id="9_oxr7k"]
-[ext_resource type="Texture2D" uid="uid://byad1n8f2i53g" path="res://assets/cards/mana_anim.png" id="9_xxixh"]
 [ext_resource type="FontFile" uid="uid://bh3i3bipjqs8c" path="res://assets/fonts/GeneralSans-Semibold.otf" id="11_jr0f0"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
 [ext_resource type="Script" uid="uid://bwvt5v7lpu8jv" path="res://script/combat/TargetingArrow.gd" id="14_h2sm1"]
@@ -25,7 +24,10 @@
 [ext_resource type="Texture2D" uid="uid://c0b8qfebathc5" path="res://assets/ui/deck.png" id="18_05d77"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="19_akrri"]
 [ext_resource type="Texture2D" uid="uid://c756ybjboc617" path="res://assets/ui/discard.png" id="20_j11kn"]
-[ext_resource type="Texture2D" uid="uid://cx0dh0txoaes1" path="res://assets/ui/post_it.png" id="22_xxixh"]
+[ext_resource type="Texture2D" uid="uid://cmx2kkuxw1hb5" path="res://assets/ui/endturn_base.png" id="22_naquc"]
+[ext_resource type="Texture2D" uid="uid://doko3pkimon4k" path="res://assets/ui/endturn_hover.png" id="23_cdbvw"]
+[ext_resource type="Script" uid="uid://cguu61cpq10lh" path="res://script/ui/EndTurnButtonAnim.gd" id="24_38hne"]
+[ext_resource type="Texture2D" uid="uid://cf64a6qmshwp4" path="res://assets/ui/endturn_anim.png" id="25_g8vsr"]
 [ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="26_oxr7k"]
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="27_5gaff"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="28_a2dhc"]
@@ -39,7 +41,17 @@ bg_color = Color(0.7266102, 0.5801185, 0.1586653, 1)
 size = Vector2(276, 391)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oxr7k"]
-texture = ExtResource("22_xxixh")
+texture = ExtResource("22_naquc")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_xsobv"]
+texture = ExtResource("23_cdbvw")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_um7nr"]
+texture = ExtResource("23_cdbvw")
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_g8vsr"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_e0qeh"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_a2dhc"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -81,7 +93,6 @@ enemy_scene = ExtResource("2_gwckk")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
 damage_number_scene = ExtResource("7_xt4lv")
 reward_popup_scene = ExtResource("8_oxr7k")
-mana_frames_texture = ExtResource("9_xxixh")
 metadata/_edit_horizontal_guides_ = [1030.0, 761.0]
 
 [node name="WorldRoot" type="Node2D" parent="." unique_id=2091808715]
@@ -188,15 +199,44 @@ min_arc_height = 10.0
 max_arc_height = 35.0
 
 [node name="EndTurnButton" type="Button" parent="UI" unique_id=273793230]
-offset_left = 1614.0
-offset_top = 840.0
-offset_right = 1814.0
-offset_bottom = 900.0
+offset_left = 1561.0
+offset_top = 713.0
+offset_right = 2065.0
+offset_bottom = 1001.0
+scale = Vector2(0.6, 0.6)
 theme_override_colors/font_color = Color(0, 0, 0, 1)
 theme_override_fonts/font = ExtResource("26_oxr7k")
 theme_override_font_sizes/font_size = 25
 theme_override_styles/normal = SubResource("StyleBoxTexture_oxr7k")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_xsobv")
+theme_override_styles/hover = SubResource("StyleBoxTexture_um7nr")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_g8vsr")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_e0qeh")
+script = ExtResource("24_38hne")
+anim_texture = ExtResource("25_g8vsr")
+
+[node name="AnimOverlay" type="TextureRect" parent="UI/EndTurnButton" unique_id=1189555547]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ButtonLabel" type="Label" parent="UI/EndTurnButton" unique_id=806067453]
+layout_mode = 0
+offset_left = 88.333496
+offset_top = 156.66675
+offset_right = 413.3335
+offset_bottom = 251.66663
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("26_oxr7k")
+theme_override_font_sizes/font_size = 50
 text = "Fin de tour"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="EndScreen" type="Panel" parent="UI" unique_id=1208711910]
 visible = false

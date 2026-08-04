@@ -53,6 +53,11 @@ var mana_ui_anim_id: int = 0
 
 func _ready() -> void:
 	GemInventory.gems_locked = true
+	
+	if possible_encounters.is_empty():
+		push_error("Possible Encounters est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
+		return
+	
 	CombatEvents.damage_taken.connect(_on_damage_taken)
 	current_encounter = possible_encounters.pick_random()
 	print("Combat choisi : ", current_encounter.encounter_name)
@@ -62,7 +67,6 @@ func _ready() -> void:
 		player.current_hp = RunManager.player_current_hp
 		player.sync_hp_bars_instantly()
 	else:
-		# Premier combat de la run : on initialise RunManager avec les PV de départ du joueur
 		RunManager.player_max_hp = player.max_hp
 		RunManager.player_current_hp = player.current_hp
 	
@@ -127,7 +131,6 @@ func _on_end_turn_pressed() -> void:
 
 
 func _on_turn_started(state: TurnState) -> void:
-	# Désactive le bouton "Fin de tour" sauf pendant le tour du joueur
 	end_turn_button.disabled = (state != TurnState.PLAYER_TURN)
 
 

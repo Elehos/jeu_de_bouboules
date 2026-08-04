@@ -106,15 +106,4 @@ func _update_target_highlight() -> void:
 		currently_highlighted = hovered
 
 func _find_enemy_under_mouse() -> Enemy:
-	var space_state := get_viewport().get_world_2d().direct_space_state
-	var query := PhysicsPointQueryParameters2D.new()
-	query.position = get_global_mouse_position()
-	query.collision_mask = 0b1000
-	query.collide_with_areas = true
-	query.collide_with_bodies = false
-	var results := space_state.intersect_point(query)
-	for result in results:
-		var collider = result.collider
-		if collider.get_parent() is Enemy:
-			return collider.get_parent()
-	return null
+	return CombatTargeting.find_enemy_at(get_viewport(), get_global_mouse_position())

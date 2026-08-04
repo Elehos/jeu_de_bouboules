@@ -69,7 +69,3 @@ func _get_all_equipped_gems() -> Array[GemData]:
 			result.append(card.equipped_gem)
 	
 	return result
-
-
-func _on_gem_bag_button_pressed() -> void:
-	pass # Replace with function body.

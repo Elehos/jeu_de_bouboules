@@ -48,18 +48,8 @@ func _process(_delta: float) -> void:
 
 func _resolve_drop() -> void:
 	var mouse_pos: Vector2 = get_global_mouse_position()
-	var target_slot: GemSlot = null
-	var best_z: int = -999999
-	
-	for candidate in get_tree().get_nodes_in_group("gem_slots"):
-		if not candidate.get_global_rect().has_point(mouse_pos):
-			continue
-		var card_parent = candidate.get_parent()
-		var z: int = card_parent.z_index if card_parent else 0
-		if target_slot == null or z >= best_z:
-			target_slot = candidate
-			best_z = z
-	
+	var target_slot: GemSlot = GemSlot.find_topmost_slot_at(get_tree(), mouse_pos)
+
 	if target_slot and target_slot.card_data and (gem_data.allowed_card_type == CardData.CardType.ANY or gem_data.allowed_card_type == target_slot.card_data.card_type):
 		var drop_local_pos: Vector2 = mouse_pos - target_slot.global_position
 		target_slot.card_data.equipped_gem = gem_data

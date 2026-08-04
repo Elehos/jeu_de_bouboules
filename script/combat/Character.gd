@@ -226,7 +226,6 @@ func update_block_display() -> void:
 		block_label.visible = current_block > 0
 
 func die() -> void:
-	print(name + " est mort.")
 	died.emit()
 
 func _on_click_area_input_event(viewport, event: InputEvent, shape_idx: int) -> void:

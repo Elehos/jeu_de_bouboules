@@ -26,7 +26,6 @@ func show_choices(cards: Array[CardData]) -> void:
 
 func _on_card_clicked(card_data: CardData) -> void:
 	RunManager.player_deck.append(card_data.duplicate(true))
-	print("Carte ajoutée au deck : ", card_data.card_name)   # ← pour vérifier que ça marche
 	choice_made.emit(true)
 	queue_free()
 	

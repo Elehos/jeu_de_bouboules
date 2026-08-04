@@ -27,7 +27,6 @@ func reshuffle_discard_into_draw() -> void:
 	draw_pile = discard_pile.duplicate()
 	draw_pile.shuffle()
 	discard_pile.clear()
-	print("Pioche vide : défausse mélangée dans la pioche.")
 	_notify_counts()
 
 func _notify_counts() -> void:

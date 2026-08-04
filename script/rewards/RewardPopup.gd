@@ -15,7 +15,6 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 	
 	current_gem = RewardManager.get_random_gem()
-	print("Gemme tirée : ", current_gem)
 	if current_gem:
 		gem_reward_icon.icon = current_gem.icon
 		gem_reward_icon.text = current_gem.description

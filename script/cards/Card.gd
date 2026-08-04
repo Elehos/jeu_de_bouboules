@@ -47,8 +47,6 @@ var hover_count: int = 0
 var glow_material_playable: ShaderMaterial
 var glow_material_unplayable: ShaderMaterial
 
-const GLOW_MARGIN: float = 20.0
-
 @export var glow_margin: float = 10.0
 @export var glow_offset: Vector2 = Vector2.ZERO
 
@@ -63,7 +61,6 @@ var mana_current_frame: int = 4
 var mana_anim_id: int = 0
 
 func _ready() -> void:
-	print("Card _ready appelée pour : ", card_data.card_name if card_data else "sans données")
 	update_display()
 	panel.gui_input.connect(_on_panel_gui_input)
 	panel.mouse_entered.connect(_on_mouse_entered)
@@ -71,7 +68,6 @@ func _ready() -> void:
 	gem_slot.mouse_entered.connect(_on_mouse_entered)
 	gem_slot.mouse_exited.connect(_on_mouse_exited)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
-	CombatEvents.targeting_started.connect(_on_targeting_started)
 	CombatEvents.targeting_cancelled.connect(_on_targeting_cancelled)
 	CombatEvents.gem_equip_changed.connect(_on_gem_equip_changed)
 	
@@ -172,9 +168,6 @@ func move_to_base(duration: float = 0.15) -> void:
 	active_tween.tween_property(self, "scale", Vector2.ONE, duration)
 
 # --- Ciblage ---
-func _on_targeting_started(_data: CardData) -> void:
-	pass
-
 func _on_targeting_cancelled() -> void:
 	if state == CardState.AWAITING_TARGET:
 		state = CardState.IDLE
@@ -228,7 +221,6 @@ func confirm_play(target: Character) -> void:
 	state = CardState.PLAYED
 	CombatEvents.any_card_active = false
 	CombatEvents.try_spend_mana(card_data.cost)
-	print("Carte jouée : ", card_data.card_name)
 	CombatEvents.card_played.emit(card_data, target)
 	DeckManager.discard_card(card_data)
 	_play_confirmation_animation()
@@ -258,9 +250,6 @@ func _play_confirmation_animation() -> void:
 
 # --- Interaction souris / glisser-déposer ---
 func _on_panel_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed:
-		print("Clic capté sur Panel | reward_mode: ", reward_mode, " | interactive: ", interactive, " | state: ", state)
-	
 	if reward_mode:
 		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 			card_selected.emit(card_data)
@@ -383,18 +372,7 @@ func _return_to_hand() -> void:
 	position = drag_start_local_position
 
 func _find_target_under_mouse() -> Character:
-	var space_state := get_viewport().get_world_2d().direct_space_state
-	var query := PhysicsPointQueryParameters2D.new()
-	query.position = get_global_mouse_position()
-	query.collision_mask = 0b1000
-	query.collide_with_areas = true
-	query.collide_with_bodies = false
-	var results := space_state.intersect_point(query)
-	for result in results:
-		var collider = result.collider
-		if collider.get_parent() is Enemy:
-			return collider.get_parent()
-	return null
+	return CombatTargeting.find_enemy_at(get_viewport(), get_global_mouse_position())
 
 func _has_dragged_far_enough() -> bool:
 	var delta: Vector2 = global_position - drag_start_position

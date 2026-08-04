@@ -5,7 +5,6 @@ signal mana_changed(current: int, max: int)
 signal player_turn_started
 signal deck_counts_changed(draw_count: int, discard_count: int)
 signal damage_taken(character: Character, amount: int)
-signal targeting_started(card_data: CardData)
 signal targeting_cancelled
 signal gem_equip_changed
 
@@ -32,7 +31,6 @@ func try_spend_mana(amount: int) -> bool:
 
 func request_targeting(card: Card) -> void:
 	pending_card = card
-	targeting_started.emit(card.card_data)
 
 func cancel_targeting() -> void:
 	pending_card = null

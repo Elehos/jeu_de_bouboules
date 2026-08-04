@@ -107,10 +107,15 @@ func _resolve_drop() -> void:
 	_cancel_drag()
 
 func _find_slot_at(mouse_pos: Vector2) -> GemSlot:
+	return find_topmost_slot_at(get_tree(), mouse_pos)
+
+# Parmi les GemSlot du groupe "gem_slots" dont le rectangle contient mouse_pos,
+# retourne celui dont la carte parente a le z_index le plus élevé (celle au premier plan).
+static func find_topmost_slot_at(tree: SceneTree, mouse_pos: Vector2) -> GemSlot:
 	var best_slot: GemSlot = null
 	var best_z: int = -999999
-	
-	for candidate in get_tree().get_nodes_in_group("gem_slots"):
+
+	for candidate in tree.get_nodes_in_group("gem_slots"):
 		if not candidate.get_global_rect().has_point(mouse_pos):
 			continue
 		var card_parent = candidate.get_parent()
@@ -118,7 +123,7 @@ func _find_slot_at(mouse_pos: Vector2) -> GemSlot:
 		if best_slot == null or z >= best_z:
 			best_slot = candidate
 			best_z = z
-	
+
 	return best_slot
 
 func _find_unequip_zone_at(mouse_pos: Vector2) -> Node:

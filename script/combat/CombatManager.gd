@@ -60,7 +60,6 @@ func _ready() -> void:
 	
 	CombatEvents.damage_taken.connect(_on_damage_taken)
 	current_encounter = possible_encounters.pick_random()
-	print("Combat choisi : ", current_encounter.encounter_name)
 	spawn_enemies()
 	if RunManager.player_current_hp >= 0:
 		player.max_hp = RunManager.player_max_hp
@@ -205,7 +204,6 @@ func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	
 
 func _on_damage_taken(character: Character, amount: int) -> void:
-	print("Damage number pour : ", character.name, " montant : ", amount)
 	var number_instance: DamageNumber = damage_number_scene.instantiate()
 	get_tree().current_scene.add_child(number_instance)
 	number_instance.global_position = character.global_position + Vector2(0, -80)
@@ -246,8 +244,7 @@ func _on_discard_pile_input(event: InputEvent) -> void:
 
 func spawn_enemies() -> void:
 	var enemy_count: int = current_encounter.enemies.size()
-	print("Nombre d'ennemis à spawn : ", enemy_count)
-	
+
 	for i in range(enemy_count):
 		var slot: EncounterEnemySlot = current_encounter.enemies[i]
 		var new_enemy: Enemy = enemy_scene.instantiate()

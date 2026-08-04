@@ -18,9 +18,7 @@ func show_cards(card_list: Array[CardData], title_text: String) -> void:
 	
 	for child in card_grid.get_children():
 		child.queue_free()
-	
-	print("Nombre de cartes à afficher : ", card_list.size())
-	
+
 	for data in card_list:
 		var card_instance = card_scene.instantiate()
 		card_instance.card_data = data

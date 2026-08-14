@@ -130,9 +130,16 @@ func _grow() -> void:
 	if active_tween and active_tween.is_valid():
 		active_tween.kill()
 	
-	pivot_offset = Vector2(size.x / 2, size.y)
 	z_index = 500
 	rotation_degrees = 0.0
+	
+	if reward_mode:
+		pivot_offset = size / 2
+		active_tween = create_tween()
+		active_tween.tween_property(self, "scale", Vector2(hover_scale, hover_scale), 0.10)
+		return
+	
+	pivot_offset = Vector2(size.x / 2, size.y)
 	
 	var viewport_height: float = get_viewport_rect().size.y
 	var target_global_y: float = viewport_height - hover_screen_margin - size.y
@@ -149,6 +156,13 @@ func _shrink() -> void:
 		active_tween.kill()
 	
 	z_index = base_z_index
+	
+	if reward_mode:
+		pivot_offset = size / 2
+		active_tween = create_tween()
+		active_tween.tween_property(self, "scale", Vector2.ONE, 0.10)
+		return
+	
 	pivot_offset = Vector2(size.x / 2, size.y)
 	
 	active_tween = create_tween()
@@ -317,7 +331,7 @@ func _process(_delta: float) -> void:
 func _on_mouse_entered() -> void:
 	if is_hovering:
 		return
-	if interactive and state == CardState.IDLE and not CombatEvents.any_card_active:
+	if (interactive or reward_mode) and state == CardState.IDLE and not CombatEvents.any_card_active:
 		is_hovering = true
 		_grow()
 		var hand = get_parent()
@@ -327,13 +341,11 @@ func _on_mouse_entered() -> void:
 func _on_mouse_exited() -> void:
 	if not is_hovering:
 		return
-	# Si le nouveau contrôle survolé fait partie de CETTE carte (ex: la gemme),
-	# on ne quitte pas vraiment la carte : on ne réduit pas.
 	var current_hover: Control = get_viewport().gui_get_hovered_control()
 	if current_hover and is_ancestor_of(current_hover):
 		return
 	is_hovering = false
-	if interactive and state == CardState.IDLE:
+	if (interactive or reward_mode) and state == CardState.IDLE:
 		_shrink()
 		var hand = get_parent()
 		if hand and hand.has_method("set_hovered_card"):

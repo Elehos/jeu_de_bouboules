@@ -23,6 +23,10 @@ func show_choices(cards: Array[CardData]) -> void:
 		card_instance.set_interactive(false)
 		card_instance.reward_mode = true
 		card_instance.card_selected.connect(_on_card_clicked)
+		
+		await get_tree().process_frame   # ← attendre que le layout calcule sa vraie position
+		card_instance.base_position = card_instance.position
+
 
 func _on_card_clicked(card_data: CardData) -> void:
 	RunManager.player_deck.append(card_data.duplicate(true))

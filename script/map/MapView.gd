@@ -34,7 +34,8 @@ func display_map(generated_floors: Array[Array]) -> void:
 			
 			var x: float = f * floor_spacing
 			var y: float = i * node_spacing - floor_height / 2
-			node_view.position = Vector2(x, y) + view_offset
+			#node_view.position = Vector2(x, y) + view_offset
+			node_view.position = Vector2(x, y) + view_offset + node_data.visual_offset
 			
 			node_view.node_clicked.connect(_on_node_clicked)
 			views_this_floor.append(node_view)

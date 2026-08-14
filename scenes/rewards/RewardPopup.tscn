@@ -25,6 +25,7 @@ font_size = 19
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ek6vu"]
 
 [node name="RewardPopup" type="Control" unique_id=1643709989]
+z_index = 501
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0

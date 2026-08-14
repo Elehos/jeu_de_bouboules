@@ -24,6 +24,13 @@ func _make_node(type: MapNode.NodeType, floor_idx: int, pos_idx: int) -> MapNode
 	node.type = type
 	node.floor_index = floor_idx
 	node.position_in_floor = pos_idx
+	
+	if type == MapNode.NodeType.COMBAT:
+		node.visual_offset = Vector2(
+			randf_range(-35, 35),
+			randf_range(-35, 35)
+		)
+	
 	return node
 
 func _connect_floors(floors: Array[Array]) -> void:

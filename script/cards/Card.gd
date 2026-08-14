@@ -65,8 +65,8 @@ func _ready() -> void:
 	panel.gui_input.connect(_on_panel_gui_input)
 	panel.mouse_entered.connect(_on_mouse_entered)
 	panel.mouse_exited.connect(_on_mouse_exited)
-	gem_slot.mouse_entered.connect(_on_mouse_entered)
-	gem_slot.mouse_exited.connect(_on_mouse_exited)
+	gem_slot.pickup_area.mouse_entered.connect(_on_mouse_entered)
+	gem_slot.pickup_area.mouse_exited.connect(_on_mouse_exited)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	CombatEvents.targeting_cancelled.connect(_on_targeting_cancelled)
 	CombatEvents.gem_equip_changed.connect(_on_gem_equip_changed)
@@ -315,22 +315,29 @@ func _process(_delta: float) -> void:
 		global_position = drag_start_position + offset
 
 func _on_mouse_entered() -> void:
-	hover_count += 1
-	if hover_count == 1 and interactive and state == CardState.IDLE and not CombatEvents.any_card_active:
+	if is_hovering:
+		return
+	if interactive and state == CardState.IDLE and not CombatEvents.any_card_active:
+		is_hovering = true
 		_grow()
 		var hand = get_parent()
 		if hand and hand.has_method("set_hovered_card"):
 			hand.set_hovered_card(self)
 
 func _on_mouse_exited() -> void:
-	hover_count -= 1
-	if hover_count <= 0:
-		hover_count = 0
-		if interactive and state == CardState.IDLE:
-			_shrink()
-			var hand = get_parent()
-			if hand and hand.has_method("set_hovered_card"):
-				hand.set_hovered_card(null)
+	if not is_hovering:
+		return
+	# Si le nouveau contrôle survolé fait partie de CETTE carte (ex: la gemme),
+	# on ne quitte pas vraiment la carte : on ne réduit pas.
+	var current_hover: Control = get_viewport().gui_get_hovered_control()
+	if current_hover and is_ancestor_of(current_hover):
+		return
+	is_hovering = false
+	if interactive and state == CardState.IDLE:
+		_shrink()
+		var hand = get_parent()
+		if hand and hand.has_method("set_hovered_card"):
+			hand.set_hovered_card(null)
 
 func _end_drag() -> void:
 	dragging = false

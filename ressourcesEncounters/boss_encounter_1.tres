@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EncounterData" format=3]
+
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_b33u3"]
+[ext_resource type="Script" uid="uid://bfei241uvcs7d" path="res://script/combat/EncounterData.gd" id="2_42trb"]
+[ext_resource type="Resource" path="res://ressourcesEncounters/emplacement_boss_bouboule.tres" id="2_olbvw"]
+
+[resource]
+script = ExtResource("2_42trb")
+encounter_name = "Bouboule Royal"
+enemies = Array[ExtResource("1_b33u3")]([ExtResource("2_olbvw")])
+metadata/_custom_type_script = "uid://bfei241uvcs7d"

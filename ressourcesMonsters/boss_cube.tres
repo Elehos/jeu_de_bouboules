@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://dy83y3f7mksi" path="res://script/combat/EnemyData.gd" id="1_ykd72"]
+[ext_resource type="Texture2D" uid="uid://dcrrx0stus24x" path="res://assets/monsters/cubes.png" id="2_d74fq"]
+
+[resource]
+script = ExtResource("1_ykd72")
+enemy_name = "Cube Colossal"
+max_hp = 110
+attack_power = 16
+defense_power = 8
+intention_sequence = Array[int]([0, 1, 0])
+sprite_texture = ExtResource("2_d74fq")
+enemy_scale = Vector2(0.65, 0.65)
+metadata/_custom_type_script = "uid://dy83y3f7mksi"

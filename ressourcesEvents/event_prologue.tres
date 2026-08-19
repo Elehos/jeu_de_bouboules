@@ -1,0 +1,93 @@
+[gd_resource type="Resource" script_class="EventData" format=3]
+
+[ext_resource type="Script" path="res://script/events/EventData.gd" id="1_data"]
+[ext_resource type="Script" path="res://script/events/EventChoice.gd" id="2_choice"]
+[ext_resource type="Script" path="res://script/events/EventEffect.gd" id="3_effect"]
+[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="4_superattack"]
+[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="5_defense"]
+[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="6_ruby"]
+[ext_resource type="Resource" uid="uid://c4rjauh7v7662" path="res://ressourcesGems/heal1_gem.tres" id="7_healgem"]
+
+[sub_resource type="Resource" id="Effect_gain_superattack"]
+script = ExtResource("3_effect")
+type = 2
+card = ExtResource("4_superattack")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gain_defense"]
+script = ExtResource("3_effect")
+type = 2
+card = ExtResource("5_defense")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gain_ruby"]
+script = ExtResource("3_effect")
+type = 4
+gem = ExtResource("6_ruby")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gain_healgem"]
+script = ExtResource("3_effect")
+type = 4
+gem = ExtResource("7_healgem")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_remove_card"]
+script = ExtResource("3_effect")
+type = 3
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_remove_card_2"]
+script = ExtResource("3_effect")
+type = 3
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Choice_train_attack"]
+script = ExtResource("2_choice")
+choice_text = "S'entraîner à l'attaque"
+result_text = "Vous apprenez un coup puissant."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_superattack")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_train_defense"]
+script = ExtResource("2_choice")
+choice_text = "S'entraîner à la défense"
+result_text = "Vous apprenez à mieux vous protéger."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_defense")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_find_ruby"]
+script = ExtResource("2_choice")
+choice_text = "Fouiller les ruines : un éclat rouge"
+result_text = "Vous trouvez un talisman rubis."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_ruby")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_find_heal"]
+script = ExtResource("2_choice")
+choice_text = "Fouiller les ruines : une pierre chaude"
+result_text = "Vous trouvez un talisman apaisant."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_healgem")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_lighten"]
+script = ExtResource("2_choice")
+choice_text = "Alléger votre équipement"
+result_text = "Vous laissez une carte derrière vous ; votre deck est plus resserré."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_remove_card")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_gamble"]
+script = ExtResource("2_choice")
+choice_text = "Tenter un pari risqué"
+result_text = "Un échange audacieux : une carte contre deux talismans."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_remove_card_2"), SubResource("Effect_gain_ruby"), SubResource("Effect_gain_healgem")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[resource]
+script = ExtResource("1_data")
+event_name = "Avant le départ"
+description = "Avant de vous enfoncer dans l'inconnu, vous avez un moment pour vous préparer."
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_train_attack"), SubResource("Choice_train_defense"), SubResource("Choice_find_ruby"), SubResource("Choice_find_heal"), SubResource("Choice_lighten"), SubResource("Choice_gamble")])
+choices_shown = 3
+metadata/_custom_type_script = "res://script/events/EventData.gd"

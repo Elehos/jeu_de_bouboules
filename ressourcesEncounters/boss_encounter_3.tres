@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EncounterData" format=3]
+
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_hnj12"]
+[ext_resource type="Script" uid="uid://bfei241uvcs7d" path="res://script/combat/EncounterData.gd" id="2_2qa4j"]
+[ext_resource type="Resource" path="res://ressourcesEncounters/emplacement_boss_poichon.tres" id="2_vrsn1"]
+
+[resource]
+script = ExtResource("2_2qa4j")
+encounter_name = "Poichon Ancestral"
+enemies = Array[ExtResource("1_hnj12")]([ExtResource("2_vrsn1")])
+metadata/_custom_type_script = "uid://bfei241uvcs7d"

@@ -52,6 +52,8 @@ func _resolve_drop() -> void:
 
 	if target_slot and target_slot.card_data and (gem_data.allowed_card_type == CardData.CardType.ANY or gem_data.allowed_card_type == target_slot.card_data.card_type):
 		var drop_local_pos: Vector2 = mouse_pos - target_slot.global_position
+		if target_slot.tear_system_enabled and target_slot.card_data.equipped_gem:
+			target_slot.card_data.mark_torn(target_slot.card_data.equipped_gem)
 		target_slot.card_data.equipped_gem = gem_data
 		target_slot.card_data.equipped_gem_position = drop_local_pos
 		target_slot.update_display()

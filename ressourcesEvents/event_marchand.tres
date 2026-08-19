@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="EventData" format=3]
+
+[ext_resource type="Script" path="res://script/events/EventData.gd" id="1_data"]
+[ext_resource type="Script" path="res://script/events/EventChoice.gd" id="2_choice"]
+[ext_resource type="Script" path="res://script/events/EventEffect.gd" id="3_effect"]
+[ext_resource type="Resource" uid="uid://c4rjauh7v7662" path="res://ressourcesGems/heal1_gem.tres" id="4_heal_gem"]
+
+[sub_resource type="Resource" id="Effect_remove_card"]
+script = ExtResource("3_effect")
+type = 3
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gain_gem"]
+script = ExtResource("3_effect")
+type = 4
+gem = ExtResource("4_heal_gem")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Choice_trade"]
+script = ExtResource("2_choice")
+choice_text = "Échanger une carte au hasard contre une gemme"
+result_text = "Le marchand disparaît, satisfait de l'échange."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_remove_card"), SubResource("Effect_gain_gem")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_refuse"]
+script = ExtResource("2_choice")
+choice_text = "Refuser et partir"
+result_text = "Le marchand hausse les épaules et s'en va."
+effects = Array[ExtResource("3_effect")]([])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[resource]
+script = ExtResource("1_data")
+event_name = "Marchand ambulant louche"
+description = "Un marchand à l'allure suspecte vous propose un échange qui semble trop beau pour être honnête."
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_trade"), SubResource("Choice_refuse")])
+metadata/_custom_type_script = "res://script/events/EventData.gd"

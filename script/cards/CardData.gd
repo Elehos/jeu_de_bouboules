@@ -17,6 +17,16 @@ enum CardType { ATTACK, DEFENSE, SKILL, ANY }
 @export var equipped_gem: GemData = null
 @export var equipped_gem_position: Vector2 = Vector2.ZERO
 
+# Traces laissées sur la carte par les gemmes qui en ont été retirées.
+# S'accumulent à chaque retrait (jamais remplacées), chaque entrée est un
+# dictionnaire {"icon": Texture2D, "position": Vector2}.
+@export var torn_marks: Array[Dictionary] = []
+
+func mark_torn(removed_gem: GemData) -> void:
+	if not removed_gem:
+		return
+	torn_marks.append({"icon": removed_gem.icon, "position": equipped_gem_position})
+
 func get_effective_damage() -> int:
 	var bonus: int = 0
 	if equipped_gem:

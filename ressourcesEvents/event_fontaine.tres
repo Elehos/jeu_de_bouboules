@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="EventData" format=3]
+
+[ext_resource type="Script" path="res://script/events/EventData.gd" id="1_data"]
+[ext_resource type="Script" path="res://script/events/EventChoice.gd" id="2_choice"]
+[ext_resource type="Script" path="res://script/events/EventEffect.gd" id="3_effect"]
+[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="4_ruby"]
+
+[sub_resource type="Resource" id="Effect_heal"]
+script = ExtResource("3_effect")
+type = 0
+amount = 15
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gem"]
+script = ExtResource("3_effect")
+type = 4
+gem = ExtResource("4_ruby")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Choice_drink"]
+script = ExtResource("2_choice")
+choice_text = "Boire l'eau"
+result_text = "L'eau apaise vos blessures."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_heal")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_offer"]
+script = ExtResource("2_choice")
+choice_text = "Y jeter une offrande"
+result_text = "La fontaine vous récompense."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gem")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_leave"]
+script = ExtResource("2_choice")
+choice_text = "Repartir sans y toucher"
+result_text = "Vous continuez votre chemin, intrigué mais prudent."
+effects = Array[ExtResource("3_effect")]([])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[resource]
+script = ExtResource("1_data")
+event_name = "Fontaine mystérieuse"
+description = "Une fontaine étrange scintille devant vous. L'eau semble presque vivante."
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_drink"), SubResource("Choice_offer"), SubResource("Choice_leave")])
+metadata/_custom_type_script = "res://script/events/EventData.gd"

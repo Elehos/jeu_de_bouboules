@@ -158,6 +158,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("5_1q37b")
+tear_system_enabled = false
+
+[node name="TornMarks" type="Control" parent="GemSlot" unique_id=1599473848]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="EquippedIcon" type="TextureRect" parent="GemSlot" unique_id=1599473847]
 layout_mode = 1

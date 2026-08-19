@@ -37,6 +37,9 @@ signal turn_started(state: TurnState)
 signal turn_ended(state: TurnState)
 
 @export var possible_encounters: Array[EncounterData] = []
+# Piochées à la place de possible_encounters quand RunManager.is_boss_combat
+# est vrai (nœud END de l'arbre, cf. MapView._on_node_clicked).
+@export var possible_boss_encounters: Array[EncounterData] = []
 var current_encounter: EncounterData
 @export var damage_number_scene: PackedScene  
 @export var reward_popup_scene: PackedScene   
@@ -53,13 +56,15 @@ var mana_ui_anim_id: int = 0
 
 func _ready() -> void:
 	GemInventory.gems_locked = true
-	
-	if possible_encounters.is_empty():
-		push_error("Possible Encounters est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
+
+	var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
+	if encounter_pool.is_empty():
+		var pool_name: String = "Possible Boss Encounters" if RunManager.is_boss_combat else "Possible Encounters"
+		push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
 		return
-	
+
 	CombatEvents.damage_taken.connect(_on_damage_taken)
-	current_encounter = possible_encounters.pick_random()
+	current_encounter = encounter_pool.pick_random()
 	spawn_enemies()
 	if RunManager.player_current_hp >= 0:
 		player.max_hp = RunManager.player_max_hp

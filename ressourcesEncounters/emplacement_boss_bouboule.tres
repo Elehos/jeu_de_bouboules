@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EncounterEnemySlot" format=3]
+
+[ext_resource type="Script" uid="uid://ba7mmm8wptu1v" path="res://script/combat/EncounterEnemySlot.gd" id="1_1hnhu"]
+[ext_resource type="Resource" path="res://ressourcesMonsters/boss_bouboule.tres" id="1_26kh8"]
+
+[resource]
+script = ExtResource("1_1hnhu")
+enemy_data = ExtResource("1_26kh8")
+metadata/_custom_type_script = "uid://ba7mmm8wptu1v"

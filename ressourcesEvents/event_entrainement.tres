@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="EventData" format=3]
+
+[ext_resource type="Script" path="res://script/events/EventData.gd" id="1_data"]
+[ext_resource type="Script" path="res://script/events/EventChoice.gd" id="2_choice"]
+[ext_resource type="Script" path="res://script/events/EventEffect.gd" id="3_effect"]
+[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="4_attack"]
+[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="5_defense"]
+
+[sub_resource type="Resource" id="Effect_gain_attack"]
+script = ExtResource("3_effect")
+type = 2
+card = ExtResource("4_attack")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_damage"]
+script = ExtResource("3_effect")
+type = 1
+amount = 8
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Effect_gain_defense"]
+script = ExtResource("3_effect")
+type = 2
+card = ExtResource("5_defense")
+metadata/_custom_type_script = "res://script/events/EventEffect.gd"
+
+[sub_resource type="Resource" id="Choice_intense"]
+script = ExtResource("2_choice")
+choice_text = "S'entraîner intensément"
+result_text = "Vous progressez, mais ça fait mal."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_attack"), SubResource("Effect_damage")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_careful"]
+script = ExtResource("2_choice")
+choice_text = "S'entraîner prudemment"
+result_text = "Vous apprenez une technique défensive."
+effects = Array[ExtResource("3_effect")]([SubResource("Effect_gain_defense")])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[sub_resource type="Resource" id="Choice_skip"]
+script = ExtResource("2_choice")
+choice_text = "Ne pas prendre de risque"
+result_text = "Vous quittez la salle sans rien apprendre."
+effects = Array[ExtResource("3_effect")]([])
+metadata/_custom_type_script = "res://script/events/EventChoice.gd"
+
+[resource]
+script = ExtResource("1_data")
+event_name = "Salle d'entraînement"
+description = "Vous trouvez une salle d'entraînement abandonnée. Vous pourriez vous exercer, au risque de vous blesser."
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_intense"), SubResource("Choice_careful"), SubResource("Choice_skip")])
+metadata/_custom_type_script = "res://script/events/EventData.gd"

@@ -1,7 +1,7 @@
 extends Resource
 class_name MapNode
 
-enum NodeType { START, COMBAT, END }
+enum NodeType { START, COMBAT, END, EVENT }
 
 @export var type: NodeType
 @export var floor_index: int

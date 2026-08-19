@@ -7,6 +7,12 @@ var map_node: MapNode
 
 @export var combat_icon: Texture2D
 @export var start_icon: Texture2D
+# Optionnel : si aucune texture n'est assignée ici, le nœud de boss (type
+# END) réutilise combat_icon en attendant un visuel dédié.
+@export var boss_icon: Texture2D
+# Optionnel : si aucune texture n'est assignée ici, un nœud d'événement
+# réutilise start_icon en attendant un visuel dédié.
+@export var event_icon: Texture2D
 
 @onready var icon: Sprite2D = $Icon
 
@@ -21,6 +27,10 @@ func _update_icon() -> void:
 			icon.texture = start_icon
 		MapNode.NodeType.COMBAT:
 			icon.texture = combat_icon
+		MapNode.NodeType.END:
+			icon.texture = boss_icon if boss_icon else combat_icon
+		MapNode.NodeType.EVENT:
+			icon.texture = event_icon if event_icon else start_icon
 
 func _on_input_event(_viewport: Node, event: InputEvent, _shape_idx: int) -> void:
 	if not is_accessible:

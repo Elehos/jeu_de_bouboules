@@ -14,6 +14,11 @@
 [ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="10_rja35"]
 [ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="12_ksfdk"]
 [ext_resource type="Script" uid="uid://d37fab13664ao" path="res://script/gems/GemUnequipZone.gd" id="12_mmlwv"]
+[ext_resource type="Script" path="res://script/events/EventData.gd" id="13_eventscript"]
+[ext_resource type="Resource" path="res://ressourcesEvents/event_fontaine.tres" id="14_event1"]
+[ext_resource type="Resource" path="res://ressourcesEvents/event_marchand.tres" id="15_event2"]
+[ext_resource type="Resource" path="res://ressourcesEvents/event_entrainement.tres" id="16_event3"]
+[ext_resource type="Resource" path="res://ressourcesEvents/event_prologue.tres" id="17_prologue"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7k8nd"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -56,6 +61,8 @@ floor_spacing = null
 node_spacing = null
 view_offset = null
 starting_deck = Array[ExtResource("3_e2qlp")]([ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("6_fejxw"), ExtResource("6_fejxw")])
+possible_events = Array[ExtResource("13_eventscript")]([ExtResource("14_event1"), ExtResource("15_event2"), ExtResource("16_event3")])
+starting_event = ExtResource("17_prologue")
 
 [node name="Background" type="Sprite2D" parent="." unique_id=1467989241]
 position = Vector2(960, 540)

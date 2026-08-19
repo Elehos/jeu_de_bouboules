@@ -6,6 +6,11 @@ class_name MapView
 @export var node_spacing: float = 150.0   # distance horizontale entre nœuds d'un même étage
 @export var view_offset: Vector2 = Vector2(200, 540)  # centre horizontal, bas de l'écran (le départ en bas, la fin en haut)
 @export var starting_deck: Array[CardData] = []
+@export var possible_events: Array[EventData] = []
+# Événement fixe (pas tiré au hasard parmi possible_events) : se déclenche en
+# cliquant sur la case de départ (type START), une seule fois par run. Laisse
+# à null pour ne rien déclencher (la case de départ reste alors non cliquable).
+@export var starting_event: EventData
 
 @onready var gem_bag_button: Button = $UI/GemBagPanel/GemBagButton
 @onready var gem_bag_panel: GemBag = $UI/GemBagPanel
@@ -70,27 +75,55 @@ func _on_node_clicked(map_node: MapNode) -> void:
 	current_position_in_floor = map_node.position_in_floor
 	_update_node_states()
 	
-	if map_node.type == MapNode.NodeType.COMBAT:
-		_start_combat()
+	match map_node.type:
+		MapNode.NodeType.START:
+			_start_starting_event()
+		MapNode.NodeType.COMBAT:
+			RunManager.is_boss_combat = false
+			_start_combat()
+		MapNode.NodeType.END:
+			# Le nœud END est le dernier de l'arbre : c'est le combat de boss.
+			RunManager.is_boss_combat = true
+			_start_combat()
+		MapNode.NodeType.EVENT:
+			_start_event()
 
 func _start_combat() -> void:
 	get_tree().change_scene_to_file("res://scenes/combat/Combat.tscn")
-	
+
+func _start_event() -> void:
+	if possible_events.is_empty():
+		push_error("Possible Events est vide ! Assigne au moins un EventData dans l'inspecteur du nœud MapView.")
+		return
+	RunManager.pending_event = possible_events.pick_random()
+	get_tree().change_scene_to_file("res://scenes/events/EventView.tscn")
+
+func _start_starting_event() -> void:
+	if not starting_event:
+		return
+	RunManager.starting_event_resolved = true
+	RunManager.pending_event = starting_event
+	get_tree().change_scene_to_file("res://scenes/events/EventView.tscn")
+
 func _ready() -> void:
 	GemInventory.gems_locked = false
 	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 	if not RunManager.map_generated:
 		RunManager.start_new_run(8, starting_deck)
-	
+
 	current_floor_index = RunManager.current_floor_index
 	current_position_in_floor = RunManager.current_position_in_floor
 	display_map(RunManager.floors)
 
 
 func _is_node_accessible(node_data: MapNode) -> bool:
+	if node_data.type == MapNode.NodeType.START:
+		var is_here: bool = node_data.floor_index == current_floor_index and node_data.position_in_floor == current_position_in_floor
+		return is_here and starting_event != null and not RunManager.starting_event_resolved
+
 	if node_data.floor_index != current_floor_index + 1:
 		return false
-	
+
 	var current_node: MapNode = floors[current_floor_index][current_position_in_floor]
 	return node_data.position_in_floor in current_node.connections
 	

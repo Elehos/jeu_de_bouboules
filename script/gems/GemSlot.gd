@@ -3,10 +3,29 @@ class_name GemSlot
 
 @export var card_data: CardData
 
+# Interrupteur général du système de déchirure. Décochable directement ici
+# dans l'inspecteur (sur le nœud GemSlot de Card.tscn) pour désactiver tout
+# le système sans toucher au code — s'applique à toutes les cartes puisque
+# c'est la même scène GemSlot qui est instanciée partout.
+@export var tear_system_enabled: bool = true
+
 @onready var equipped_icon: TextureRect = $EquippedIcon
 @onready var pickup_area: Control = $GemPickupArea
+@onready var torn_marks_container: Control = $TornMarks
+@onready var card_background: TextureRect = get_parent().get_node("Panel/CardBackground")
+@onready var mana_background: TextureRect = get_parent().get_node("Panel/ManaBackground")
 
 const ICON_SIZE: float = 60.0
+
+# En dessous de cette distance, on considère que la gemme n'a pas vraiment
+# été déplacée (simple clic) : pas de déchirure dans ce cas.
+const REPOSITION_TEAR_THRESHOLD: float = 5.0
+
+# --- Traces de déchirure laissées par les gemmes retirées (s'accumulent) ---
+const TORN_TEXTURE: Texture2D = preload("res://assets/cards/bg_card_torn.png")
+const TORN_SHADER: Shader = preload("res://scenes/cards/torn_mark.gdshader")
+
+var torn_shader_material: ShaderMaterial
 
 # --- Animation "gem incompatible avec cette carte" ---
 const FORBIDDEN_ANIM_TEXTURE: Texture2D = preload("res://assets/ui/nointeract_anim.png")
@@ -27,8 +46,14 @@ var forbidden_is_shown: bool = false
 
 func _ready() -> void:
 	add_to_group("gem_slots")
+	_setup_torn_mark_material()
 	update_display()
 	_setup_forbidden_anim()
+
+func _setup_torn_mark_material() -> void:
+	torn_shader_material = ShaderMaterial.new()
+	torn_shader_material.shader = TORN_SHADER
+	torn_shader_material.set_shader_parameter("torn_tex", TORN_TEXTURE)
 
 func _setup_forbidden_anim() -> void:
 	var frame_width: float = FORBIDDEN_ANIM_TEXTURE.get_width() / float(FORBIDDEN_ANIM_FRAME_COUNT)
@@ -76,6 +101,81 @@ func update_display() -> void:
 	else:
 		equipped_icon.visible = false
 		pickup_area.visible = false
+
+	_render_torn_marks()
+
+# preview: trace supplémentaire affichée en plus des traces déjà persistées sur
+# card_data, sans être enregistrée. Utilisé pour montrer la déchirure dès la
+# saisie d'une gemme, avant de savoir si le retrait sera confirmé ou annulé.
+func _render_torn_marks(preview: Dictionary = {}) -> void:
+	if not torn_marks_container:
+		return
+	for child in torn_marks_container.get_children():
+		child.queue_free()
+
+	if not tear_system_enabled or not card_data:
+		return
+
+	var marks: Array = card_data.torn_marks.duplicate()
+	if not preview.is_empty():
+		marks.append(preview)
+
+	for mark in marks:
+		var mark_size := Vector2(ICON_SIZE, ICON_SIZE)
+		var mark_position: Vector2 = mark["position"] - mark_size / 2.0
+
+		var mark_rect := TextureRect.new()
+		mark_rect.texture = mark["icon"]
+		mark_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		mark_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		mark_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mark_rect.size = mark_size
+		mark_rect.position = mark_position
+		mark_rect.material = _make_torn_material(mark_position, mark_size)
+		torn_marks_container.add_child(mark_rect)
+
+# Chaque trace occupe un endroit différent sur la carte, donc chacune a besoin
+# de son propre rectangle UV dans les textures masques : on ne peut pas
+# partager un seul ShaderMaterial entre elles, on duplique le "modèle" à chaque fois.
+func _make_torn_material(mark_local_position: Vector2, mark_size: Vector2) -> ShaderMaterial:
+	var material: ShaderMaterial = torn_shader_material.duplicate()
+
+	var card_uv: Dictionary = _compute_mask_uv(card_background, mark_local_position, mark_size)
+	if not card_uv.is_empty():
+		material.set_shader_parameter("card_mask_tex", card_background.texture)
+		material.set_shader_parameter("card_mask_uv_origin", card_uv["origin"])
+		material.set_shader_parameter("card_mask_uv_size", card_uv["size"])
+
+	var mana_uv: Dictionary = _compute_mask_uv(mana_background, mark_local_position, mark_size)
+	if not mana_uv.is_empty():
+		material.set_shader_parameter("has_mana_mask", true)
+		material.set_shader_parameter("mana_mask_tex", mana_background.texture)
+		material.set_shader_parameter("mana_mask_uv_origin", mana_uv["origin"])
+		material.set_shader_parameter("mana_mask_uv_size", mana_uv["size"])
+
+	return material
+
+# Calcule, dans l'espace UV [0,1] de source.texture, le rectangle exact que
+# recouvre cette trace (mark_local_position/size, en espace local de GemSlot).
+# source.position = origine du nœud dans l'espace local de Card ; self.position
+# = origine de GemSlot dans ce même espace (Panel n'a aucun décalage propre,
+# donc Panel == Card ici). Les deux ignorent le scale/rotation *live* de Card
+# puisqu'il s'applique identiquement à toutes les couches et s'annule donc
+# dans ce calcul relatif. Pour ManaBackground, .size ne change jamais (seule
+# la frame de spritesheet affichée change), donc cette géométrie reste valable
+# même pendant l'animation de rétrécissement.
+func _compute_mask_uv(source: TextureRect, mark_local_position: Vector2, mark_size: Vector2) -> Dictionary:
+	if not source or not source.texture:
+		return {}
+
+	var source_size: Vector2 = source.size * source.scale
+	if source_size.x == 0.0 or source_size.y == 0.0:
+		return {}
+
+	var mark_top_left_in_card: Vector2 = position + mark_local_position
+	var uv_origin: Vector2 = (mark_top_left_in_card - source.position) / source_size
+	var uv_size: Vector2 = mark_size / source_size
+	return {"origin": uv_origin, "size": uv_size}
 
 func _process(_delta: float) -> void:
 	if active_ghost and is_instance_valid(active_ghost):
@@ -128,6 +228,7 @@ func start_pickup_drag() -> void:
 		return
 
 	var gem: GemData = card_data.equipped_gem
+
 	CombatEvents.dragging_gem = gem
 	CombatEvents.dragging_gem_source = self
 
@@ -142,6 +243,11 @@ func start_pickup_drag() -> void:
 	ui_layer.add_child(active_ghost)
 
 	equipped_icon.visible = false
+	# Aperçu immédiat de la déchirure : elle ne devient définitive (accumulée
+	# dans card_data.torn_marks) que si le retrait est confirmé dans
+	# _resolve_drop(). Un geste annulé la fait juste disparaître au prochain
+	# update_display(), sans laisser de trace fantôme.
+	_render_torn_marks({"icon": gem.icon, "position": card_data.equipped_gem_position})
 
 func _resolve_drop() -> void:
 	var gem: GemData = CombatEvents.dragging_gem
@@ -156,9 +262,14 @@ func _resolve_drop() -> void:
 
 		if target_slot != source:
 			if source is GemSlot and source.card_data:
+				if source.tear_system_enabled:
+					source.card_data.mark_torn(source.card_data.equipped_gem)
 				source.card_data.equipped_gem = null
 				source.update_display()
 			target_slot.card_data.equipped_gem = gem
+		elif tear_system_enabled and drop_local_pos.distance_to(target_slot.card_data.equipped_gem_position) > REPOSITION_TEAR_THRESHOLD:
+			# Repositionnée ailleurs sur la même carte : déchire aussi l'ancien emplacement.
+			target_slot.card_data.mark_torn(gem)
 
 		target_slot.card_data.equipped_gem_position = drop_local_pos
 		target_slot.update_display()
@@ -166,6 +277,8 @@ func _resolve_drop() -> void:
 
 	elif target_unequip:
 		if source is GemSlot and source.card_data:
+			if source.tear_system_enabled:
+				source.card_data.mark_torn(source.card_data.equipped_gem)
 			source.card_data.equipped_gem = null
 			source.update_display()
 		CombatEvents.gem_equip_changed.emit()

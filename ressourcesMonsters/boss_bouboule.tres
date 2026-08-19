@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://dy83y3f7mksi" path="res://script/combat/EnemyData.gd" id="1_7r04d"]
+[ext_resource type="Texture2D" uid="uid://srq2icnktsfk" path="res://assets/monsters/bouboules.png" id="2_35ncp"]
+
+[resource]
+script = ExtResource("1_7r04d")
+enemy_name = "Bouboule Royal"
+max_hp = 140
+attack_power = 12
+defense_power = 4
+intention_sequence = Array[int]([0, 0, 1])
+sprite_texture = ExtResource("2_35ncp")
+enemy_scale = Vector2(0.8, 0.8)
+metadata/_custom_type_script = "uid://dy83y3f7mksi"

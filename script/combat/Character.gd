@@ -42,11 +42,24 @@ const BLOCK_LABEL_SCALE_1_DIGIT: float = 1.0
 const BLOCK_LABEL_SCALE_2_DIGITS: float = 0.75
 const BLOCK_LABEL_SCALE_3_DIGITS: float = 0.55
 
+# Correction visuelle manuelle : à deux chiffres, le rendu paraît légèrement
+# décalé à droite dans l'icône (forme du bouclier) — on recentre à l'oeil.
+const BLOCK_LABEL_NUDGE_X_2_DIGITS: float = -1.0
+
+# Animation d'apparition du bouclier (pop + fade) : parle d'échelle 0, dépasse
+# légèrement 1.0 puis se stabilise.
+const SHIELD_APPEAR_OVERSHOOT_SCALE: float = 1.15
+const SHIELD_APPEAR_POP_DURATION: float = 0.18
+const SHIELD_APPEAR_SETTLE_DURATION: float = 0.1
+const SHIELD_APPEAR_FADE_DURATION: float = 0.15
+
 @export var hp_bar_padding: float = 25.0
 
 var bar_width: float = 0.0
 var block_label_base_font_size: int = 20
 var block_label_base_outline_size: int = 5
+var block_label_base_offset_left: float = 0.0
+var block_label_base_offset_right: float = 0.0
 
 signal died
 signal damage_taken(amount: int)
@@ -61,6 +74,8 @@ func _ready() -> void:
 	if block_label:
 		block_label_base_font_size = block_label.get_theme_font_size("font_size")
 		block_label_base_outline_size = block_label.get_theme_constant("outline_size")
+		block_label_base_offset_left = block_label.offset_left
+		block_label_base_offset_right = block_label.offset_right
 
 	_resize_hp_bar_to_sprite()
 
@@ -172,7 +187,10 @@ func update_block_display() -> void:
 		hp_bar.texture = HP_BAR_TEXTURE_SHIELDED if current_block > 0 else HP_BAR_TEXTURE_NORMAL
 
 	if shield_icon:
+		var was_shielded: bool = shield_icon.visible
 		shield_icon.visible = current_block > 0
+		if shield_icon.visible and not was_shielded:
+			_play_shield_appear_animation()
 
 	if block_label:
 		var block_text: String = str(current_block) if current_block > 0 else ""
@@ -185,6 +203,22 @@ func update_block_display() -> void:
 			scale = BLOCK_LABEL_SCALE_3_DIGITS
 		block_label.add_theme_font_size_override("font_size", max(8, round(block_label_base_font_size * scale)))
 		block_label.add_theme_constant_override("outline_size", max(2, round(block_label_base_outline_size * scale)))
+
+		var nudge_x: float = BLOCK_LABEL_NUDGE_X_2_DIGITS if block_text.length() == 2 else 0.0
+		block_label.offset_left = block_label_base_offset_left + nudge_x
+		block_label.offset_right = block_label_base_offset_right + nudge_x
+
+func _play_shield_appear_animation() -> void:
+	shield_icon.pivot_offset = shield_icon.size / 2.0
+	shield_icon.scale = Vector2.ZERO
+	shield_icon.modulate.a = 0.0
+
+	var tween: Tween = create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_BACK)
+	tween.tween_property(shield_icon, "scale", Vector2.ONE * SHIELD_APPEAR_OVERSHOOT_SCALE, SHIELD_APPEAR_POP_DURATION)
+	tween.parallel().tween_property(shield_icon, "modulate:a", 1.0, SHIELD_APPEAR_FADE_DURATION)
+	tween.tween_property(shield_icon, "scale", Vector2.ONE, SHIELD_APPEAR_SETTLE_DURATION)
 
 func die() -> void:
 	died.emit()

@@ -1,0 +1,111 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" uid="uid://dsmj81ld5jq7v" path="res://script/combat/Character.gd" id="1_char"]
+[ext_resource type="Texture2D" uid="uid://foje3ptbsgfy" path="res://assets/ui/vie_noir.png" id="2_vienoir"]
+[ext_resource type="Texture2D" uid="uid://d2s26l2geh02v" path="res://assets/ui/vie_jaune.png" id="3_viejaune"]
+[ext_resource type="Texture2D" uid="uid://b37mv3r4034qm" path="res://assets/ui/vie_rouge.png" id="4_vierouge"]
+[ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="5_font"]
+[ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="6_sprite"]
+[ext_resource type="Texture2D" uid="uid://cs558a6ybqo5n" path="res://assets/ui/iconbouclier.png" id="7_shield"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_click"]
+size = Vector2(276, 391)
+
+[node name="Player" type="CharacterBody2D" unique_id=1391993159]
+script = ExtResource("1_char")
+
+[node name="HPBarBackground" type="NinePatchRect" parent="." unique_id=900000001]
+offset_left = -85.0
+offset_top = 195.0
+offset_right = 83.0
+offset_bottom = 213.0
+texture = ExtResource("2_vienoir")
+patch_margin_left = 30
+patch_margin_right = 30
+
+[node name="HPBarDelayedClip" type="Control" parent="." unique_id=1523442336]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 0
+offset_left = -85.0
+offset_top = 195.0
+offset_right = 83.0
+offset_bottom = 213.0
+mouse_filter = 2
+
+[node name="HPBarDelayed" type="NinePatchRect" parent="HPBarDelayedClip" unique_id=900000002]
+layout_mode = 0
+offset_right = 168.0
+offset_bottom = 18.0
+texture = ExtResource("3_viejaune")
+patch_margin_left = 30
+patch_margin_right = 30
+
+[node name="HPBarClip" type="Control" parent="." unique_id=571146498]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 0
+offset_left = -85.0
+offset_top = 195.0
+offset_right = 83.0
+offset_bottom = 213.0
+mouse_filter = 2
+
+[node name="HPBar" type="NinePatchRect" parent="HPBarClip" unique_id=900000003]
+layout_mode = 0
+offset_right = 168.0
+offset_bottom = 18.0
+texture = ExtResource("4_vierouge")
+patch_margin_left = 30
+patch_margin_right = 30
+
+[node name="HP" type="Label" parent="." unique_id=2021964912]
+offset_left = -79.0
+offset_top = 185.0
+offset_right = 77.0
+offset_bottom = 223.0
+theme_override_colors/font_outline_color = Color(0.8, 0.2, 0.2, 1)
+theme_override_constants/line_spacing = 7
+theme_override_constants/outline_size = 18
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1110491526]
+scale = Vector2(0.37, 0.37)
+texture = ExtResource("6_sprite")
+
+[node name="ClickArea" type="Area2D" parent="." unique_id=517369035]
+position = Vector2(0, -104)
+collision_layer = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea" unique_id=1492985134]
+position = Vector2(5, 118)
+shape = SubResource("RectangleShape2D_click")
+
+[node name="ShieldIcon" type="TextureRect" parent="." unique_id=900000007]
+visible = false
+offset_left = -21.0
+offset_top = 178.0
+offset_right = 21.0
+offset_bottom = 230.0
+mouse_filter = 2
+texture = ExtResource("7_shield")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Block" type="Label" parent="ShieldIcon" unique_id=138433327]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 3.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0.47843137, 0.69411767, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1

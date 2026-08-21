@@ -145,22 +145,23 @@ func _on_choice_selected(choice: EventChoice) -> void:
 	continue_button.visible = true
 
 func _apply_effect(effect: EventEffect) -> void:
+	var player: PlayerState = RunManager.get_local_player()
 	match effect.type:
 		EventEffect.EffectType.HEAL:
-			RunManager.player_current_hp = min(RunManager.player_current_hp + effect.amount, RunManager.player_max_hp)
+			player.current_hp = min(player.current_hp + effect.amount, player.max_hp)
 		EventEffect.EffectType.DAMAGE:
 			# Ne tue jamais depuis un événement : il n'y a pas d'écran de
 			# défaite en dehors du combat, donc on plafonne à 1 PV restant.
-			RunManager.player_current_hp = max(RunManager.player_current_hp - effect.amount, 1)
+			player.current_hp = max(player.current_hp - effect.amount, 1)
 		EventEffect.EffectType.GAIN_CARD:
 			if effect.card:
-				RunManager.player_deck.append(effect.card.duplicate(true))
+				player.deck.append(effect.card.duplicate(true))
 		EventEffect.EffectType.REMOVE_RANDOM_CARD:
-			if not RunManager.player_deck.is_empty():
-				RunManager.player_deck.remove_at(randi() % RunManager.player_deck.size())
+			if not player.deck.is_empty():
+				player.deck.remove_at(randi() % player.deck.size())
 		EventEffect.EffectType.GAIN_GEM:
 			if effect.gem:
-				GemInventory.owned_gems.append(effect.gem.duplicate(true))
+				player.owned_gems.append(effect.gem.duplicate(true))
 
 func _on_continue_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

@@ -50,7 +50,7 @@ func refresh_gems() -> void:
 	
 	var equipped_gems: Array[GemData] = _get_all_equipped_gems()
 	
-	for gem in GemInventory.owned_gems:
+	for gem in RunManager.get_local_player().owned_gems:
 		if gem in equipped_gems:
 			continue
 		var gem_instance = gem_icon_scene.instantiate()
@@ -61,7 +61,7 @@ func refresh_deck() -> void:
 	for child in deck_list.get_children():
 		child.queue_free()
 	
-	for card in RunManager.player_deck:
+	for card in RunManager.get_local_player().deck:
 		var row_instance = card_row_scene.instantiate()
 		row_instance.card_data = card
 		deck_list.add_child(row_instance)
@@ -69,7 +69,7 @@ func refresh_deck() -> void:
 func _get_all_equipped_gems() -> Array[GemData]:
 	var result: Array[GemData] = []
 	
-	for card in RunManager.player_deck:
+	for card in RunManager.get_local_player().deck:
 		if card.equipped_gem:
 			result.append(card.equipped_gem)
 	

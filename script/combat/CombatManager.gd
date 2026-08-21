@@ -8,7 +8,13 @@ enum TurnState { PLAYER_TURN, ENEMY_TURN, TRANSITION }
 var current_state: TurnState = TurnState.PLAYER_TURN
 
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
-@onready var player: Character = $WorldRoot/Player
+@onready var player_zone_center: Marker2D = $WorldRoot/PlayerZoneCenter
+@export var player_scene: PackedScene  # glisse player.tscn dans l'Inspecteur
+
+var players: Array[Character] = []
+var local_player: Character
+var local_player_state: PlayerState
+
 @onready var end_turn_button: Button = $UI/EndTurnButton
 @onready var current_mana_label: Label = $UI/ManaIcon/ManaLabel/CurrentManaLabel
 @onready var max_mana_label: Label = $UI/ManaIcon/ManaLabel/MaxManaLabel
@@ -55,7 +61,8 @@ var mana_ui_current_frame: int = 4
 var mana_ui_anim_id: int = 0
 
 func _ready() -> void:
-	GemInventory.gems_locked = true
+	local_player_state = RunManager.get_local_player()
+	local_player_state.gems_locked = true
 
 	var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
 	if encounter_pool.is_empty():
@@ -63,31 +70,40 @@ func _ready() -> void:
 		push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
 		return
 
+	spawn_players()
 	CombatEvents.damage_taken.connect(_on_damage_taken)
 	current_encounter = encounter_pool.pick_random()
 	spawn_enemies()
-	if RunManager.player_current_hp >= 0:
-		player.max_hp = RunManager.player_max_hp
-		player.current_hp = RunManager.player_current_hp
-		player.sync_hp_bars_instantly()
+	if local_player_state.current_hp >= 0:
+		local_player.max_hp = local_player_state.max_hp
+		local_player.current_hp = local_player_state.current_hp
+		local_player.sync_hp_bars_instantly()
 	else:
-		RunManager.player_max_hp = player.max_hp
-		RunManager.player_current_hp = player.current_hp
-	
+		local_player_state.max_hp = local_player.max_hp
+		local_player_state.current_hp = local_player.current_hp
+
 	CombatEvents.damage_taken.connect(_on_player_hp_changed)
-	
+
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
-	player.died.connect(_on_player_died)
+	local_player.died.connect(_on_player_died)
 	restart_button.pressed.connect(_on_restart_pressed)
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	gem_bag_button.pressed.connect(gem_bag.toggle)
 	_setup_mana_ui_frames()
 	start_turn(TurnState.PLAYER_TURN)
+
+func spawn_players() -> void:
+	for player_state in RunManager.players:
+		var new_player: Character = player_scene.instantiate()
+		world_root.add_child(new_player)
+		new_player.global_position = player_zone_center.global_position
+		players.append(new_player)
+	local_player = players[0]
 	
 
 
@@ -97,8 +113,8 @@ func start_turn(state: TurnState) -> void:
 	
 	match state:
 		TurnState.PLAYER_TURN:
-			player.reset_block()
-			CombatEvents.refill_mana()
+			local_player.reset_block()
+			CombatEvents.refill_mana(local_player_state)
 			CombatEvents.player_turn_started.emit()
 		TurnState.ENEMY_TURN:
 			for e in enemies:
@@ -123,7 +139,7 @@ func enemy_play_turn() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
 			await get_tree().create_timer(0.5).timeout
-			e.execute_intention(player)
+			e.execute_intention(local_player)
 	end_turn()
 
 
@@ -150,13 +166,13 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 		target.take_damage(card_data.get_effective_damage())
 	
 	if card_data.block > 0:
-		player.gain_block(card_data.block)
-	
+		local_player.gain_block(card_data.block)
+
 	if card_data.mana_gain > 0:
-		CombatEvents.gain_mana(card_data.mana_gain)
-	
+		CombatEvents.gain_mana(local_player_state, card_data.mana_gain)
+
 	if card_data.equipped_gem and card_data.equipped_gem.heal_on_play > 0:
-		player.heal(card_data.equipped_gem.heal_on_play)
+		local_player.heal(card_data.equipped_gem.heal_on_play)
 		
 		
 func _on_mana_changed(current: int, max: int) -> void:
@@ -237,10 +253,10 @@ func shake_screen(amount: int) -> void:
 	shake_tween.tween_property(world_root, "position", Vector2.ZERO, duration / steps)
 
 func _on_draw_pile_clicked() -> void:
-	card_list_popup.show_cards(DeckManager.draw_pile, "Pioche")
+	card_list_popup.show_cards(local_player_state.draw_pile, "Pioche")
 
 func _on_discard_pile_clicked() -> void:
-	card_list_popup.show_cards(DeckManager.discard_pile, "Défausse")
+	card_list_popup.show_cards(local_player_state.discard_pile, "Défausse")
 
 func _on_draw_pile_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -268,8 +284,8 @@ func _compute_enemy_position(index: int, total: int) -> Vector2:
 	return enemy_zone_center.global_position + Vector2(offset_x, 0)
 
 func _on_player_hp_changed(character: Character, _amount: int) -> void:
-	if character == player:
-		RunManager.player_current_hp = player.current_hp
+	if character == local_player:
+		local_player_state.current_hp = local_player.current_hp
 		
 func _setup_mana_ui_frames() -> void:
 	if not mana_frames_texture:

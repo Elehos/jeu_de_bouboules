@@ -20,7 +20,7 @@ func update_display() -> void:
 		icon.texture = gem_data.icon
 
 func _gui_input(event: InputEvent) -> void:
-	if GemInventory.gems_locked:
+	if RunManager.get_local_player().gems_locked:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		CombatEvents.dragging_gem = gem_data

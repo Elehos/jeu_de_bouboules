@@ -6,6 +6,7 @@ class_name MapView
 @export var node_spacing: float = 150.0   # distance horizontale entre nœuds d'un même étage
 @export var view_offset: Vector2 = Vector2(200, 540)  # centre horizontal, bas de l'écran (le départ en bas, la fin en haut)
 @export var starting_deck: Array[CardData] = []
+@export var starting_gems: Array[GemData] = []
 @export var possible_events: Array[EventData] = []
 # Événement fixe (pas tiré au hasard parmi possible_events) : se déclenche en
 # cliquant sur la case de départ (type START), une seule fois par run. Laisse
@@ -101,15 +102,15 @@ func _start_event() -> void:
 func _start_starting_event() -> void:
 	if not starting_event:
 		return
-	RunManager.starting_event_resolved = true
+	RunManager.get_local_player().starting_event_resolved = true
 	RunManager.pending_event = starting_event
 	get_tree().change_scene_to_file("res://scenes/events/EventView.tscn")
 
 func _ready() -> void:
-	GemInventory.gems_locked = false
-	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 	if not RunManager.map_generated:
-		RunManager.start_new_run(8, starting_deck)
+		RunManager.start_new_run(8, starting_deck, starting_gems)
+	RunManager.get_local_player().gems_locked = false
+	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 
 	current_floor_index = RunManager.current_floor_index
 	current_position_in_floor = RunManager.current_position_in_floor
@@ -119,7 +120,7 @@ func _ready() -> void:
 func _is_node_accessible(node_data: MapNode) -> bool:
 	if node_data.type == MapNode.NodeType.START:
 		var is_here: bool = node_data.floor_index == current_floor_index and node_data.position_in_floor == current_position_in_floor
-		return is_here and starting_event != null and not RunManager.starting_event_resolved
+		return is_here and starting_event != null and not RunManager.get_local_player().starting_event_resolved
 
 	if node_data.floor_index != current_floor_index + 1:
 		return false

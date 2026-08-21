@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://ch02vlp7pbhbu"]
 
 [ext_resource type="Script" uid="uid://batmmnjn3kp00" path="res://script/combat/CombatManager.gd" id="1_4voa6"]
-[ext_resource type="Script" uid="uid://dsmj81ld5jq7v" path="res://script/combat/Character.gd" id="1_5vqsm"]
 [ext_resource type="Texture2D" uid="uid://c32vf6tqncadn" path="res://assets/wireframe.jpg" id="1_ltalu"]
 [ext_resource type="PackedScene" uid="uid://bnydw6h4io0og" path="res://scenes/combat/enemy.tscn" id="2_gwckk"]
+[ext_resource type="PackedScene" path="res://scenes/combat/player.tscn" id="2_player"]
 [ext_resource type="Resource" uid="uid://duq5m6wbqhsiq" path="res://ressourcesEncounters/encounter_1.tres" id="3_j3cqa"]
 [ext_resource type="Script" uid="uid://bfei241uvcs7d" path="res://script/combat/EncounterData.gd" id="3_rgm65"]
 [ext_resource type="Resource" uid="uid://dbsom1uj1qk7u" path="res://ressourcesEncounters/encounter_2.tres" id="4_rgm65"]
@@ -13,7 +13,6 @@
 [ext_resource type="PackedScene" uid="uid://d1uw6tjyj3h3d" path="res://scenes/ui/damage_number.tscn" id="7_xt4lv"]
 [ext_resource type="PackedScene" uid="uid://d0g5hjsgl0b2j" path="res://scenes/cards/card.tscn" id="8_gwckk"]
 [ext_resource type="PackedScene" uid="uid://fu7ucjlcnptb" path="res://scenes/rewards/RewardPopup.tscn" id="8_oxr7k"]
-[ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="9_j11kn"]
 [ext_resource type="Texture2D" uid="uid://dspen55daqvns" path="res://assets/backgrounds/donjon.png" id="9_oxr7k"]
 [ext_resource type="Texture2D" uid="uid://byad1n8f2i53g" path="res://assets/cards/mana_anim.png" id="9_xxixh"]
 [ext_resource type="PackedScene" uid="uid://cuugmemifju2l" path="res://scenes/ui/card_list_popup.tscn" id="13_mrrmw"]
@@ -35,14 +34,6 @@
 [ext_resource type="Resource" path="res://ressourcesEncounters/boss_encounter_1.tres" id="31_boss1"]
 [ext_resource type="Resource" path="res://ressourcesEncounters/boss_encounter_2.tres" id="32_boss2"]
 [ext_resource type="Resource" path="res://ressourcesEncounters/boss_encounter_3.tres" id="33_boss3"]
-[ext_resource type="Texture2D" uid="uid://b37mv3r4034qm" path="res://assets/ui/vie_rouge.png" id="34_vierouge"]
-[ext_resource type="Texture2D" uid="uid://d2s26l2geh02v" path="res://assets/ui/vie_jaune.png" id="35_viejaune"]
-[ext_resource type="Texture2D" uid="uid://foje3ptbsgfy" path="res://assets/ui/vie_noir.png" id="36_vienoir"]
-[ext_resource type="Texture2D" uid="uid://cs558a6ybqo5n" path="res://assets/ui/iconbouclier.png" id="37_iconbouclier"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_ckr0i"]
-size = Vector2(276, 391)
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_oxr7k"]
 texture = ExtResource("22_naquc")
 
@@ -95,6 +86,7 @@ corner_radius_bottom_right = 20
 [node name="Combat" type="Node2D" unique_id=1943509951]
 script = ExtResource("1_4voa6")
 enemy_scene = ExtResource("2_gwckk")
+player_scene = ExtResource("2_player")
 possible_encounters = Array[ExtResource("3_rgm65")]([ExtResource("3_j3cqa"), ExtResource("4_rgm65"), ExtResource("5_05d77")])
 possible_boss_encounters = Array[ExtResource("3_rgm65")]([ExtResource("31_boss1"), ExtResource("32_boss2"), ExtResource("33_boss3")])
 damage_number_scene = ExtResource("7_xt4lv")
@@ -116,105 +108,8 @@ position = Vector2(960, 540)
 texture = ExtResource("1_ltalu")
 metadata/_edit_lock_ = true
 
-[node name="Player" type="CharacterBody2D" parent="WorldRoot" unique_id=1391993159]
+[node name="PlayerZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=1391993159]
 position = Vector2(440, 523)
-script = ExtResource("1_5vqsm")
-
-[node name="HPBarBackground" type="NinePatchRect" parent="WorldRoot/Player" unique_id=900000001]
-offset_left = -85.0
-offset_top = 195.0
-offset_right = 83.0
-offset_bottom = 213.0
-texture = ExtResource("36_vienoir")
-patch_margin_left = 30
-patch_margin_right = 30
-
-[node name="HPBarDelayedClip" type="Control" parent="WorldRoot/Player" unique_id=1523442336]
-clip_contents = true
-layout_mode = 3
-anchors_preset = 0
-offset_left = -85.0
-offset_top = 195.0
-offset_right = 83.0
-offset_bottom = 213.0
-mouse_filter = 2
-
-[node name="HPBarDelayed" type="NinePatchRect" parent="WorldRoot/Player/HPBarDelayedClip" unique_id=900000002]
-layout_mode = 0
-offset_right = 168.0
-offset_bottom = 18.0
-texture = ExtResource("35_viejaune")
-patch_margin_left = 30
-patch_margin_right = 30
-
-[node name="HPBarClip" type="Control" parent="WorldRoot/Player" unique_id=571146498]
-clip_contents = true
-layout_mode = 3
-anchors_preset = 0
-offset_left = -85.0
-offset_top = 195.0
-offset_right = 83.0
-offset_bottom = 213.0
-mouse_filter = 2
-
-[node name="HPBar" type="NinePatchRect" parent="WorldRoot/Player/HPBarClip" unique_id=900000003]
-layout_mode = 0
-offset_right = 168.0
-offset_bottom = 18.0
-texture = ExtResource("34_vierouge")
-patch_margin_left = 30
-patch_margin_right = 30
-
-[node name="HP" type="Label" parent="WorldRoot/Player" unique_id=2021964912]
-offset_left = -79.0
-offset_top = 185.0
-offset_right = 77.0
-offset_bottom = 223.0
-theme_override_colors/font_outline_color = Color(0.8, 0.2, 0.2, 1)
-theme_override_constants/line_spacing = 7
-theme_override_constants/outline_size = 18
-theme_override_fonts/font = ExtResource("26_oxr7k")
-theme_override_font_sizes/font_size = 22
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="Sprite2D" type="Sprite2D" parent="WorldRoot/Player" unique_id=1110491526]
-scale = Vector2(0.37, 0.37)
-texture = ExtResource("9_j11kn")
-
-[node name="ClickArea" type="Area2D" parent="WorldRoot/Player" unique_id=517369035]
-position = Vector2(0, -104)
-collision_layer = 8
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="WorldRoot/Player/ClickArea" unique_id=1492985134]
-position = Vector2(5, 118)
-shape = SubResource("RectangleShape2D_ckr0i")
-
-[node name="ShieldIcon" type="TextureRect" parent="WorldRoot/Player" unique_id=900000007]
-visible = false
-offset_left = -21.0
-offset_top = 178.0
-offset_right = 21.0
-offset_bottom = 230.0
-mouse_filter = 2
-texture = ExtResource("37_iconbouclier")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="Block" type="Label" parent="WorldRoot/Player/ShieldIcon" unique_id=138433327]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = 3.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0.47843137, 0.69411767, 1)
-theme_override_constants/outline_size = 6
-theme_override_font_sizes/font_size = 26
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="EnemyZoneCenter" type="Marker2D" parent="WorldRoot" unique_id=865605184]
 position = Vector2(1429, 630)

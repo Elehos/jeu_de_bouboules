@@ -1,37 +1,34 @@
 extends Node
 
-var draw_pile: Array[CardData] = []
-var discard_pile: Array[CardData] = []
+func setup_deck(player: PlayerState) -> void:
+	player.draw_pile.clear()
+	player.draw_pile.append_array(player.deck)
+	player.draw_pile.shuffle()
+	player.discard_pile.clear()
+	_notify_counts(player)
 
-func setup_deck(starting_deck: Array[CardData]) -> void:
-	draw_pile.clear()
-	draw_pile.append_array(starting_deck)
-	draw_pile.shuffle()
-	discard_pile.clear()
-	_notify_counts()
-
-func draw_card() -> CardData:
-	if draw_pile.is_empty():
-		reshuffle_discard_into_draw()
-	if draw_pile.is_empty():
+func draw_card(player: PlayerState) -> CardData:
+	if player.draw_pile.is_empty():
+		reshuffle_discard_into_draw(player)
+	if player.draw_pile.is_empty():
 		return null
-	var card = draw_pile.pop_back()
-	_notify_counts()
+	var card = player.draw_pile.pop_back()
+	_notify_counts(player)
 	return card
 
-func discard_card(card_data: CardData) -> void:
-	discard_pile.append(card_data)
-	_notify_counts()
+func discard_card(player: PlayerState, card_data: CardData) -> void:
+	player.discard_pile.append(card_data)
+	_notify_counts(player)
 
-func reshuffle_discard_into_draw() -> void:
-	draw_pile = discard_pile.duplicate()
-	draw_pile.shuffle()
-	discard_pile.clear()
-	_notify_counts()
+func reshuffle_discard_into_draw(player: PlayerState) -> void:
+	player.draw_pile = player.discard_pile.duplicate()
+	player.draw_pile.shuffle()
+	player.discard_pile.clear()
+	_notify_counts(player)
 
-func _notify_counts() -> void:
-	CombatEvents.deck_counts_changed.emit(draw_pile.size(), discard_pile.size())
+func _notify_counts(player: PlayerState) -> void:
+	CombatEvents.deck_counts_changed.emit(player.draw_pile.size(), player.discard_pile.size())
 
 # Combine pioche + défausse : l'intégralité du deck, peu importe l'avancée du combat
-func get_full_deck() -> Array[CardData]:
-	return draw_pile + discard_pile
+func get_full_deck(player: PlayerState) -> Array[CardData]:
+	return player.draw_pile + player.discard_pile

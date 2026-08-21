@@ -29,7 +29,7 @@ func show_choices(cards: Array[CardData]) -> void:
 
 
 func _on_card_clicked(card_data: CardData) -> void:
-	RunManager.player_deck.append(card_data.duplicate(true))
+	RunManager.get_local_player().deck.append(card_data.duplicate(true))
 	choice_made.emit(true)
 	queue_free()
 	

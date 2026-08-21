@@ -10,6 +10,7 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
 @onready var player_zone_center: Marker2D = $WorldRoot/PlayerZoneCenter
 @export var player_scene: PackedScene  # glisse player.tscn dans l'Inspecteur
+@export var player_spacing: float = 300.0
 
 var players: Array[Character] = []
 var local_player: Character
@@ -98,12 +99,20 @@ func _ready() -> void:
 	start_turn(TurnState.PLAYER_TURN)
 
 func spawn_players() -> void:
-	for player_state in RunManager.players:
+	var my_id: int = multiplayer.get_unique_id()
+	var player_count: int = RunManager.players.size()
+	for i in range(player_count):
+		var player_state: PlayerState = RunManager.players[i]
 		var new_player: Character = player_scene.instantiate()
 		world_root.add_child(new_player)
-		new_player.global_position = player_zone_center.global_position
+		new_player.global_position = _compute_player_position(i, player_count)
 		players.append(new_player)
-	local_player = players[0]
+		if player_state.peer_id == my_id:
+			local_player = new_player
+
+func _compute_player_position(index: int, total: int) -> Vector2:
+	var offset_x: float = (index - (total - 1) / 2.0) * player_spacing
+	return player_zone_center.global_position + Vector2(offset_x, 0)
 	
 
 

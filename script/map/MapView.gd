@@ -108,7 +108,9 @@ func _start_starting_event() -> void:
 
 func _ready() -> void:
 	if not RunManager.map_generated:
-		RunManager.start_new_run(8, starting_deck, starting_gems)
+		RunManager.start_new_run(8)
+	if not RunManager.players_ready:
+		RunManager.build_players_from_starting_content(starting_deck, starting_gems)
 	RunManager.get_local_player().gems_locked = false
 	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 

@@ -7,5 +7,6 @@ class_name GemData
 
 @export var damage_bonus: int = 0
 @export var heal_on_play: int = 0
+@export var shield_on_play: int = 0
 
 @export var allowed_card_type: CardData.CardType = CardData.CardType.ATTACK

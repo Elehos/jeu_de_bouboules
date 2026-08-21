@@ -61,6 +61,26 @@ var mana_frame_textures: Array[Texture2D] = []
 var mana_ui_current_frame: int = 4
 var mana_ui_anim_id: int = 0
 
+# Résout current_encounter à partir du pool déjà choisi (possible_encounters
+# ou possible_boss_encounters selon RunManager.is_boss_combat, décidé avant
+# l'appel). En solo, comportement strictement identique à avant (aucun accès
+# réseau). En multi, l'hôte tire l'indice et le diffuse ; le client l'attend
+# si besoin. pending_encounter_index est vérifié AVANT tout await : si le RPC
+# est déjà arrivé (cas le plus probable — l'hôte atteint son propre _ready()
+# sans latence réseau, le client est encore en train de recevoir), on
+# l'utilise tout de suite sans jamais attendre un signal déjà émis.
+func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
+	if RunManager.run_peer_ids.size() <= 1:
+		return pool.pick_random()
+	if NetworkManager.is_host():
+		var index: int = RunManager.choose_combat_encounter(pool.size())
+		return pool[index]
+	var index: int = RunManager.pending_encounter_index
+	if index < 0:
+		index = await RunManager.encounter_chosen
+	RunManager.pending_encounter_index = -1
+	return pool[index]
+
 func _ready() -> void:
 	local_player_state = RunManager.get_local_player()
 	local_player_state.gems_locked = true
@@ -73,7 +93,7 @@ func _ready() -> void:
 
 	spawn_players()
 	CombatEvents.damage_taken.connect(_on_damage_taken)
-	current_encounter = encounter_pool.pick_random()
+	current_encounter = await _resolve_encounter(encounter_pool)
 	spawn_enemies()
 	if local_player_state.current_hp >= 0:
 		local_player.max_hp = local_player_state.max_hp

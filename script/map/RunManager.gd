@@ -31,6 +31,12 @@ var players_ready: bool = false
 # telle quelle — seuls floor_index/position_in_floor voyagent par RPC).
 var pending_node_picks: Dictionary = {}
 
+# Hôte -> clients uniquement. -1 tant qu'aucun indice n'est arrivé pour le
+# combat en cours ; remis à -1 par CombatManager juste après consommation
+# pour ne pas laisser une valeur périmée fuiter vers le combat suivant.
+var pending_encounter_index: int = -1
+signal encounter_chosen(index: int)
+
 signal node_choice_applied(map_node: MapNode)
 
 func _generate_map(floor_count: int) -> void:
@@ -173,6 +179,22 @@ func _resolve_votes() -> void:
 @rpc("authority", "call_remote", "reliable")
 func _broadcast_node_choice(floor_index: int, position_in_floor: int) -> void:
 	_apply_node_choice(floors[floor_index][position_in_floor])
+
+# Hôte uniquement. Tire l'indice dans le pool (pool_size = taille de
+# possible_encounters/possible_boss_encounters, identique chez tous les
+# pairs) et le diffuse. randi() % pool_size plutôt que pick_random() sur le
+# tableau lui-même : RunManager n'a pas accès à encounter_pool (@export sur
+# CombatManager), seul l'indice a besoin de voyager.
+func choose_combat_encounter(pool_size: int) -> int:
+	var index: int = randi() % pool_size
+	if run_peer_ids.size() > 1:
+		_receive_encounter_index.rpc(index)
+	return index
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_encounter_index(index: int) -> void:
+	pending_encounter_index = index
+	encounter_chosen.emit(index)
 
 # Tourne à l'identique sur chaque pair : en direct depuis _resolve_votes() côté
 # hôte, depuis le récepteur RPC côté client, et depuis le chemin rapide solo.

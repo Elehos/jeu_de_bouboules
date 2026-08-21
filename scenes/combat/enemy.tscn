@@ -70,7 +70,7 @@ theme_override_colors/font_outline_color = Color(0.8, 0.2, 0.2, 1)
 theme_override_constants/line_spacing = 7
 theme_override_constants/outline_size = 18
 theme_override_fonts/font = ExtResource("2_0kact")
-theme_override_font_sizes/font_size = 31
+theme_override_font_sizes/font_size = 22
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -120,6 +120,6 @@ grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0.47843137, 0.69411767, 1)
 theme_override_constants/outline_size = 8
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 26
 horizontal_alignment = 1
 vertical_alignment = 1

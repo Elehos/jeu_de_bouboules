@@ -79,6 +79,24 @@ script = ExtResource("8_7k8nd")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1268101918]
 
+[node name="StatusLabel" type="Label" parent="UI" unique_id=1268101919]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("12_ksfdk")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+horizontal_alignment = 1
+text = ""
+
 [node name="GemBagPanel" type="Panel" parent="UI" unique_id=1942942163]
 offset_left = -1304.0
 offset_top = 102.0

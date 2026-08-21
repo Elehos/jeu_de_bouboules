@@ -27,6 +27,12 @@ var run_peer_ids: Array[int] = []
 # que ce pair ait construit ses propres PlayerState.
 var players_ready: bool = false
 
+# peer_id -> MapNode (hôte uniquement ; référence locale, jamais transmise
+# telle quelle — seuls floor_index/position_in_floor voyagent par RPC).
+var pending_node_picks: Dictionary = {}
+
+signal node_choice_applied(map_node: MapNode)
+
 func _generate_map(floor_count: int) -> void:
 	var generator := MapGenerator.new()
 	floors = generator.generate_map(floor_count)
@@ -124,6 +130,61 @@ func get_local_player() -> PlayerState:
 func get_current_node() -> MapNode:
 	return floors[current_floor_index][current_position_in_floor]
 
-func move_to(map_node: MapNode) -> void:
+# Point d'entrée appelé par MapView sur chaque pair quand un joueur clique une
+# case (hors START). En solo, résout tout de suite et de façon synchrone —
+# aucun round-trip réseau, comportement inchangé par rapport à avant.
+func submit_node_pick(map_node: MapNode) -> void:
+	if run_peer_ids.size() <= 1:
+		_apply_node_choice(map_node)
+		return
+	if NetworkManager.is_host():
+		_register_pick(multiplayer.get_unique_id(), map_node.floor_index, map_node.position_in_floor)
+	else:
+		_submit_pick_to_host.rpc_id(1, map_node.floor_index, map_node.position_in_floor)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_pick_to_host(floor_index: int, position_in_floor: int) -> void:
+	if not NetworkManager.is_host():
+		return
+	_register_pick(multiplayer.get_remote_sender_id(), floor_index, position_in_floor)
+
+# Hôte uniquement. Le paramètre peer_id est explicite plutôt que de rappeler
+# get_remote_sender_id() ici, car cette fonction est aussi appelée directement
+# (hors RPC) pour le propre choix de l'hôte — get_remote_sender_id() n'a de
+# sens que pendant l'exécution d'un appel RPC entrant.
+func _register_pick(peer_id: int, floor_index: int, position_in_floor: int) -> void:
+	if floor_index < 0 or floor_index >= floors.size():
+		return
+	var floor_nodes: Array = floors[floor_index]
+	if position_in_floor < 0 or position_in_floor >= floor_nodes.size():
+		return
+	pending_node_picks[peer_id] = floor_nodes[position_in_floor]
+	if pending_node_picks.size() >= run_peer_ids.size():
+		_resolve_votes()
+
+# Hôte uniquement. pick_random() sur les valeurs brutes (PAS dédupliquées par
+# case) : une case choisie par 2 joueurs a deux fois plus de chances de sortir.
+func _resolve_votes() -> void:
+	var winner: MapNode = pending_node_picks.values().pick_random()
+	pending_node_picks.clear()
+	_apply_node_choice(winner)
+	_broadcast_node_choice.rpc(winner.floor_index, winner.position_in_floor)
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_node_choice(floor_index: int, position_in_floor: int) -> void:
+	_apply_node_choice(floors[floor_index][position_in_floor])
+
+# Tourne à l'identique sur chaque pair : en direct depuis _resolve_votes() côté
+# hôte, depuis le récepteur RPC côté client, et depuis le chemin rapide solo.
+# is_boss_combat est fonction pure de map_node.type (déterministe, aucun RNG)
+# donc safe à définir ici sans RPC dédié. pending_event N'EST PAS touché ici —
+# ça reste le job de MapView._start_event() (RNG indépendant par pair, même
+# précédent déjà accepté que CombatManager.encounter_pool.pick_random()).
+func _apply_node_choice(map_node: MapNode) -> void:
 	current_floor_index = map_node.floor_index
 	current_position_in_floor = map_node.position_in_floor
+	if map_node.type == MapNode.NodeType.END:
+		is_boss_combat = true
+	elif map_node.type == MapNode.NodeType.COMBAT:
+		is_boss_combat = false
+	node_choice_applied.emit(map_node)

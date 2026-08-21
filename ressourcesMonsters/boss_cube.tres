@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="EnemyData" format=3]
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://b8vynu4lpevus"]
 
 [ext_resource type="Script" uid="uid://dy83y3f7mksi" path="res://script/combat/EnemyData.gd" id="1_ykd72"]
 [ext_resource type="Texture2D" uid="uid://dcrrx0stus24x" path="res://assets/monsters/cubes.png" id="2_d74fq"]

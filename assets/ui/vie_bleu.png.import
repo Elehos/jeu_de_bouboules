@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d2s26l2geh02v"
-path="res://.godot/imported/vie_jaune.png-8a7c233db02739d02c560f197ddd60c1.ctex"
+uid="uid://cs1s1lvc1lotv"
+path="res://.godot/imported/vie_bleu.png-a3b64dd1c327a7a2c354c0585da06b93.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ui/vie_jaune.png"
-dest_files=["res://.godot/imported/vie_jaune.png-8a7c233db02739d02c560f197ddd60c1.ctex"]
+source_file="res://assets/ui/vie_bleu.png"
+dest_files=["res://.godot/imported/vie_bleu.png-a3b64dd1c327a7a2c354c0585da06b93.ctex"]
 
 [params]
 

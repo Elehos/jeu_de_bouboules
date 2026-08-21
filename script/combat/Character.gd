@@ -9,158 +9,103 @@ var current_hp: int
 var current_block: int = 0
 
 @onready var hp_label: Label = $HP
-@onready var block_label: Label = $Block
-@onready var hp_bar: ProgressBar = $HPBar
-@onready var hp_bar_delayed: ProgressBar = $HPBarDelayed
+# Rouge (PV actuels) et jaune (traînée de dégâts) : chacun est un NinePatchRect
+# (image, coins non déformés) placé dans un Control qui le découpe (clip)
+# selon le pourcentage de vie — le NinePatchRect lui-même reste toujours à la
+# largeur pleine de la barre, seul le clip réduit sa partie visible.
+@onready var hp_bar_background: NinePatchRect = $HPBarBackground
+@onready var hp_bar_delayed_clip: Control = $HPBarDelayedClip
+@onready var hp_bar_delayed: NinePatchRect = $HPBarDelayedClip/HPBarDelayed
+@onready var hp_bar_clip: Control = $HPBarClip
+@onready var hp_bar: NinePatchRect = $HPBarClip/HPBar
 @onready var click_area: Area2D = $ClickArea
 @onready var sprite: Sprite2D = $Sprite2D
-@onready var hp_bar_outline: Panel = $HPBarOutline
-@onready var hp_bar_shading: TextureRect = $HPBarShading
-@onready var hp_bar_highlight: TextureRect = $HPBarHighlight
+@onready var shield_icon: TextureRect = $ShieldIcon
+@onready var block_label: Label = $ShieldIcon/Block
 
 const TWEEN_DURATION: float = 0.4
 const DAMAGE_TRAIL_DELAY: float = 1.0
-const CORNER_RADIUS: int = 10
 
-const OUTLINE_COLOR: Color = Color(0.52, 0.11, 0.159, 1.0)
-const OUTLINE_COLOR_SHIELDED: Color = Color(0.15, 0.35, 0.55, 1.0)
-const OUTLINE_WIDTH: int = 4
+const LABEL_OUTLINE_COLOR: Color = Color(0.694, 0.212, 0.0, 1.0)
+const LABEL_OUTLINE_COLOR_SHIELDED: Color = Color(0.0, 0.478, 0.694, 1.0)
+const LABEL_OUTLINE_SIZE: int = 15
 
-const LABEL_OUTLINE_COLOR: Color = Color(0, 0, 0, 1)
-const LABEL_OUTLINE_COLOR_SHIELDED: Color = Color(0.15, 0.35, 0.55, 1.0)
-const LABEL_OUTLINE_SIZE: int = 4
+const HP_BAR_TEXTURE_NORMAL: Texture2D = preload("res://assets/ui/vie_rouge.png")
+const HP_BAR_TEXTURE_SHIELDED: Texture2D = preload("res://assets/ui/vie_bleu.png")
 
-@export var hp_bar_padding: float = 10.0
-@export var outline_margin: float = 4.0
+const SHIELD_ICON_EDGE_OFFSET: float = 8.0
 
-var fill_normal: StyleBoxFlat
-var fill_shielded: StyleBoxFlat
-var outline_style_ref: StyleBoxFlat
+# Le chiffre de bouclier doit rester lisible et centré sur l'icône, quelle
+# que soit sa largeur en pixels — au-delà d'un chiffre, la police et le
+# contour rétrécissent proportionnellement pour ne pas déborder de l'icône.
+const BLOCK_LABEL_SCALE_1_DIGIT: float = 1.0
+const BLOCK_LABEL_SCALE_2_DIGITS: float = 0.75
+const BLOCK_LABEL_SCALE_3_DIGITS: float = 0.55
+
+@export var hp_bar_padding: float = 25.0
+
+var bar_width: float = 0.0
+var block_label_base_font_size: int = 20
+var block_label_base_outline_size: int = 5
 
 signal died
 signal damage_taken(amount: int)
 
 func _ready() -> void:
 	current_hp = max_hp
-	
-	fill_normal = make_fill_style(Color(0.8, 0.2, 0.2))
-	fill_shielded = make_fill_style(Color(0.3, 0.6, 0.9))
-	var fill_delayed := make_fill_style(Color(1.0, 0.9, 0.4))
-	var transparent_bg := make_fill_style(Color(0, 0, 0, 0))
-	
-	fill_normal.anti_aliasing = false
-	fill_shielded.anti_aliasing = false
-	fill_delayed.anti_aliasing = false
-	transparent_bg.anti_aliasing = false
-	
-	hp_bar.add_theme_stylebox_override("background", transparent_bg)
-	hp_bar.add_theme_stylebox_override("fill", fill_normal)
-	hp_bar_delayed.add_theme_stylebox_override("fill", fill_delayed)
-	hp_bar_delayed.add_theme_stylebox_override("background", transparent_bg)
-	
-	outline_style_ref = StyleBoxFlat.new()
-	outline_style_ref.bg_color = Color(0, 0, 0, 0)
-	outline_style_ref.border_width_left = OUTLINE_WIDTH
-	outline_style_ref.border_width_right = OUTLINE_WIDTH
-	outline_style_ref.border_width_top = OUTLINE_WIDTH
-	outline_style_ref.border_width_bottom = OUTLINE_WIDTH
-	outline_style_ref.border_color = OUTLINE_COLOR
-	outline_style_ref.corner_radius_top_left = CORNER_RADIUS
-	outline_style_ref.corner_radius_top_right = CORNER_RADIUS
-	outline_style_ref.corner_radius_bottom_left = CORNER_RADIUS
-	outline_style_ref.corner_radius_bottom_right = CORNER_RADIUS
-	outline_style_ref.corner_detail = 12
-	outline_style_ref.anti_aliasing = true
-	hp_bar_outline.add_theme_stylebox_override("panel", outline_style_ref)
-	
-	var shading_gradient := Gradient.new()
-	shading_gradient.set_color(0, Color(0, 0, 0, 0))
-	shading_gradient.set_color(1, Color(0, 0, 0, 0.5))
-	shading_gradient.add_point(0.7, Color(0, 0, 0, 0))
-	
-	var shading_texture := GradientTexture2D.new()
-	shading_texture.gradient = shading_gradient
-	shading_texture.width = 512
-	shading_texture.height = 512
-	shading_texture.fill = GradientTexture2D.FILL_LINEAR
-	shading_texture.fill_from = Vector2(0, 0)
-	shading_texture.fill_to = Vector2(0, 1)
-	
-	hp_bar_shading.texture = shading_texture
-	hp_bar_shading.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hp_bar_shading.stretch_mode = TextureRect.STRETCH_SCALE
-	hp_bar_shading.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
-	var highlight_gradient := Gradient.new()
-	highlight_gradient.set_color(0, Color(1, 1, 1, 0.4))
-	highlight_gradient.set_color(1, Color(1, 1, 1, 0))
-	highlight_gradient.add_point(0.3, Color(1, 1, 1, 0))
-	
-	var highlight_texture := GradientTexture2D.new()
-	highlight_texture.gradient = highlight_gradient
-	highlight_texture.width = 512
-	highlight_texture.height = 512
-	highlight_texture.fill = GradientTexture2D.FILL_LINEAR
-	highlight_texture.fill_from = Vector2(0, 0)
-	highlight_texture.fill_to = Vector2(0, 1)
-	
-	hp_bar_highlight.texture = highlight_texture
-	hp_bar_highlight.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	hp_bar_highlight.stretch_mode = TextureRect.STRETCH_SCALE
-	hp_bar_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	
+
 	if hp_label:
 		hp_label.add_theme_color_override("font_outline_color", LABEL_OUTLINE_COLOR)
 		hp_label.add_theme_constant_override("outline_size", LABEL_OUTLINE_SIZE)
-	
+
+	if block_label:
+		block_label_base_font_size = block_label.get_theme_font_size("font_size")
+		block_label_base_outline_size = block_label.get_theme_constant("outline_size")
+
 	_resize_hp_bar_to_sprite()
-	
-	hp_bar.max_value = max_hp
-	hp_bar.value = max_hp
-	hp_bar_delayed.max_value = max_hp
-	hp_bar_delayed.value = max_hp
-	
+
 	update_hp_display()
 	update_block_display()
-	
+
 	click_area.input_event.connect(_on_click_area_input_event)
 
 func _resize_hp_bar_to_sprite() -> void:
 	if not sprite or not sprite.texture:
 		return
-	
+
 	var sprite_width: float = sprite.texture.get_width() * sprite.scale.x
-	var bar_width: float = round(sprite_width + hp_bar_padding * 2)
-	
-	hp_bar.size.x = bar_width
+	bar_width = round(sprite_width + hp_bar_padding * 2)
+	var bar_pos_x: float = round(-bar_width / 2)
+
+	hp_bar_background.size.x = bar_width
+	hp_bar_background.position.x = bar_pos_x
+
+	hp_bar_delayed_clip.position.x = bar_pos_x
+	hp_bar_clip.position.x = bar_pos_x
 	hp_bar_delayed.size.x = bar_width
-	hp_bar.position.x = round(-bar_width / 2)
-	hp_bar_delayed.position.x = round(-bar_width / 2)
-	
-	hp_bar_outline.size = hp_bar.size + Vector2(outline_margin * 2, outline_margin * 2)
-	hp_bar_outline.position = hp_bar.position - Vector2(outline_margin, outline_margin)
-	
-	hp_bar_shading.size = hp_bar.size
-	hp_bar_shading.position = hp_bar.position
-	
-	hp_bar_highlight.size = hp_bar.size
-	hp_bar_highlight.position = hp_bar.position
-	
+	hp_bar.size.x = bar_width
+
 	if hp_label:
 		hp_label.size.x = bar_width
-		hp_label.position.x = round(-bar_width / 2)
+		hp_label.position.x = bar_pos_x
 		hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
-func make_fill_style(color: Color) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.corner_radius_top_left = CORNER_RADIUS
-	style.corner_radius_top_right = CORNER_RADIUS
-	style.corner_radius_bottom_left = CORNER_RADIUS
-	style.corner_radius_bottom_right = CORNER_RADIUS
-	style.corner_detail = 12
-	style.anti_aliasing = true
-	return style
+	if shield_icon:
+		# Icône centrée sur le bord gauche de la barre (légèrement décalée vers
+		# la droite pour bien chevaucher la barre), joueur comme monstres.
+		shield_icon.position.x = round(bar_pos_x - shield_icon.size.x / 2.0 + SHIELD_ICON_EDGE_OFFSET)
+
+	# Réapplique le pourcentage courant à la nouvelle largeur de barre.
+	_set_bar_fill(hp_bar_clip, current_hp)
+	_set_bar_fill(hp_bar_delayed_clip, current_hp)
+
+# Découpe (clip) horizontalement le NinePatchRect contenu dans clip_control
+# pour ne montrer que la fraction value/max_hp de la barre — le NinePatchRect
+# reste toujours à bar_width pleine, seul le Control parent le recadre, donc
+# ses coins ne sont jamais déformés.
+func _set_bar_fill(clip_control: Control, value: int) -> void:
+	var ratio: float = clamp(float(value) / float(max_hp), 0.0, 1.0) if max_hp > 0 else 0.0
+	clip_control.size.x = round(bar_width * ratio)
 
 func take_damage(amount: int) -> void:
 	var remaining_damage: int = amount
@@ -184,7 +129,7 @@ func take_damage(amount: int) -> void:
 func heal(amount: int) -> void:
 	current_hp += amount
 	current_hp = min(current_hp, max_hp)
-	hp_bar_delayed.value = current_hp
+	_set_bar_fill(hp_bar_delayed_clip, current_hp)
 	update_hp_display()
 
 func gain_block(amount: int) -> void:
@@ -196,34 +141,50 @@ func reset_block() -> void:
 	update_block_display()
 
 func update_hp_display() -> void:
-	hp_bar.value = current_hp
+	_set_bar_fill(hp_bar_clip, current_hp)
 	if hp_label:
 		hp_label.text = str(current_hp) + " / " + str(max_hp)
 
 func sync_hp_bars_instantly() -> void:
-	hp_bar.value = current_hp
-	hp_bar_delayed.value = current_hp
-
-func show_damage_trail() -> void:
-	hp_bar.value = current_hp
+	_set_bar_fill(hp_bar_clip, current_hp)
+	_set_bar_fill(hp_bar_delayed_clip, current_hp)
 	if hp_label:
 		hp_label.text = str(current_hp) + " / " + str(max_hp)
-	
+
+func show_damage_trail() -> void:
+	_set_bar_fill(hp_bar_clip, current_hp)
+	if hp_label:
+		hp_label.text = str(current_hp) + " / " + str(max_hp)
+
+	var target_width: float = round(bar_width * (clamp(float(current_hp) / float(max_hp), 0.0, 1.0) if max_hp > 0 else 0.0))
 	var tween: Tween = create_tween()
 	tween.tween_interval(DAMAGE_TRAIL_DELAY)
-	tween.tween_property(hp_bar_delayed, "value", current_hp, TWEEN_DURATION)
+	tween.tween_property(hp_bar_delayed_clip, "size:x", target_width, TWEEN_DURATION)
 
+# Le bouclier est indiqué par l'icône ShieldIcon (avec son chiffre) sur la
+# barre, le passage de la barre en bleu, et la couleur du contour du texte des PV.
 func update_block_display() -> void:
-	hp_bar.add_theme_stylebox_override("fill", fill_shielded if current_block > 0 else fill_normal)
-	outline_style_ref.border_color = OUTLINE_COLOR_SHIELDED if current_block > 0 else OUTLINE_COLOR
-	
 	if hp_label:
 		var label_outline: Color = LABEL_OUTLINE_COLOR_SHIELDED if current_block > 0 else LABEL_OUTLINE_COLOR
 		hp_label.add_theme_color_override("font_outline_color", label_outline)
-	
+
+	if hp_bar:
+		hp_bar.texture = HP_BAR_TEXTURE_SHIELDED if current_block > 0 else HP_BAR_TEXTURE_NORMAL
+
+	if shield_icon:
+		shield_icon.visible = current_block > 0
+
 	if block_label:
-		block_label.text = "🛡 " + str(current_block) if current_block > 0 else ""
-		block_label.visible = current_block > 0
+		var block_text: String = str(current_block) if current_block > 0 else ""
+		block_label.text = block_text
+
+		var scale: float = BLOCK_LABEL_SCALE_1_DIGIT
+		if block_text.length() == 2:
+			scale = BLOCK_LABEL_SCALE_2_DIGITS
+		elif block_text.length() >= 3:
+			scale = BLOCK_LABEL_SCALE_3_DIGITS
+		block_label.add_theme_font_size_override("font_size", max(8, round(block_label_base_font_size * scale)))
+		block_label.add_theme_constant_override("outline_size", max(2, round(block_label_base_outline_size * scale)))
 
 func die() -> void:
 	died.emit()

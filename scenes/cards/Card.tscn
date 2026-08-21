@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://bxafqy6hpjy11" path="res://assets/cards/bg_card.png" id="4_61bms"]
 [ext_resource type="Script" uid="uid://dfgluag3f2y8s" path="res://script/gems/GemSlot.gd" id="5_1q37b"]
 [ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="5_mj4jy"]
-[ext_resource type="FontFile" uid="uid://bpr7ek26kbdeq" path="res://assets/fonts/GeneralSans-MediumItalic.otf" id="5_mo7yc"]
 [ext_resource type="Script" uid="uid://dj0btamtvwvl1" path="res://script/gems/GemPickupArea.gd" id="8_61bms"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7s3sq"]
@@ -140,7 +139,7 @@ offset_left = 81.0
 offset_top = 182.0
 offset_right = 161.0
 offset_bottom = 205.0
-theme_override_fonts/font = ExtResource("5_mo7yc")
+theme_override_fonts/font = ExtResource("5_mj4jy")
 theme_override_font_sizes/font_size = 10
 horizontal_alignment = 1
 vertical_alignment = 1

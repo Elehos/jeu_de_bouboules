@@ -7,7 +7,6 @@
 script = ExtResource("1_7r04d")
 enemy_name = "Bouboule"
 attack_power = 5
-defense_power = 0
 intention_sequence = Array[int]([0, 1])
 sprite_texture = ExtResource("2_35ncp")
 enemy_scale = Vector2(0.4, 0.4)

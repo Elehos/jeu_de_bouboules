@@ -12,7 +12,7 @@
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="9_7k8nd"]
 [ext_resource type="PackedScene" uid="uid://bgc2demvv24yu" path="res://scenes/gems/card_gem_slot_row.tscn" id="10_rja35"]
-[ext_resource type="FontFile" uid="uid://j26yeyw80ro7" path="res://assets/fonts/GeneralSans-Bold.otf" id="12_ksfdk"]
+[ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="12_ksfdk"]
 [ext_resource type="Script" uid="uid://d37fab13664ao" path="res://script/gems/GemUnequipZone.gd" id="12_mmlwv"]
 [ext_resource type="Script" path="res://script/events/EventData.gd" id="13_eventscript"]
 [ext_resource type="Resource" path="res://ressourcesEvents/event_fontaine.tres" id="14_event1"]

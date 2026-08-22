@@ -87,6 +87,8 @@ func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
 	return pool[index]
 
 func _ready() -> void:
+	RunManager.in_combat = true
+
 	# Défensif : si un combat multi précédent s'est terminé par une défaite
 	# d'équipe et qu'on relance via "Recommencer", évite que downed_peer_ids
 	# reste peuplé et bloque le tally de fin de tour dès le premier tour.
@@ -307,6 +309,7 @@ func _show_rewards() -> void:
 	$UI.add_child(popup)
 
 func _on_combat_finished() -> void:
+	RunManager.in_combat = false
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:

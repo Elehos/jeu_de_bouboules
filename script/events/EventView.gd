@@ -149,19 +149,25 @@ func _apply_effect(effect: EventEffect) -> void:
 	match effect.type:
 		EventEffect.EffectType.HEAL:
 			player.current_hp = min(player.current_hp + effect.amount, player.max_hp)
+			RunManager.submit_player_hp(player.current_hp)
 		EventEffect.EffectType.DAMAGE:
 			# Ne tue jamais depuis un événement : il n'y a pas d'écran de
 			# défaite en dehors du combat, donc on plafonne à 1 PV restant.
 			player.current_hp = max(player.current_hp - effect.amount, 1)
+			RunManager.submit_player_hp(player.current_hp)
 		EventEffect.EffectType.GAIN_CARD:
 			if effect.card:
 				player.deck.append(effect.card.duplicate(true))
+				RunManager.submit_card_picked(effect.card.resource_path)
 		EventEffect.EffectType.REMOVE_RANDOM_CARD:
 			if not player.deck.is_empty():
-				player.deck.remove_at(randi() % player.deck.size())
+				var idx: int = randi() % player.deck.size()
+				player.deck.remove_at(idx)
+				RunManager.submit_card_removed(idx)
 		EventEffect.EffectType.GAIN_GEM:
 			if effect.gem:
 				player.owned_gems.append(effect.gem.duplicate(true))
+				RunManager.submit_gem_picked(effect.gem.resource_path)
 
 func _on_continue_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

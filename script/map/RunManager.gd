@@ -89,6 +89,7 @@ func reset_run_state() -> void:
 	pending_encounter_index = -1
 	pending_enemy_damage.clear()
 	peer_client_tokens.clear()
+	in_combat = false
 
 # Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
 var peer_client_tokens: Dictionary = {}
@@ -136,6 +137,8 @@ func _try_reconnect_match(new_peer_id: int, token: String) -> void:
 			_broadcast_peer_reconnect.rpc(old_id, new_peer_id)
 			ConnectionOverlay.hide_overlay()
 			peer_reconnected.emit(new_peer_id)
+			if not in_combat:
+				_send_full_resync(new_peer_id)
 			return
 
 @rpc("authority", "call_remote", "reliable")
@@ -147,6 +150,139 @@ func _broadcast_peer_reconnect(old_peer_id: int, new_peer_id: int) -> void:
 		if p.peer_id == old_peer_id:
 			p.peer_id = new_peer_id
 			break
+
+# true pendant qu'un combat est en cours pour cette run — mis à jour par
+# CombatManager. Sert à savoir si une reconnexion peut renvoyer le joueur
+# directement sur la carte (_try_reconnect_match) : reconnecter en plein
+# combat n'est pas encore géré (nécessite un instantané de combat séparé,
+# pas construit ici), donc on ne tente pas la resynchronisation dans ce cas
+# — le joueur reste sur MainMenu.tscn en attendant.
+var in_combat: bool = false
+
+func submit_card_picked(resource_path: String) -> void:
+	if run_peer_ids.size() <= 1 or NetworkManager.is_host():
+		return
+	_receive_card_picked.rpc_id(1, resource_path)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _receive_card_picked(resource_path: String) -> void:
+	if not NetworkManager.is_host():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	for p: PlayerState in players:
+		if p.peer_id == sender_id:
+			var card: CardData = load(resource_path)
+			var dup: CardData = card.duplicate(true)
+			dup.template_path = resource_path
+			p.deck.append(dup)
+			return
+
+func submit_gem_picked(resource_path: String) -> void:
+	if run_peer_ids.size() <= 1 or NetworkManager.is_host():
+		return
+	_receive_gem_picked.rpc_id(1, resource_path)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _receive_gem_picked(resource_path: String) -> void:
+	if not NetworkManager.is_host():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	for p: PlayerState in players:
+		if p.peer_id == sender_id:
+			var gem: GemData = load(resource_path)
+			var dup: GemData = gem.duplicate(true)
+			dup.template_path = resource_path
+			p.owned_gems.append(dup)
+			return
+
+# Index dans player.deck — sûr car les RPC fiables d'un même émetteur vers un
+# même récepteur préservent l'ordre : tant que chaque ajout précédent a déjà
+# été envoyé avant un retrait, les deux copies restent alignées par index.
+func submit_card_removed(index: int) -> void:
+	if run_peer_ids.size() <= 1 or NetworkManager.is_host():
+		return
+	_receive_card_removed.rpc_id(1, index)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _receive_card_removed(index: int) -> void:
+	if not NetworkManager.is_host():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	for p: PlayerState in players:
+		if p.peer_id == sender_id:
+			if index >= 0 and index < p.deck.size():
+				p.deck.remove_at(index)
+			return
+
+# Hôte uniquement. Envoie un instantané complet de la run à un pair qui vient
+# de se reconnecter, pour qu'il retrouve MapView.tscn pleinement fonctionnel
+# au lieu de rester bloqué sur MainMenu.tscn (limite de la tranche
+# précédente). N'est appelé que si !in_combat (cf. commentaire sur ce champ).
+func _send_full_resync(target_peer_id: int) -> void:
+	_receive_full_resync.rpc_id(
+		target_peer_id,
+		_serialize_floors(),
+		current_floor_index,
+		current_position_in_floor,
+		is_boss_combat,
+		run_peer_ids,
+		_serialize_players(),
+	)
+
+func _serialize_players() -> Array:
+	var out: Array = []
+	for p: PlayerState in players:
+		var deck_paths: Array = []
+		for c: CardData in p.deck:
+			deck_paths.append(c.template_path)
+		var gem_paths: Array = []
+		for g: GemData in p.owned_gems:
+			gem_paths.append(g.template_path)
+		out.append({
+			"peer_id": p.peer_id,
+			"current_hp": p.current_hp,
+			"max_hp": p.max_hp,
+			"deck": deck_paths,
+			"owned_gems": gem_paths,
+			"starting_event_resolved": p.starting_event_resolved,
+		})
+	return out
+
+# Ne reçu que par le pair qui vient de se reconnecter (rpc_id ciblé, jamais
+# diffusé). gems_locked n'est volontairement pas transmis : MapView._ready()
+# le remet de toute façon inconditionnellement à false juste après.
+@rpc("authority", "call_remote", "reliable")
+func _receive_full_resync(serialized_floors: Array, f_idx: int, pos_idx: int, boss: bool, peer_ids: Array, serialized_players: Array) -> void:
+	floors = _deserialize_floors(serialized_floors)
+	current_floor_index = f_idx
+	current_position_in_floor = pos_idx
+	is_boss_combat = boss
+	run_peer_ids = []
+	for id in peer_ids:
+		run_peer_ids.append(id)
+	players = _deserialize_players(serialized_players)
+	map_generated = true
+	players_ready = true
+	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+
+func _deserialize_players(data: Array) -> Array[PlayerState]:
+	var out: Array[PlayerState] = []
+	for d: Dictionary in data:
+		var state := PlayerState.new()
+		state.peer_id = d["peer_id"]
+		state.current_hp = d["current_hp"]
+		state.max_hp = d["max_hp"]
+		for path in d["deck"]:
+			var card: CardData = load(path).duplicate(true)
+			card.template_path = path
+			state.deck.append(card)
+		for path in d["owned_gems"]:
+			var gem: GemData = load(path).duplicate(true)
+			gem.template_path = path
+			state.owned_gems.append(gem)
+		state.starting_event_resolved = d["starting_event_resolved"]
+		out.append(state)
+	return out
 
 func _generate_map(floor_count: int) -> void:
 	var generator := MapGenerator.new()
@@ -228,9 +364,13 @@ func build_players_from_starting_content(starting_deck: Array[CardData], startin
 		var state := PlayerState.new()
 		state.peer_id = id
 		for card in starting_deck:
-			state.deck.append(card.duplicate(true))
+			var card_dup: CardData = card.duplicate(true)
+			card_dup.template_path = card.resource_path
+			state.deck.append(card_dup)
 		for gem in starting_gems:
-			state.owned_gems.append(gem.duplicate(true))
+			var gem_dup: GemData = gem.duplicate(true)
+			gem_dup.template_path = gem.resource_path
+			state.owned_gems.append(gem_dup)
 		players.append(state)
 	players_ready = true
 

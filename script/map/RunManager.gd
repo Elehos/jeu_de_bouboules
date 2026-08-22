@@ -196,6 +196,40 @@ func _receive_encounter_index(index: int) -> void:
 	pending_encounter_index = index
 	encounter_chosen.emit(index)
 
+# Hôte uniquement : peer_id -> true une fois son tour local terminé pour ce
+# combat. Remis à vide après résolution (même limite acceptée que
+# pending_node_picks : si un pair quitte le combat après avoir voté mais
+# avant que le tally se termine, son entrée traîne — pas géré, comme pour le
+# vote de carte).
+var pending_turn_ready: Dictionary = {}
+signal enemy_phase_started
+
+func submit_end_turn() -> void:
+	if run_peer_ids.size() <= 1:
+		enemy_phase_started.emit()
+		return
+	if NetworkManager.is_host():
+		_register_turn_ready(multiplayer.get_unique_id())
+	else:
+		_submit_end_turn_to_host.rpc_id(1)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_end_turn_to_host() -> void:
+	if not NetworkManager.is_host():
+		return
+	_register_turn_ready(multiplayer.get_remote_sender_id())
+
+func _register_turn_ready(peer_id: int) -> void:
+	pending_turn_ready[peer_id] = true
+	if pending_turn_ready.size() >= run_peer_ids.size():
+		pending_turn_ready.clear()
+		enemy_phase_started.emit()
+		_broadcast_enemy_phase.rpc()
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_enemy_phase() -> void:
+	enemy_phase_started.emit()
+
 # Tourne à l'identique sur chaque pair : en direct depuis _resolve_votes() côté
 # hôte, depuis le récepteur RPC côté client, et depuis le chemin rapide solo.
 # is_boss_combat est fonction pure de map_node.type (déterministe, aucun RNG)

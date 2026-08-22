@@ -108,6 +108,7 @@ func _ready() -> void:
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
+	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	local_player.died.connect(_on_player_died)
@@ -176,7 +177,14 @@ func _on_end_turn_pressed() -> void:
 	if combat_over:
 		return
 	if current_state == TurnState.PLAYER_TURN:
-		end_turn()
+		end_turn_button.disabled = true
+		RunManager.submit_end_turn()
+
+
+func _on_enemy_phase_started() -> void:
+	if combat_over:
+		return
+	end_turn()
 
 
 func _on_turn_started(state: TurnState) -> void:

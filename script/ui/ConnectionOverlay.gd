@@ -12,9 +12,11 @@ func _ready() -> void:
 func show_peer_lost(message: String) -> void:
 	label.text = message
 	panel.visible = true
+	get_tree().paused = true
 
 func hide_overlay() -> void:
 	panel.visible = false
+	get_tree().paused = false
 
 func _on_abandon_pressed() -> void:
 	hide_overlay()

@@ -189,7 +189,7 @@ func end_turn() -> void:
 func enemy_play_turn() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
-			await get_tree().create_timer(0.5).timeout
+			await get_tree().create_timer(0.5, false).timeout
 			e.execute_intention(local_player)
 	end_turn()
 

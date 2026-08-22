@@ -221,7 +221,18 @@ func _submit_end_turn_to_host() -> void:
 
 func _register_turn_ready(peer_id: int) -> void:
 	pending_turn_ready[peer_id] = true
-	if pending_turn_ready.size() >= run_peer_ids.size():
+	_check_turn_ready_complete()
+
+# Le nombre de pairs actifs peut baisser en cours de tally (un pair meurt
+# après avoir déjà soumis son tour, ou meurt avant de le soumettre) — appelé
+# à la fois par _register_turn_ready() et _register_peer_down() pour que le
+# tally se complète dès que le seuil est atteint, peu importe lequel des
+# deux événements arrive en dernier.
+func _check_turn_ready_complete() -> void:
+	var active_count: int = run_peer_ids.size() - downed_peer_ids.size()
+	if active_count <= 0:
+		return
+	if pending_turn_ready.size() >= active_count:
 		pending_turn_ready.clear()
 		enemy_phase_started.emit()
 		_broadcast_enemy_phase.rpc()
@@ -229,6 +240,55 @@ func _register_turn_ready(peer_id: int) -> void:
 @rpc("authority", "call_remote", "reliable")
 func _broadcast_enemy_phase() -> void:
 	enemy_phase_started.emit()
+
+# Hôte -> tous (y compris l'auteur, qui n'a jamais touché downed_peer_ids
+# localement lui-même — c'est la seule façon dont son propre downed_peer_ids
+# se peuple). Pas de file d'attente pending_* nécessaire ici contrairement à
+# enemy_damage_received : une mort ne peut survenir que pendant ENEMY_TURN,
+# qui n'est atteint qu'une fois que TOUS les pairs ont déjà soumis leur tour
+# au moins une fois — donc _ready() (et son .connect() sur team_wiped) a
+# forcément déjà fini de tourner partout avant qu'une mort soit possible.
+var downed_peer_ids: Array[int] = []
+signal peer_downed(peer_id: int)
+signal team_wiped
+
+func submit_player_down() -> void:
+	if run_peer_ids.size() <= 1:
+		team_wiped.emit()
+		return
+	if NetworkManager.is_host():
+		_register_peer_down(multiplayer.get_unique_id())
+	else:
+		_submit_player_down_to_host.rpc_id(1)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_player_down_to_host() -> void:
+	if not NetworkManager.is_host():
+		return
+	_register_peer_down(multiplayer.get_remote_sender_id())
+
+func _register_peer_down(peer_id: int) -> void:
+	if peer_id in downed_peer_ids:
+		return
+	downed_peer_ids.append(peer_id)
+	_broadcast_peer_down.rpc(peer_id)
+	peer_downed.emit(peer_id)
+	if downed_peer_ids.size() >= run_peer_ids.size():
+		_broadcast_team_wipe.rpc()
+		team_wiped.emit()
+		return
+	_check_turn_ready_complete()
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_peer_down(peer_id: int) -> void:
+	if peer_id in downed_peer_ids:
+		return
+	downed_peer_ids.append(peer_id)
+	peer_downed.emit(peer_id)
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_team_wipe() -> void:
+	team_wiped.emit()
 
 signal enemy_damage_received(spawn_id: int, amount: int)
 

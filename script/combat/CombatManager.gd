@@ -33,6 +33,11 @@ var local_player_state: PlayerState
 
 var combat_over: bool = false
 var _pending_victory: bool = false
+# Ce joueur précis est tombé (0 PV), mais l'équipe continue — distinct de
+# combat_over, qui ne devient vrai que sur une défaite d'équipe complète ou
+# une victoire (sinon un joueur à terre arrêterait de recevoir les mises à
+# jour réseau partagées, cf. _on_enemy_phase_started/_on_enemy_damage_received).
+var is_down: bool = false
 @onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
 @export var enemy_spacing: float = 300.0
 @export var enemy_scene: PackedScene  # glisse Enemy.tscn dans l'Inspecteur
@@ -82,6 +87,12 @@ func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
 	return pool[index]
 
 func _ready() -> void:
+	# Défensif : si un combat multi précédent s'est terminé par une défaite
+	# d'équipe et qu'on relance via "Recommencer", évite que downed_peer_ids
+	# reste peuplé et bloque le tally de fin de tour dès le premier tour.
+	RunManager.downed_peer_ids.clear()
+	RunManager.pending_turn_ready.clear()
+
 	local_player_state = RunManager.get_local_player()
 	local_player_state.gems_locked = true
 
@@ -109,6 +120,7 @@ func _ready() -> void:
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
+	RunManager.team_wiped.connect(_on_team_wiped)
 	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
 	for entry: Dictionary in RunManager.pending_enemy_damage:
 		_on_enemy_damage_received(entry["spawn_id"], entry["amount"])
@@ -178,7 +190,7 @@ func enemy_play_turn() -> void:
 
 
 func _on_end_turn_pressed() -> void:
-	if combat_over:
+	if combat_over or is_down:
 		return
 	if current_state == TurnState.PLAYER_TURN:
 		end_turn_button.disabled = true
@@ -198,7 +210,7 @@ func _on_turn_started(state: TurnState) -> void:
 
 
 func _on_card_played(card_data: CardData, target: Character) -> void:
-	if combat_over:
+	if combat_over or is_down:
 		return
 	if current_state != TurnState.PLAYER_TURN:
 		return
@@ -244,6 +256,12 @@ func _on_mana_changed(current: int, max: int) -> void:
 		_play_mana_ui_animation(MANA_FRAME_COUNT - 1)
 	
 func _on_player_died() -> void:
+	if is_down:
+		return
+	is_down = true
+	RunManager.submit_player_down()
+
+func _on_team_wiped() -> void:
 	show_end_screen("Défaite...", false)
 
 func _on_enemy_died(dead_enemy: Enemy) -> void:

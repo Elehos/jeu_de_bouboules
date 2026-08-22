@@ -9,7 +9,14 @@ signal connection_succeeded()
 signal connection_failed()
 signal server_disconnected()
 
+# Identifiant stable de ce client, généré une fois par processus (jamais
+# sauvegardé sur disque, aucun système de persistance dans ce projet) — sert
+# à l'hôte pour reconnaître ce client s'il se reconnecte plus tard sous un
+# nouveau peer_id (assigné aléatoirement par ENet à chaque connexion).
+var local_client_token: String = ""
+
 func _ready() -> void:
+	local_client_token = Crypto.new().generate_random_bytes(16).hex_encode()
 	multiplayer.peer_connected.connect(func(id: int): player_connected.emit(id))
 	multiplayer.peer_disconnected.connect(func(id: int): player_disconnected.emit(id))
 	multiplayer.connected_to_server.connect(func(): connection_succeeded.emit())

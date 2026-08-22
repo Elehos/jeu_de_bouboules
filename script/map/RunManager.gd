@@ -46,6 +46,7 @@ var last_disconnect_message: String = ""
 func _ready() -> void:
 	NetworkManager.player_disconnected.connect(_on_peer_disconnected)
 	NetworkManager.server_disconnected.connect(_on_host_disconnected)
+	NetworkManager.connection_succeeded.connect(_on_connected_to_host)
 
 func _on_peer_disconnected(peer_id: int) -> void:
 	if not map_generated:
@@ -87,6 +88,65 @@ func reset_run_state() -> void:
 	downed_peer_ids.clear()
 	pending_encounter_index = -1
 	pending_enemy_damage.clear()
+	peer_client_tokens.clear()
+
+# Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
+var peer_client_tokens: Dictionary = {}
+signal peer_reconnected(peer_id: int)
+
+func _on_connected_to_host() -> void:
+	if NetworkManager.is_host():
+		return
+	_submit_client_token.rpc_id(1, NetworkManager.local_client_token)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_client_token(token: String) -> void:
+	if not NetworkManager.is_host():
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	peer_client_tokens[sender_id] = token
+	_try_reconnect_match(sender_id, token)
+
+# Hôte uniquement. Cherche dans run_peer_ids un ANCIEN peer_id (déjà membre
+# de la run, actuellement déconnecté) dont le token enregistré correspond —
+# si trouvé, corrige son identité localement puis diffuse la correction à
+# tous les pairs connectés (pas seulement run_peer_ids : chaque pair a aussi
+# sa propre copie de players[] à corriger).
+# Recherche via peer_client_tokens (toujours à jour dès qu'un handshake
+# arrive) plutôt que via un champ PlayerState pré-rempli une seule fois :
+# start_multiplayer_run() peut être appelé avant que le token du premier
+# handshake n'ait eu le temps d'arriver (aucune synchronisation entre les
+# deux), donc un PlayerState.client_token figé au moment du spawn pourrait
+# rester vide indéfiniment — peer_client_tokens, lui, se met à jour dès que
+# le RPC arrive, quel que soit le moment.
+func _try_reconnect_match(new_peer_id: int, token: String) -> void:
+	if token.is_empty():
+		return
+	for old_id in run_peer_ids:
+		if old_id == new_peer_id:
+			continue
+		if peer_client_tokens.get(old_id, "") == token:
+			var idx: int = run_peer_ids.find(old_id)
+			if idx != -1:
+				run_peer_ids[idx] = new_peer_id
+			for p: PlayerState in players:
+				if p.peer_id == old_id:
+					p.peer_id = new_peer_id
+					break
+			_broadcast_peer_reconnect.rpc(old_id, new_peer_id)
+			ConnectionOverlay.hide_overlay()
+			peer_reconnected.emit(new_peer_id)
+			return
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_peer_reconnect(old_peer_id: int, new_peer_id: int) -> void:
+	var idx: int = run_peer_ids.find(old_peer_id)
+	if idx != -1:
+		run_peer_ids[idx] = new_peer_id
+	for p: PlayerState in players:
+		if p.peer_id == old_peer_id:
+			p.peer_id = new_peer_id
+			break
 
 func _generate_map(floor_count: int) -> void:
 	var generator := MapGenerator.new()

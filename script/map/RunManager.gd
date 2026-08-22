@@ -230,6 +230,53 @@ func _register_turn_ready(peer_id: int) -> void:
 func _broadcast_enemy_phase() -> void:
 	enemy_phase_started.emit()
 
+signal enemy_damage_received(spawn_id: int, amount: int)
+
+# Dégâts reçus par le réseau avant que le CombatManager de CE pair n'ait fini
+# de connecter enemy_damage_received (même risque de course que
+# pending_encounter_index, généralisé en file car plusieurs dégâts peuvent
+# s'accumuler avant que quiconque écoute). Vidée par CombatManager juste
+# après avoir connecté le signal.
+var pending_enemy_damage: Array[Dictionary] = []
+
+func _emit_or_queue_enemy_damage(spawn_id: int, amount: int) -> void:
+	if enemy_damage_received.get_connections().is_empty():
+		pending_enemy_damage.append({"spawn_id": spawn_id, "amount": amount})
+	else:
+		enemy_damage_received.emit(spawn_id, amount)
+
+# Appelé par CombatManager sur le pair qui vient d'appliquer les dégâts en
+# local, de façon optimiste — prévient les autres pairs du même combat.
+func submit_enemy_damage(spawn_id: int, amount: int) -> void:
+	if run_peer_ids.size() <= 1:
+		return
+	if NetworkManager.is_host():
+		_relay_enemy_damage(1, spawn_id, amount)
+	else:
+		_submit_enemy_damage_to_host.rpc_id(1, spawn_id, amount)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_enemy_damage_to_host(spawn_id: int, amount: int) -> void:
+	if not NetworkManager.is_host():
+		return
+	_relay_enemy_damage(multiplayer.get_remote_sender_id(), spawn_id, amount)
+
+# Hôte uniquement. Applique en local chez l'hôte si l'auteur n'est pas
+# l'hôte lui-même (l'auteur a déjà appliqué en optimiste, ne jamais lui
+# renvoyer sa propre action), puis relaie individuellement (rpc_id, pas de
+# primitive Godot pour "broadcast sauf X") à tous les AUTRES pairs, en
+# excluant systématiquement l'auteur.
+func _relay_enemy_damage(origin_peer_id: int, spawn_id: int, amount: int) -> void:
+	if origin_peer_id != 1:
+		_emit_or_queue_enemy_damage(spawn_id, amount)
+	for id in run_peer_ids:
+		if id != origin_peer_id and id != 1:
+			_receive_enemy_damage.rpc_id(id, spawn_id, amount)
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_enemy_damage(spawn_id: int, amount: int) -> void:
+	_emit_or_queue_enemy_damage(spawn_id, amount)
+
 # Tourne à l'identique sur chaque pair : en direct depuis _resolve_votes() côté
 # hôte, depuis le récepteur RPC côté client, et depuis le chemin rapide solo.
 # is_boss_combat est fonction pure de map_node.type (déterministe, aucun RNG)

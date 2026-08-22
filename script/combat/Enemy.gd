@@ -29,6 +29,13 @@ signal intention_changed(intention: IntentionType)
 @export var enemy_data: EnemyData
 var intention_override: Array[Enemy.IntentionType] = []
 
+# Identifiant stable assigné une seule fois par CombatManager.spawn_enemies()
+# (indice de boucle au spawn) — contrairement à l'indice dans
+# CombatManager.enemies, qui se décale à chaque mort (enemies.erase()), ne
+# change jamais après le spawn. Sert à cibler un ennemi précis dans les
+# événements réseau de dégâts (RunManager.enemy_damage_received).
+var combat_spawn_id: int = -1
+
 func _ready() -> void:
 	if enemy_data:
 		max_hp = enemy_data.max_hp

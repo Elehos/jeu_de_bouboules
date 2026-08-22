@@ -109,6 +109,10 @@ func _ready() -> void:
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
 	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
+	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
+	for entry: Dictionary in RunManager.pending_enemy_damage:
+		_on_enemy_damage_received(entry["spawn_id"], entry["amount"])
+	RunManager.pending_enemy_damage.clear()
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
 	local_player.died.connect(_on_player_died)
@@ -200,8 +204,11 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 		return
 	
 	if card_data.damage > 0 and target:
-		target.take_damage(card_data.get_effective_damage())
-	
+		var dmg: int = card_data.get_effective_damage()
+		target.take_damage(dmg)
+		if target is Enemy:
+			RunManager.submit_enemy_damage((target as Enemy).combat_spawn_id, dmg)
+
 	if card_data.block > 0:
 		local_player.gain_block(card_data.block)
 
@@ -210,8 +217,23 @@ func _on_card_played(card_data: CardData, target: Character) -> void:
 
 	if card_data.equipped_gem and card_data.equipped_gem.heal_on_play > 0:
 		local_player.heal(card_data.equipped_gem.heal_on_play)
-		
-		
+
+
+func _on_enemy_damage_received(spawn_id: int, amount: int) -> void:
+	if combat_over:
+		return
+	var target_enemy: Enemy = _find_enemy_by_spawn_id(spawn_id)
+	if target_enemy and is_instance_valid(target_enemy):
+		target_enemy.take_damage(amount)
+
+
+func _find_enemy_by_spawn_id(spawn_id: int) -> Enemy:
+	for e in enemies:
+		if is_instance_valid(e) and e.combat_spawn_id == spawn_id:
+			return e
+	return null
+
+
 func _on_mana_changed(current: int, max: int) -> void:
 	current_mana_label.text = str(current)
 	max_mana_label.text = str(max)
@@ -311,6 +333,7 @@ func spawn_enemies() -> void:
 		var new_enemy: Enemy = enemy_scene.instantiate()
 		new_enemy.enemy_data = slot.enemy_data
 		new_enemy.intention_override = slot.intention_override
+		new_enemy.combat_spawn_id = i
 		world_root.add_child(new_enemy)
 		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
 		enemies.append(new_enemy)

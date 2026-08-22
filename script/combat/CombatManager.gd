@@ -93,6 +93,7 @@ func _ready() -> void:
 	RunManager.downed_peer_ids.clear()
 	RunManager.pending_turn_ready.clear()
 	RunManager.pending_combat_finished.clear()
+	RunManager.pending_restart.clear()
 
 	local_player_state = RunManager.get_local_player()
 	local_player_state.gems_locked = true
@@ -123,6 +124,7 @@ func _ready() -> void:
 	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
 	RunManager.team_wiped.connect(_on_team_wiped)
 	RunManager.combat_finished.connect(_on_combat_finished)
+	RunManager.restart_ready.connect(_on_restart_ready)
 	RunManager.player_hp_updated.connect(_on_player_hp_updated)
 	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
 	for entry: Dictionary in RunManager.pending_enemy_damage:
@@ -323,7 +325,11 @@ func _on_restart_pressed() -> void:
 	if _pending_victory:
 		get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 	else:
-		get_tree().reload_current_scene()
+		restart_button.disabled = true
+		RunManager.submit_restart()
+
+func _on_restart_ready() -> void:
+	get_tree().reload_current_scene()
 
 func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	draw_count_label.text = str(draw_count)

@@ -275,6 +275,38 @@ func _register_combat_finished(peer_id: int) -> void:
 func _broadcast_combat_finished() -> void:
 	combat_finished.emit()
 
+# Même schéma que pending_combat_finished : une défaite d'équipe implique que
+# tout le monde est déjà à terre/spectateur, pas besoin de soustraire
+# downed_peer_ids ici non plus.
+var pending_restart: Dictionary = {}
+signal restart_ready
+
+func submit_restart() -> void:
+	if run_peer_ids.size() <= 1:
+		restart_ready.emit()
+		return
+	if NetworkManager.is_host():
+		_register_restart(multiplayer.get_unique_id())
+	else:
+		_submit_restart_to_host.rpc_id(1)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_restart_to_host() -> void:
+	if not NetworkManager.is_host():
+		return
+	_register_restart(multiplayer.get_remote_sender_id())
+
+func _register_restart(peer_id: int) -> void:
+	pending_restart[peer_id] = true
+	if pending_restart.size() >= run_peer_ids.size():
+		pending_restart.clear()
+		restart_ready.emit()
+		_broadcast_restart.rpc()
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_restart() -> void:
+	restart_ready.emit()
+
 # Hôte -> tous (y compris l'auteur, qui n'a jamais touché downed_peer_ids
 # localement lui-même — c'est la seule façon dont son propre downed_peer_ids
 # se peuple). Pas de file d'attente pending_* nécessaire ici contrairement à

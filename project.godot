@@ -22,6 +22,7 @@ DeckManager="*uid://d3b8sfuwxuw2f"
 RunManager="*uid://djmsa7mv87rdg"
 RewardManager="*uid://dmftwvulbm2ea"
 NetworkManager="*res://script/network/NetworkManager.gd"
+ConnectionOverlay="*res://scenes/ui/ConnectionOverlay.tscn"
 
 [display]
 

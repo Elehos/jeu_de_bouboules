@@ -29,6 +29,12 @@ func _ready() -> void:
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
 
+	if not RunManager.last_disconnect_message.is_empty():
+		choice_panel.visible = false
+		multi_panel.visible = true
+		status_label.text = RunManager.last_disconnect_message
+		RunManager.last_disconnect_message = ""
+
 func _on_solo_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 

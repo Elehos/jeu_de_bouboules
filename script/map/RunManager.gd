@@ -39,6 +39,55 @@ signal encounter_chosen(index: int)
 
 signal node_choice_applied(map_node: MapNode)
 
+# Message affiché par MainMenu à son prochain _ready() (pas encore chargé au
+# moment de la déconnexion) — consommé puis remis à vide dès lecture.
+var last_disconnect_message: String = ""
+
+func _ready() -> void:
+	NetworkManager.player_disconnected.connect(_on_peer_disconnected)
+	NetworkManager.server_disconnected.connect(_on_host_disconnected)
+
+func _on_peer_disconnected(peer_id: int) -> void:
+	if not map_generated:
+		return
+	if not (peer_id in run_peer_ids):
+		return
+	ConnectionOverlay.show_peer_lost("Joueur déconnecté. En attente de reconnexion...")
+
+func _on_host_disconnected() -> void:
+	if not map_generated:
+		return
+	# Godot émet aussi peer_disconnected(1) pour l'hôte lui-même en plus de
+	# server_disconnected() — _on_peer_disconnected() a donc pu déjà afficher
+	# l'overlay avant qu'on arrive ici ; il faut le masquer explicitement,
+	# rien d'autre ne le ferait sur ce chemin.
+	ConnectionOverlay.hide_overlay()
+	last_disconnect_message = "Hôte déconnecté."
+	reset_run_state()
+	get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")
+
+# Remet à zéro tout l'état de run — nécessaire avant de revenir au menu
+# (bouton "Abandonner" ou hôte parti) : sans ça, map_generated resterait à
+# true et un Solo/nouvel hébergement ultérieur reprendrait silencieusement
+# cette run abandonnée au lieu d'en démarrer une nouvelle.
+func reset_run_state() -> void:
+	floors = []
+	current_floor_index = 0
+	current_position_in_floor = 0
+	map_generated = false
+	is_boss_combat = false
+	pending_event = null
+	players.clear()
+	players_ready = false
+	run_peer_ids.clear()
+	pending_node_picks.clear()
+	pending_turn_ready.clear()
+	pending_combat_finished.clear()
+	pending_restart.clear()
+	downed_peer_ids.clear()
+	pending_encounter_index = -1
+	pending_enemy_damage.clear()
+
 func _generate_map(floor_count: int) -> void:
 	var generator := MapGenerator.new()
 	floors = generator.generate_map(floor_count)

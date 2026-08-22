@@ -123,6 +123,7 @@ func _ready() -> void:
 	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
 	RunManager.team_wiped.connect(_on_team_wiped)
 	RunManager.combat_finished.connect(_on_combat_finished)
+	RunManager.player_hp_updated.connect(_on_player_hp_updated)
 	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
 	for entry: Dictionary in RunManager.pending_enemy_damage:
 		_on_enemy_damage_received(entry["spawn_id"], entry["amount"])
@@ -247,6 +248,19 @@ func _find_enemy_by_spawn_id(spawn_id: int) -> Enemy:
 			return e
 	return null
 
+func _on_player_hp_updated(peer_id: int, current_hp: int) -> void:
+	var target: Character = _find_character_by_peer_id(peer_id)
+	if target and is_instance_valid(target):
+		target.current_hp = current_hp
+		target.sync_hp_bars_instantly()
+
+func _find_character_by_peer_id(peer_id: int) -> Character:
+	for i in range(RunManager.players.size()):
+		if RunManager.players[i].peer_id == peer_id:
+			if i < players.size():
+				return players[i]
+	return null
+
 
 func _on_mana_changed(current: int, max: int) -> void:
 	current_mana_label.text = str(current)
@@ -283,6 +297,7 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			local_player_state.current_hp = 1
 			local_player.current_hp = 1
 			local_player.sync_hp_bars_instantly()
+			RunManager.submit_player_hp(1)
 		_show_rewards()
 
 func _show_rewards() -> void:
@@ -375,7 +390,8 @@ func _compute_enemy_position(index: int, total: int) -> Vector2:
 func _on_player_hp_changed(character: Character, _amount: int) -> void:
 	if character == local_player:
 		local_player_state.current_hp = local_player.current_hp
-		
+		RunManager.submit_player_hp(local_player.current_hp)
+
 func _setup_mana_ui_frames() -> void:
 	if not mana_frames_texture:
 		return

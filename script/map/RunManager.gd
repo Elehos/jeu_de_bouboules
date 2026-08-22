@@ -324,6 +324,39 @@ func _broadcast_peer_down(peer_id: int) -> void:
 func _broadcast_team_wipe() -> void:
 	team_wiped.emit()
 
+# Pas de file d'attente pending_* ici (contrairement à enemy_damage_received) :
+# la seule source possible d'un changement de PV joueur est une attaque
+# ennemie pendant ENEMY_TURN, qui ne peut être atteint qu'une fois que TOUS
+# les pairs actifs ont déjà soumis leur tour au moins une fois — donc
+# _ready() (et son .connect() sur player_hp_updated) a forcément déjà fini de
+# tourner partout avant qu'un tel événement soit possible.
+signal player_hp_updated(peer_id: int, current_hp: int)
+
+func submit_player_hp(current_hp: int) -> void:
+	if run_peer_ids.size() <= 1:
+		return
+	if NetworkManager.is_host():
+		_relay_player_hp(1, current_hp)
+	else:
+		_submit_player_hp_to_host.rpc_id(1, current_hp)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_player_hp_to_host(current_hp: int) -> void:
+	if not NetworkManager.is_host():
+		return
+	_relay_player_hp(multiplayer.get_remote_sender_id(), current_hp)
+
+func _relay_player_hp(origin_peer_id: int, current_hp: int) -> void:
+	if origin_peer_id != 1:
+		player_hp_updated.emit(origin_peer_id, current_hp)
+	for id in run_peer_ids:
+		if id != origin_peer_id and id != 1:
+			_receive_player_hp.rpc_id(id, origin_peer_id, current_hp)
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_player_hp(origin_peer_id: int, current_hp: int) -> void:
+	player_hp_updated.emit(origin_peer_id, current_hp)
+
 signal enemy_damage_received(spawn_id: int, amount: int)
 
 # Dégâts reçus par le réseau avant que le CombatManager de CE pair n'ait fini

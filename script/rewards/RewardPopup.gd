@@ -38,5 +38,5 @@ func _on_gem_reward_pressed() -> void:
 
 func _on_close_pressed() -> void:
 	rewards_finished.emit()
-	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+	RunManager.submit_combat_finished()
 	queue_free()

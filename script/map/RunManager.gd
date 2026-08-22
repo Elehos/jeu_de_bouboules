@@ -241,6 +241,40 @@ func _check_turn_ready_complete() -> void:
 func _broadcast_enemy_phase() -> void:
 	enemy_phase_started.emit()
 
+# Pair -> true une fois son popup de récompense fermé pour ce combat. Remis à
+# vide après résolution. Contrairement à pending_turn_ready, n'a jamais besoin
+# de soustraire downed_peer_ids : par construction (cf. CombatManager._on_
+# enemy_died), personne n'est plus "à terre" au moment où un pair atteint ce
+# tally.
+var pending_combat_finished: Dictionary = {}
+signal combat_finished
+
+func submit_combat_finished() -> void:
+	if run_peer_ids.size() <= 1:
+		combat_finished.emit()
+		return
+	if NetworkManager.is_host():
+		_register_combat_finished(multiplayer.get_unique_id())
+	else:
+		_submit_combat_finished_to_host.rpc_id(1)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_combat_finished_to_host() -> void:
+	if not NetworkManager.is_host():
+		return
+	_register_combat_finished(multiplayer.get_remote_sender_id())
+
+func _register_combat_finished(peer_id: int) -> void:
+	pending_combat_finished[peer_id] = true
+	if pending_combat_finished.size() >= run_peer_ids.size():
+		pending_combat_finished.clear()
+		combat_finished.emit()
+		_broadcast_combat_finished.rpc()
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_combat_finished() -> void:
+	combat_finished.emit()
+
 # Hôte -> tous (y compris l'auteur, qui n'a jamais touché downed_peer_ids
 # localement lui-même — c'est la seule façon dont son propre downed_peer_ids
 # se peuple). Pas de file d'attente pending_* nécessaire ici contrairement à

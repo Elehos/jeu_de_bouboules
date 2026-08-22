@@ -92,6 +92,7 @@ func _ready() -> void:
 	# reste peuplé et bloque le tally de fin de tour dès le premier tour.
 	RunManager.downed_peer_ids.clear()
 	RunManager.pending_turn_ready.clear()
+	RunManager.pending_combat_finished.clear()
 
 	local_player_state = RunManager.get_local_player()
 	local_player_state.gems_locked = true
@@ -121,6 +122,7 @@ func _ready() -> void:
 	turn_started.connect(_on_turn_started)
 	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
 	RunManager.team_wiped.connect(_on_team_wiped)
+	RunManager.combat_finished.connect(_on_combat_finished)
 	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
 	for entry: Dictionary in RunManager.pending_enemy_damage:
 		_on_enemy_damage_received(entry["spawn_id"], entry["amount"])
@@ -275,11 +277,20 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			break
 	
 	if all_dead:
+		combat_over = true
+		if is_down:
+			is_down = false
+			local_player_state.current_hp = 1
+			local_player.current_hp = 1
+			local_player.sync_hp_bars_instantly()
 		_show_rewards()
 
 func _show_rewards() -> void:
 	var popup: RewardPopup = reward_popup_scene.instantiate()
 	$UI.add_child(popup)
+
+func _on_combat_finished() -> void:
+	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:
 	combat_over = true

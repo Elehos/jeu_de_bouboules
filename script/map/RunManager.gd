@@ -90,6 +90,8 @@ func reset_run_state() -> void:
 	pending_enemy_damage.clear()
 	peer_client_tokens.clear()
 	in_combat = false
+	active_combat_manager = null
+	pending_combat_resync = {}
 
 # Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
 var peer_client_tokens: Dictionary = {}
@@ -134,7 +136,24 @@ func _try_reconnect_match(new_peer_id: int, token: String) -> void:
 				if p.peer_id == old_id:
 					p.peer_id = new_peer_id
 					break
+			# Renomme l'entrée sous le nouvel id plutôt que de la perdre : si le
+			# joueur avait déjà soumis son tour avant de se déconnecter, ce
+			# statut doit survivre au changement de peer_id, sans quoi son
+			# client réaffiche un bouton "Fin de tour" cliquable qui ne devrait
+			# plus l'être. Pas besoin de _check_turn_ready_complete() ici : tant
+			# que l'hôte est en pause, lui-même ne peut pas avoir déjà soumis
+			# son propre tour, donc le tally ne peut pas être déjà complet.
+			var already_ended_turn: bool = pending_turn_ready.has(old_id)
+			if already_ended_turn:
+				pending_turn_ready.erase(old_id)
+				pending_turn_ready[new_peer_id] = true
 			_broadcast_peer_reconnect.rpc(old_id, new_peer_id)
+			# Capture/envoie l'instantané AVANT de dépausser (hide_overlay()
+			# relance juste après les Tweens/timers de l'hôte) : évite toute
+			# dépendance fragile à l'ordre d'exécution entre unpause et lecture
+			# de l'état des ennemis.
+			if in_combat and is_instance_valid(active_combat_manager) and not active_combat_manager.combat_over and active_combat_manager.current_state == CombatManager.TurnState.PLAYER_TURN:
+				_send_combat_resync(new_peer_id, old_id, already_ended_turn)
 			ConnectionOverlay.hide_overlay()
 			peer_reconnected.emit(new_peer_id)
 			if not in_combat:
@@ -153,11 +172,18 @@ func _broadcast_peer_reconnect(old_peer_id: int, new_peer_id: int) -> void:
 
 # true pendant qu'un combat est en cours pour cette run — mis à jour par
 # CombatManager. Sert à savoir si une reconnexion peut renvoyer le joueur
-# directement sur la carte (_try_reconnect_match) : reconnecter en plein
-# combat n'est pas encore géré (nécessite un instantané de combat séparé,
-# pas construit ici), donc on ne tente pas la resynchronisation dans ce cas
-# — le joueur reste sur MainMenu.tscn en attendant.
+# directement sur la carte (_try_reconnect_match), ou sur le combat en cours
+# via active_combat_manager/_send_combat_resync si les conditions le
+# permettent (cf. commentaires sur ces deux éléments).
 var in_combat: bool = false
+
+# Pointeur local (hôte ET client) vers le CombatManager du combat en cours,
+# posé/retiré par CombatManager lui-même en même temps que in_combat.
+var active_combat_manager: CombatManager = null
+
+# Client uniquement : instantané de combat mis en attente par
+# _receive_combat_resync(), consommé une seule fois par CombatManager._ready().
+var pending_combat_resync: Dictionary = {}
 
 func submit_card_picked(resource_path: String) -> void:
 	if run_peer_ids.size() <= 1 or NetworkManager.is_host():
@@ -228,6 +254,63 @@ func _send_full_resync(target_peer_id: int) -> void:
 		run_peer_ids,
 		_serialize_players(),
 	)
+
+# Hôte uniquement. N'est appelée que si active_combat_manager.current_state
+# == PLAYER_TURN (cf. commentaire dans _try_reconnect_match) : une
+# reconnexion pendant ENEMY_TURN casserait le lockstep de séquence
+# d'intentions des ennemis, qui ne repose QUE sur le fait qu'enemy_play_turn()
+# tourne à l'identique sur chaque pair — resynchroniser un ennemi déjà à
+# mi-séquence sans rejouer les attaques manquées le désynchroniserait
+# définitivement. Laissé hors scope, comme le cas combat_over déjà vrai.
+func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: bool) -> void:
+	var cm: CombatManager = active_combat_manager
+	var enemies_snapshot: Array = []
+	for e: Enemy in cm.enemies:
+		if is_instance_valid(e):
+			enemies_snapshot.append({
+				"spawn_id": e.combat_spawn_id,
+				"current_hp": e.current_hp,
+				"current_block": e.current_block,
+				"current_intention": e.current_intention,
+				"sequence_index": e.sequence_index,
+			})
+	_receive_combat_resync.rpc_id(
+		target_peer_id,
+		_serialize_floors(),
+		current_floor_index,
+		current_position_in_floor,
+		is_boss_combat,
+		run_peer_ids,
+		_serialize_players(),
+		cm.current_encounter.resource_path,
+		enemies_snapshot,
+		downed_peer_ids.has(old_id),
+		already_ended_turn,
+	)
+
+# Ne reçue que par le pair qui vient de se reconnecter en plein combat
+# (rpc_id ciblé). Contrairement à _receive_full_resync, atterrit sur
+# Combat.tscn : les champs combat-spécifiques sont consommés une seule fois
+# par CombatManager._ready() via pending_combat_resync.
+@rpc("authority", "call_remote", "reliable")
+func _receive_combat_resync(serialized_floors: Array, f_idx: int, pos_idx: int, boss: bool, peer_ids: Array, serialized_players: Array, encounter_path: String, enemies_snapshot: Array, was_down: bool, already_ended_turn: bool) -> void:
+	floors = _deserialize_floors(serialized_floors)
+	current_floor_index = f_idx
+	current_position_in_floor = pos_idx
+	is_boss_combat = boss
+	run_peer_ids = []
+	for id in peer_ids:
+		run_peer_ids.append(id)
+	players = _deserialize_players(serialized_players)
+	map_generated = true
+	players_ready = true
+	pending_combat_resync = {
+		"encounter_path": encounter_path,
+		"enemies": enemies_snapshot,
+		"is_down": was_down,
+		"already_ended_turn": already_ended_turn,
+	}
+	get_tree().change_scene_to_file("res://scenes/combat/Combat.tscn")
 
 func _serialize_players() -> Array:
 	var out: Array = []
@@ -628,6 +711,17 @@ func _submit_player_hp_to_host(current_hp: int) -> void:
 	_relay_player_hp(multiplayer.get_remote_sender_id(), current_hp)
 
 func _relay_player_hp(origin_peer_id: int, current_hp: int) -> void:
+	# N'est appelée que côté hôte (cf. les deux call sites ci-dessus). Sans ça,
+	# players[] côté hôte pour un pair distant ne serait jamais mis à jour —
+	# player_hp_updated ne fait que rafraîchir le Character miroir affiché
+	# dans CombatManager (cosmétique), jamais PlayerState.current_hp lui-même
+	# — et _serialize_players()/_send_full_resync()/_send_combat_resync()
+	# enverraient alors ses PV d'avant le dernier combat/événement à ce même
+	# pair lors d'une reconnexion.
+	for p: PlayerState in players:
+		if p.peer_id == origin_peer_id:
+			p.current_hp = current_hp
+			break
 	if origin_peer_id != 1:
 		player_hp_updated.emit(origin_peer_id, current_hp)
 	for id in run_peer_ids:

@@ -88,6 +88,7 @@ func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
 
 func _ready() -> void:
 	RunManager.in_combat = true
+	RunManager.active_combat_manager = self
 
 	# Défensif : si un combat multi précédent s'est terminé par une défaite
 	# d'équipe et qu'on relance via "Recommencer", évite que downed_peer_ids
@@ -100,16 +101,28 @@ func _ready() -> void:
 	local_player_state = RunManager.get_local_player()
 	local_player_state.gems_locked = true
 
-	var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
-	if encounter_pool.is_empty():
-		var pool_name: String = "Possible Boss Encounters" if RunManager.is_boss_combat else "Possible Encounters"
-		push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
-		return
+	var resync: Dictionary = RunManager.pending_combat_resync
+	RunManager.pending_combat_resync = {}
 
-	spawn_players()
-	CombatEvents.damage_taken.connect(_on_damage_taken)
-	current_encounter = await _resolve_encounter(encounter_pool)
-	spawn_enemies()
+	if not resync.is_empty():
+		spawn_players()
+		CombatEvents.damage_taken.connect(_on_damage_taken)
+		current_encounter = load(resync["encounter_path"])
+		spawn_enemies()
+		_apply_combat_resync(resync)
+		is_down = resync["is_down"]
+	else:
+		var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
+		if encounter_pool.is_empty():
+			var pool_name: String = "Possible Boss Encounters" if RunManager.is_boss_combat else "Possible Encounters"
+			push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
+			return
+
+		spawn_players()
+		CombatEvents.damage_taken.connect(_on_damage_taken)
+		current_encounter = await _resolve_encounter(encounter_pool)
+		spawn_enemies()
+
 	if local_player_state.current_hp >= 0:
 		local_player.max_hp = local_player_state.max_hp
 		local_player.current_hp = local_player_state.current_hp
@@ -141,6 +154,8 @@ func _ready() -> void:
 	gem_bag_button.pressed.connect(gem_bag.toggle)
 	_setup_mana_ui_frames()
 	start_turn(TurnState.PLAYER_TURN)
+	if not resync.is_empty() and resync.get("already_ended_turn", false):
+		end_turn_button.disabled = true
 
 func spawn_players() -> void:
 	var my_id: int = multiplayer.get_unique_id()
@@ -310,6 +325,7 @@ func _show_rewards() -> void:
 
 func _on_combat_finished() -> void:
 	RunManager.in_combat = false
+	RunManager.active_combat_manager = null
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:
@@ -391,6 +407,31 @@ func spawn_enemies() -> void:
 		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
+
+# Applique l'instantané combat reçu par resync aux ennemis fraîchement
+# spawnés par spawn_enemies(). Un ennemi présent dans enemies mais absent de
+# l'instantané est déjà mort côté hôte (spawn_enemies() recrée toujours le
+# roster complet à pleins PV) : on le retire ici. Le cas "ça vide enemies
+# entièrement" est impossible : la resync n'est envoyée que si combat_over
+# était encore faux côté hôte à l'instant de l'envoi, et combat_over devient
+# vrai de façon synchrone dès que le dernier ennemi meurt (_on_enemy_died()).
+func _apply_combat_resync(data: Dictionary) -> void:
+	for e in enemies.duplicate():
+		var found: bool = false
+		for snap: Dictionary in data["enemies"]:
+			if snap["spawn_id"] == e.combat_spawn_id:
+				found = true
+				e.current_hp = snap["current_hp"]
+				e.current_block = snap["current_block"]
+				e.current_intention = snap["current_intention"]
+				e.sequence_index = snap["sequence_index"]
+				e.sync_hp_bars_instantly()
+				e.update_block_display()
+				e.intention_changed.emit(e.current_intention)
+				break
+		if not found:
+			enemies.erase(e)
+			e.queue_free()
 
 func _compute_enemy_position(index: int, total: int) -> Vector2:
 	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing

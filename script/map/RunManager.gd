@@ -4,6 +4,7 @@ const SOLO_SAVE_PATH: String = "user://solo_save.dat"
 const SAVE_FORMAT_VERSION: int = 1
 const MULTI_SAVE_PATH: String = "user://multi_save.dat"
 const MULTI_SAVE_FORMAT_VERSION: int = 1
+const DEFAULT_CHARACTER_PATH: String = "res://ressourcesCharacters/personnage_de_base.tres"
 
 # RNG unique de la run en cours — tout ce qui détermine réellement son
 # déroulement (carte, rencontres, événements, récompenses, mélange du deck)
@@ -32,10 +33,15 @@ var current_position_in_floor: int = 0
 # (jamais au clic sur "Sauvegarder et quitter", qui se contente de relire
 # le fichier déjà à jour) : entrée dans le nœud (_apply_node_choice),
 # victoire juste avant le choix des récompenses (CombatManager._on_enemy_died),
-# et sortie du nœud (_on_combat_finished / EventView._on_continue_pressed).
-# Ainsi le fichier reflète toujours un point de progression réellement acquis
-# — jamais un dégât ou un tour de combat en cours — sans avoir besoin de
-# retenir/restaurer un instantané séparé pour chaque champ concerné.
+# et sortie du nœud d'ÉVÉNEMENT (EventView._on_continue_pressed()). Sortie de
+# COMBAT (_on_combat_finished()) ne sauvegarde volontairement plus rien
+# (demande explicite) : le dernier point de contrôle d'un combat reste celui
+# pris juste avant les récompenses, pas celui d'après — recharger entre la
+# fin du combat et le prochain nœud choisi rejoue donc le choix des
+# récompenses plutôt que de reprendre sur la carte. Ainsi le fichier reflète
+# toujours un point de progression réellement acquis — jamais un dégât ou un
+# tour de combat en cours — sans avoir besoin de retenir/restaurer un
+# instantané séparé pour chaque champ concerné.
 var current_node_pending: bool = false
 # true entre la mort du dernier ennemi et la fermeture du popup de
 # récompenses : au chargement, ce nœud ne doit pas être rejoué (l'ennemi est
@@ -96,6 +102,36 @@ var lobby_roster_flags: Array[bool] = []
 # reprise (token absent de la sauvegarde) — MainMenu affiche le message.
 signal join_rejected(reason: String)
 
+# peer_id -> resource_path du CharacterData choisi par ce joueur, alimenté
+# pendant l'attente en salon (submit_character_pick), figé au moment de
+# start_multiplayer_run()/start_new_run() et diffusé aux clients via
+# _receive_map — jamais modifié après le début du run. Lu par
+# build_players_from_starting_content() via _resolve_character().
+var character_picks: Dictionary = {}
+
+func submit_character_pick(character_path: String) -> void:
+	if NetworkManager.is_host():
+		character_picks[multiplayer.get_unique_id()] = character_path
+	else:
+		_submit_character_pick_to_host.rpc_id(1, character_path)
+
+@rpc("any_peer", "call_remote", "reliable")
+func _submit_character_pick_to_host(character_path: String) -> void:
+	if not NetworkManager.is_host():
+		return
+	character_picks[multiplayer.get_remote_sender_id()] = character_path
+
+# Hôte uniquement. Vrai une fois que l'hôte lui-même ET chaque pair
+# actuellement connecté (multiplayer.get_peers()) ont soumis un choix — sert
+# à activer "Démarrer la partie" côté MainMenu pour une partie fraîche.
+func all_connected_peers_picked_character() -> bool:
+	if not character_picks.has(1):
+		return false
+	for id in multiplayer.get_peers():
+		if not character_picks.has(id):
+			return false
+	return true
+
 func _ready() -> void:
 	NetworkManager.player_disconnected.connect(_on_peer_disconnected)
 	NetworkManager.server_disconnected.connect(_on_host_disconnected)
@@ -150,6 +186,7 @@ func reset_run_state() -> void:
 	pending_combat_resync = {}
 	resume_mode = false
 	lobby_roster_flags.clear()
+	character_picks.clear()
 
 # Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
 var peer_client_tokens: Dictionary = {}
@@ -706,15 +743,22 @@ func _generate_map(floor_count: int) -> void:
 
 # seed_value/has_explicit_seed plutôt qu'une valeur sentinelle (ex: -1) : un
 # champ de saisie numérique pur pourrait légitimement contenir un nombre
-# négatif, une sentinelle serait ambiguë.
-func start_new_run(floor_count: int = 8, seed_value: int = 0, has_explicit_seed: bool = false) -> void:
+# négatif, une sentinelle serait ambiguë. character_path vide (ex: MapView.
+# tscn ouverte directement dans l'éditeur, sans passer par le menu) laisse
+# character_picks vide — _resolve_character() repliera sur DEFAULT_CHARACTER_PATH.
+func start_new_run(floor_count: int = 8, seed_value: int = 0, has_explicit_seed: bool = false, character_path: String = "") -> void:
 	_init_run_rng(seed_value if has_explicit_seed else randi())
 	_generate_map(floor_count)
 	run_peer_ids = [multiplayer.get_unique_id()]
+	character_picks = {run_peer_ids[0]: character_path} if not character_path.is_empty() else {}
 
 # Hôte uniquement : génère la carte à partir de run_rng (seedée ci-dessous)
 # et la diffuse — la seed elle-même voyage aussi par ce RPC pour que chaque
 # client aligne son propre run_rng sur le même point de départ.
+# character_picks voyage dans le même RPC (déjà entièrement rempli à ce
+# stade : le salon multi n'active "Démarrer la partie" qu'une fois que tous
+# les pairs connectés ont soumis leur choix, cf. MainMenu._process()) — pas
+# de round-trip réseau séparé nécessaire pour ça.
 func start_multiplayer_run(floor_count: int = 8, seed_value: int = 0, has_explicit_seed: bool = false) -> void:
 	if not NetworkManager.is_host():
 		push_error("start_multiplayer_run() doit être appelé uniquement par l'hôte.")
@@ -724,10 +768,10 @@ func start_multiplayer_run(floor_count: int = 8, seed_value: int = 0, has_explic
 	run_peer_ids = [1]
 	for id in multiplayer.get_peers():
 		run_peer_ids.append(id)
-	_receive_map.rpc(_serialize_floors(), run_peer_ids, current_floor_index, current_position_in_floor, run_seed)
+	_receive_map.rpc(_serialize_floors(), run_peer_ids, current_floor_index, current_position_in_floor, run_seed, character_picks)
 
 @rpc("authority", "call_remote", "reliable")
-func _receive_map(serialized_floors: Array, peer_ids: Array, starting_floor_index: int, starting_position_in_floor: int, seed_value: int) -> void:
+func _receive_map(serialized_floors: Array, peer_ids: Array, starting_floor_index: int, starting_position_in_floor: int, seed_value: int, picks: Dictionary) -> void:
 	_init_run_rng(seed_value)
 	floors = _deserialize_floors(serialized_floors)
 	current_floor_index = starting_floor_index
@@ -737,6 +781,7 @@ func _receive_map(serialized_floors: Array, peer_ids: Array, starting_floor_inde
 	run_peer_ids = []
 	for id in peer_ids:
 		run_peer_ids.append(id)
+	character_picks = picks
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func _serialize_floors() -> Array:
@@ -772,26 +817,36 @@ func _deserialize_floors(data: Array) -> Array[Array]:
 		out.append(floor_nodes)
 	return out
 
-# Construit players[] pour ce pair à partir de son propre contenu de départ
-# local (deck/gemmes — fichiers identiques chez tous les pairs, donc jamais
-# transmis par le réseau). Appelé depuis MapView._ready() car starting_deck/
-# starting_gems sont des @export qui n'existent que sur cette instance de
-# scène ; RunManager (autoload) n'y a pas accès directement.
-func build_players_from_starting_content(starting_deck: Array[CardData], starting_gems: Array[GemData]) -> void:
+# Construit players[] à partir du personnage choisi par chaque pair
+# (character_picks, rempli avant le lancement via submit_character_pick() /
+# diffusé aux clients par _receive_map()). Chaque pair reconstruit
+# indépendamment tout players[] (pas seulement son propre PlayerState) à
+# partir des MÊMES données déjà connues de tous — aucun round-trip réseau
+# supplémentaire nécessaire ici, comme c'était déjà le cas avant l'ajout des
+# personnages.
+func build_players_from_starting_content() -> void:
 	players.clear()
 	for id in run_peer_ids:
+		var character: CharacterData = _resolve_character(id)
 		var state := PlayerState.new()
 		state.peer_id = id
-		for card in starting_deck:
+		for card in character.starting_deck:
 			var card_dup: CardData = card.duplicate(true)
 			card_dup.template_path = card.resource_path
 			state.deck.append(card_dup)
-		for gem in starting_gems:
+		for gem in character.starting_gems:
 			var gem_dup: GemData = gem.duplicate(true)
 			gem_dup.template_path = gem.resource_path
 			state.owned_gems.append(gem_dup)
 		players.append(state)
 	players_ready = true
+
+# Repli sur DEFAULT_CHARACTER_PATH si ce pair n'a pas de choix enregistré —
+# couvre notamment l'ouverture de MapView.tscn directement dans l'éditeur
+# (start_new_run(8) sans personnage, cf. MapView._ready()).
+func _resolve_character(peer_id: int) -> CharacterData:
+	var path: String = character_picks.get(peer_id, "")
+	return load(path if not path.is_empty() else DEFAULT_CHARACTER_PATH)
 
 func get_local_player() -> PlayerState:
 	var my_id: int = multiplayer.get_unique_id()

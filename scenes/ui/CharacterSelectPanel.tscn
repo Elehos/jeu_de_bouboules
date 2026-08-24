@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://script/ui/CharacterSelectPanel.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confirm"]
+bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
+border_width_left = 10
+border_width_top = 10
+border_width_right = 10
+border_width_bottom = 10
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+
+[node name="CharacterSelectPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 260)
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+script = ExtResource("1_script")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="CharacterList" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 20
+
+[node name="ConfirmButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(0, 70)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_confirm")
+theme_override_styles/hover = SubResource("StyleBoxFlat_confirm")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_confirm")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_confirm")
+text = "Confirmer"

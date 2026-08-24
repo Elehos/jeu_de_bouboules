@@ -2,10 +2,6 @@
 
 [ext_resource type="Script" uid="uid://bcxihlmwbh3my" path="res://script/map/MapView.gd" id="1_xnhjo"]
 [ext_resource type="PackedScene" uid="uid://bo3yke6qitm6a" path="res://scenes/map/MapNodeView.tscn" id="2_jev2o"]
-[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="3_e2qlp"]
-[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="4_3ulgv"]
-[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="5_porwx"]
-[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="6_fejxw"]
 [ext_resource type="Texture2D" uid="uid://bb6guf0pbymat" path="res://assets/backgrounds/background_map2.png" id="7_7k8nd"]
 [ext_resource type="Script" uid="uid://daywroxueohxe" path="res://script/map/ConnectionsDrawer.gd" id="8_7k8nd"]
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
@@ -18,9 +14,6 @@
 [ext_resource type="Resource" path="res://ressourcesEvents/event_marchand.tres" id="15_event2"]
 [ext_resource type="Resource" path="res://ressourcesEvents/event_entrainement.tres" id="16_event3"]
 [ext_resource type="Resource" path="res://ressourcesEvents/event_prologue.tres" id="17_prologue"]
-[ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="18_gemdata"]
-[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="19_ruby1"]
-[ext_resource type="Resource" uid="uid://c4rjauh7v7662" path="res://ressourcesGems/heal1_gem.tres" id="20_heal1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7k8nd"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -62,8 +55,6 @@ map_node_scene = ExtResource("2_jev2o")
 floor_spacing = null
 node_spacing = null
 view_offset = null
-starting_deck = Array[ExtResource("3_e2qlp")]([ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("6_fejxw"), ExtResource("6_fejxw")])
-starting_gems = Array[ExtResource("18_gemdata")]([ExtResource("19_ruby1"), ExtResource("20_heal1")])
 possible_events = Array[ExtResource("13_eventscript")]([ExtResource("14_event1"), ExtResource("15_event2"), ExtResource("16_event3")])
 starting_event = ExtResource("17_prologue")
 

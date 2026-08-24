@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="CharacterData" format=3]
+
+[ext_resource type="Script" path="res://script/characters/CharacterData.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://jwcglnxwv8n2" path="res://assets/characters/perso_test.png" id="2_portrait"]
+[ext_resource type="Script" uid="uid://f3o7b7woxojq" path="res://script/cards/CardData.gd" id="3_carddata"]
+[ext_resource type="Resource" uid="uid://bomdgafd46m8f" path="res://ressoucesCards/defenseCard.tres" id="4_defense"]
+[ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="5_attack"]
+[ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="6_superattack"]
+[ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="7_gemdata"]
+[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="8_ruby"]
+[ext_resource type="Resource" uid="uid://c4rjauh7v7662" path="res://ressourcesGems/heal1_gem.tres" id="9_heal"]
+
+[resource]
+script = ExtResource("1_script")
+character_name = "Bouboule"
+portrait = ExtResource("2_portrait")
+starting_deck = Array[ExtResource("3_carddata")]([ExtResource("4_defense"), ExtResource("4_defense"), ExtResource("4_defense"), ExtResource("4_defense"), ExtResource("5_attack"), ExtResource("5_attack"), ExtResource("5_attack"), ExtResource("6_superattack"), ExtResource("6_superattack")])
+starting_gems = Array[ExtResource("7_gemdata")]([ExtResource("8_ruby"), ExtResource("9_heal")])

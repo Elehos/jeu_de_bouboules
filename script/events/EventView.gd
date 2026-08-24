@@ -124,7 +124,7 @@ func _pick_choices_to_show() -> Array[EventChoice]:
 		return event_data.choices
 
 	var shuffled: Array[EventChoice] = event_data.choices.duplicate()
-	shuffled.shuffle()
+	RngUtils.shuffle(RunManager.run_rng, shuffled)
 	return shuffled.slice(0, shown)
 
 func _on_choice_selected(choice: EventChoice) -> void:
@@ -157,17 +157,24 @@ func _apply_effect(effect: EventEffect) -> void:
 			RunManager.submit_player_hp(player.current_hp)
 		EventEffect.EffectType.GAIN_CARD:
 			if effect.card:
-				player.deck.append(effect.card.duplicate(true))
+				var card_dup: CardData = effect.card.duplicate(true)
+				card_dup.template_path = effect.card.resource_path
+				player.deck.append(card_dup)
 				RunManager.submit_card_picked(effect.card.resource_path)
 		EventEffect.EffectType.REMOVE_RANDOM_CARD:
 			if not player.deck.is_empty():
-				var idx: int = randi() % player.deck.size()
+				var idx: int = RunManager.run_rng.randi_range(0, player.deck.size() - 1)
 				player.deck.remove_at(idx)
 				RunManager.submit_card_removed(idx)
 		EventEffect.EffectType.GAIN_GEM:
 			if effect.gem:
-				player.owned_gems.append(effect.gem.duplicate(true))
+				var gem_dup: GemData = effect.gem.duplicate(true)
+				gem_dup.template_path = effect.gem.resource_path
+				player.owned_gems.append(gem_dup)
 				RunManager.submit_gem_picked(effect.gem.resource_path)
 
 func _on_continue_pressed() -> void:
+	RunManager.current_node_pending = false
+	if RunManager.run_peer_ids.size() <= 1:
+		RunManager.save_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

@@ -3,7 +3,7 @@ extends Node
 func setup_deck(player: PlayerState) -> void:
 	player.draw_pile.clear()
 	player.draw_pile.append_array(player.deck)
-	player.draw_pile.shuffle()
+	RngUtils.shuffle(RunManager.run_rng, player.draw_pile)
 	player.discard_pile.clear()
 	_notify_counts(player)
 
@@ -22,7 +22,7 @@ func discard_card(player: PlayerState, card_data: CardData) -> void:
 
 func reshuffle_discard_into_draw(player: PlayerState) -> void:
 	player.draw_pile = player.discard_pile.duplicate()
-	player.draw_pile.shuffle()
+	RngUtils.shuffle(RunManager.run_rng, player.draw_pile)
 	player.discard_pile.clear()
 	_notify_counts(player)
 

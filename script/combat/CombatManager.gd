@@ -76,7 +76,7 @@ var mana_ui_anim_id: int = 0
 # l'utilise tout de suite sans jamais attendre un signal déjà émis.
 func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
 	if RunManager.run_peer_ids.size() <= 1:
-		return pool.pick_random()
+		return RngUtils.pick_random(RunManager.run_rng, pool)
 	if NetworkManager.is_host():
 		var index: int = RunManager.choose_combat_encounter(pool.size())
 		return pool[index]
@@ -103,6 +103,10 @@ func _ready() -> void:
 
 	var resync: Dictionary = RunManager.pending_combat_resync
 	RunManager.pending_combat_resync = {}
+	# Sauvegarde rechargée juste après une victoire, avant le choix des
+	# récompenses (cf. CombatManager._on_enemy_died()) : le combat est déjà
+	# gagné, on ne rejoue rien, juste le choix de récompenses réaffiché.
+	var awaiting_rewards: bool = RunManager.current_node_awaiting_rewards
 
 	if not resync.is_empty():
 		spawn_players()
@@ -111,6 +115,9 @@ func _ready() -> void:
 		spawn_enemies()
 		_apply_combat_resync(resync)
 		is_down = resync["is_down"]
+	elif awaiting_rewards:
+		spawn_players()
+		combat_over = true
 	else:
 		var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
 		if encounter_pool.is_empty():
@@ -153,9 +160,12 @@ func _ready() -> void:
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	gem_bag_button.pressed.connect(gem_bag.toggle)
 	_setup_mana_ui_frames()
-	start_turn(TurnState.PLAYER_TURN)
-	if not resync.is_empty() and resync.get("already_ended_turn", false):
-		end_turn_button.disabled = true
+	if awaiting_rewards:
+		_show_rewards()
+	else:
+		start_turn(TurnState.PLAYER_TURN)
+		if not resync.is_empty() and resync.get("already_ended_turn", false):
+			end_turn_button.disabled = true
 
 func spawn_players() -> void:
 	var my_id: int = multiplayer.get_unique_id()
@@ -317,6 +327,14 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			local_player.current_hp = 1
 			local_player.sync_hp_bars_instantly()
 			RunManager.submit_player_hp(1)
+		# Victoire acquise avant même le choix des récompenses : sauvegarder
+		# maintenant évite de perdre une récompense déjà ramassée si le
+		# joueur quitte pendant que le popup est ouvert (le nœud ne sera pas
+		# rejoué au chargement, juste le choix de récompenses réaffiché,
+		# cf. current_node_awaiting_rewards / CombatManager._ready()).
+		RunManager.current_node_awaiting_rewards = true
+		if RunManager.run_peer_ids.size() <= 1:
+			RunManager.save_run_to_disk()
 		_show_rewards()
 
 func _show_rewards() -> void:
@@ -326,6 +344,12 @@ func _show_rewards() -> void:
 func _on_combat_finished() -> void:
 	RunManager.in_combat = false
 	RunManager.active_combat_manager = null
+	RunManager.current_node_pending = false
+	RunManager.current_node_awaiting_rewards = false
+	if RunManager.is_boss_combat:
+		RunManager.delete_solo_save()
+	elif RunManager.run_peer_ids.size() <= 1:
+		RunManager.save_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:

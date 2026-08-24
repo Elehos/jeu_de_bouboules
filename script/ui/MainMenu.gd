@@ -5,6 +5,9 @@ extends Node2D
 
 @onready var choice_panel: VBoxContainer = $UI/ChoicePanel
 @onready var multi_panel: Panel = $UI/MultiPanel
+@onready var seed_field: LineEdit = $UI/ChoicePanel/SeedRow/SeedField
+@onready var seed_error_label: Label = $UI/ChoicePanel/SeedErrorLabel
+@onready var continue_button: Button = $UI/ChoicePanel/ContinueButton
 @onready var solo_button: Button = $UI/ChoicePanel/SoloButton
 @onready var multi_button: Button = $UI/ChoicePanel/MultiButton
 @onready var host_button: Button = $UI/MultiPanel/Content/HostButton
@@ -14,9 +17,13 @@ extends Node2D
 @onready var start_game_button: Button = $UI/MultiPanel/Content/StartGameButton
 @onready var back_button: Button = $UI/MultiPanel/Content/BackButton
 
+var pending_seed: int = 0
+
 func _ready() -> void:
 	multi_panel.visible = false
 	start_game_button.visible = false
+	continue_button.visible = RunManager.has_solo_save()
+	continue_button.pressed.connect(_on_continue_pressed)
 	solo_button.pressed.connect(_on_solo_pressed)
 	multi_button.pressed.connect(_on_multi_pressed)
 	host_button.pressed.connect(_on_host_pressed)
@@ -35,7 +42,34 @@ func _ready() -> void:
 		status_label.text = RunManager.last_disconnect_message
 		RunManager.last_disconnect_message = ""
 
+# Lit le champ de seed (vide = aléatoire, sinon doit être un nombre entier) —
+# partagé entre Solo et Héberger, un LineEdit garde son texte même quand son
+# parent (ChoicePanel) devient invisible, pas besoin d'un second champ dans
+# MultiPanel.
+func _resolve_seed_input() -> Dictionary:
+	seed_error_label.text = ""
+	var seed_text: String = seed_field.text.strip_edges()
+	if seed_text.is_empty():
+		return {"value": randi(), "ok": true}
+	if not seed_text.is_valid_int():
+		seed_error_label.text = "Le seed doit être un nombre entier."
+		return {"ok": false}
+	return {"value": seed_text.to_int(), "ok": true}
+
 func _on_solo_pressed() -> void:
+	var resolved: Dictionary = _resolve_seed_input()
+	if not resolved["ok"]:
+		return
+	RunManager.start_new_run(8, resolved["value"], true)
+	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+
+func _on_continue_pressed() -> void:
+	if not RunManager.load_run_from_disk():
+		continue_button.visible = false
+		return
+	# MapView._ready() relance lui-même le nœud en cours (combat/événement)
+	# si current_node_pending — jamais de changement de scène direct vers
+	# Combat.tscn/EventView.tscn ici.
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func _on_multi_pressed() -> void:
@@ -51,11 +85,15 @@ func _on_back_pressed() -> void:
 	choice_panel.visible = true
 
 func _on_host_pressed() -> void:
+	var resolved: Dictionary = _resolve_seed_input()
+	if not resolved["ok"]:
+		return
+	pending_seed = resolved["value"]
 	var err: Error = NetworkManager.host_game()
 	if err != OK:
 		status_label.text = "Erreur lors de l'hébergement (code %d)" % err
 		return
-	status_label.text = "En attente d'un joueur..."
+	status_label.text = "En attente d'un joueur... (Seed : %d)" % pending_seed
 	_set_connect_buttons_enabled(false)
 
 func _on_join_pressed() -> void:
@@ -94,7 +132,7 @@ func _on_start_game_pressed() -> void:
 	if not NetworkManager.is_host():
 		return
 	start_game_button.disabled = true
-	RunManager.start_multiplayer_run()
+	RunManager.start_multiplayer_run(8, pending_seed, true)
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func _set_connect_buttons_enabled(enabled: bool) -> void:

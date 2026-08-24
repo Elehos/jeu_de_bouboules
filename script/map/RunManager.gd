@@ -1,8 +1,44 @@
 extends Node
 
+const SOLO_SAVE_PATH: String = "user://solo_save.dat"
+const SAVE_FORMAT_VERSION: int = 1
+
+# RNG unique de la run en cours — tout ce qui détermine réellement son
+# déroulement (carte, rencontres, événements, récompenses, mélange du deck)
+# pioche ici plutôt que dans le RNG global de Godot, pour qu'une seed donnée
+# reproduise toujours la même run. Le tremblement d'écran, le décalage
+# cosmétique des nœuds de carte et le départage de vote simultané restent
+# volontairement sur le RNG global (purement visuels ou liés au timing des
+# joueurs, pas à la génération de contenu).
+var run_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+var run_seed: int = 0
+
+func _init_run_rng(seed_value: int) -> void:
+	run_seed = seed_value
+	run_rng.seed = seed_value
+
 var floors: Array[Array] = []
 var current_floor_index: int = 0
 var current_position_in_floor: int = 0
+# true tant que le nœud courant (COMBAT/END/EVENT) n'a pas été résolu — posé
+# par _apply_node_choice(), remis à faux par
+# CombatManager._on_combat_finished() / EventView._on_continue_pressed().
+# Sert uniquement à la sauvegarde solo : recharger une sauvegarde relance ce
+# nœud à neuf plutôt que de tenter de restaurer son état interne.
+#
+# La sauvegarde elle-même ne s'écrit sur disque QU'à ces moments précis
+# (jamais au clic sur "Sauvegarder et quitter", qui se contente de relire
+# le fichier déjà à jour) : entrée dans le nœud (_apply_node_choice),
+# victoire juste avant le choix des récompenses (CombatManager._on_enemy_died),
+# et sortie du nœud (_on_combat_finished / EventView._on_continue_pressed).
+# Ainsi le fichier reflète toujours un point de progression réellement acquis
+# — jamais un dégât ou un tour de combat en cours — sans avoir besoin de
+# retenir/restaurer un instantané séparé pour chaque champ concerné.
+var current_node_pending: bool = false
+# true entre la mort du dernier ennemi et la fermeture du popup de
+# récompenses : au chargement, ce nœud ne doit pas être rejoué (l'ennemi est
+# déjà vaincu), juste réafficher le choix de récompenses.
+var current_node_awaiting_rewards: bool = false
 var map_generated: bool = false
 # Mis à true par MapView juste avant de lancer le combat du dernier nœud de
 # l'arbre (type END) : CombatManager pioche alors dans possible_boss_encounters
@@ -73,8 +109,11 @@ func _on_host_disconnected() -> void:
 # cette run abandonnée au lieu d'en démarrer une nouvelle.
 func reset_run_state() -> void:
 	floors = []
+	run_seed = 0
 	current_floor_index = 0
 	current_position_in_floor = 0
+	current_node_pending = false
+	current_node_awaiting_rewards = false
 	map_generated = false
 	is_boss_combat = false
 	pending_event = null
@@ -255,15 +294,96 @@ func _send_full_resync(target_peer_id: int) -> void:
 		_serialize_players(),
 	)
 
-# Hôte uniquement. N'est appelée que si active_combat_manager.current_state
-# == PLAYER_TURN (cf. commentaire dans _try_reconnect_match) : une
-# reconnexion pendant ENEMY_TURN casserait le lockstep de séquence
-# d'intentions des ennemis, qui ne repose QUE sur le fait qu'enemy_play_turn()
-# tourne à l'identique sur chaque pair — resynchroniser un ennemi déjà à
-# mi-séquence sans rejouer les attaques manquées le désynchroniserait
-# définitivement. Laissé hors scope, comme le cas combat_over déjà vrai.
-func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: bool) -> void:
+func has_solo_save() -> bool:
+	return FileAccess.file_exists(SOLO_SAVE_PATH)
+
+func delete_solo_save() -> void:
+	if FileAccess.file_exists(SOLO_SAVE_PATH):
+		DirAccess.remove_absolute(SOLO_SAVE_PATH)
+
+# N'est appelée que par _apply_node_choice() / CombatManager._on_enemy_died()
+# (victoire) / CombatManager._on_combat_finished() / EventView._on_continue_pressed()
+# — jamais depuis le bouton "Sauvegarder et quitter" lui-même. Ainsi l'état
+# capturé correspond toujours à un point de progression réellement acquis
+# (avant tout dégât/tour de combat, ou juste après une victoire/résolution),
+# jamais à un instant arbitraire choisi par le joueur en pleine bagarre.
+func save_run_to_disk() -> bool:
+	if run_peer_ids.size() > 1:
+		push_error("save_run_to_disk() ne doit être appelé qu'en solo.")
+		return false
+	var data: Dictionary = {
+		"version": SAVE_FORMAT_VERSION,
+		"floors": _serialize_floors(),
+		"current_floor_index": current_floor_index,
+		"current_position_in_floor": current_position_in_floor,
+		"current_node_pending": current_node_pending,
+		"current_node_awaiting_rewards": current_node_awaiting_rewards,
+		"is_boss_combat": is_boss_combat,
+		"players": _serialize_players(),
+		"seed": run_seed,
+		"rng_state": run_rng.state,
+	}
+	var f: FileAccess = FileAccess.open(SOLO_SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		push_error("save_run_to_disk(): écriture impossible (code %d)" % FileAccess.get_open_error())
+		return false
+	f.store_var(data)
+	f.close()
+	return true
+
+# Repeuple floors/players/etc depuis le disque, exactement comme
+# _receive_full_resync() le fait depuis le réseau. N'effectue aucun
+# changement de scène : le caller change vers MapView.tscn, et
+# MapView._ready() relance lui-même le nœud en cours si current_node_pending.
+func load_run_from_disk() -> bool:
+	if not FileAccess.file_exists(SOLO_SAVE_PATH):
+		return false
+	var f: FileAccess = FileAccess.open(SOLO_SAVE_PATH, FileAccess.READ)
+	if f == null:
+		return false
+	var data = f.get_var()
+	f.close()
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	floors = _deserialize_floors(data["floors"])
+	current_floor_index = data["current_floor_index"]
+	current_position_in_floor = data["current_position_in_floor"]
+	current_node_pending = data.get("current_node_pending", false)
+	current_node_awaiting_rewards = data.get("current_node_awaiting_rewards", false)
+	is_boss_combat = data["is_boss_combat"]
+	players = _deserialize_players(data["players"])
+	map_generated = true
+	players_ready = true
+	run_peer_ids = [1]
+	# Sauvegarde antérieure à la fonctionnalité seed : pas de champ "seed"/
+	# "rng_state" -> reprise sur une seed aléatoire, comme avant. Sinon,
+	# seed DOIT être assignée avant state : assigner .seed réinitialise
+	# aussi l'état interne (confirmé empiriquement), donc l'ordre inverse
+	# écraserait l'état restauré avec celui dérivé de la seed seule.
+	if data.has("seed") and data.has("rng_state"):
+		run_rng.seed = data["seed"]
+		run_rng.state = data["rng_state"]
+		run_seed = data["seed"]
+	else:
+		_init_run_rng(randi())
+	return true
+
+# Instantané pur du combat en cours, sans effet de bord réseau — utilisé par
+# _send_combat_resync (reconnexion réseau en plein combat, tranche 3b-ii ;
+# la sauvegarde solo ne s'en sert plus, cf. save_run_to_disk()). Retourne {}
+# si le capturer maintenant serait incorrect :
+# hors combat, combat déjà terminé, ou pendant ENEMY_TURN. Ce dernier cas
+# n'est pas qu'un problème de lockstep entre pairs : la restauration
+# (CombatManager._ready()) reprend TOUJOURS à PLAYER_TURN sans rejouer
+# enemy_play_turn() — capturer pendant ENEMY_TURN ferait donc sauter
+# silencieusement les attaques pas encore exécutées ce tour-ci, y compris
+# en solo.
+func _capture_combat_snapshot(is_down_for: bool, already_ended_turn: bool) -> Dictionary:
+	if not in_combat or not is_instance_valid(active_combat_manager):
+		return {}
 	var cm: CombatManager = active_combat_manager
+	if cm.combat_over or cm.current_state != CombatManager.TurnState.PLAYER_TURN:
+		return {}
 	var enemies_snapshot: Array = []
 	for e: Enemy in cm.enemies:
 		if is_instance_valid(e):
@@ -274,6 +394,22 @@ func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: b
 				"current_intention": e.current_intention,
 				"sequence_index": e.sequence_index,
 			})
+	return {
+		"encounter_path": cm.current_encounter.resource_path,
+		"enemies": enemies_snapshot,
+		"is_down": is_down_for,
+		"already_ended_turn": already_ended_turn,
+	}
+
+# Hôte uniquement. N'est appelée que si active_combat_manager.current_state
+# == PLAYER_TURN (cf. commentaire dans _try_reconnect_match) : une
+# reconnexion pendant ENEMY_TURN casserait le lockstep de séquence
+# d'intentions des ennemis, qui ne repose QUE sur le fait qu'enemy_play_turn()
+# tourne à l'identique sur chaque pair — resynchroniser un ennemi déjà à
+# mi-séquence sans rejouer les attaques manquées le désynchroniserait
+# définitivement. Laissé hors scope, comme le cas combat_over déjà vrai.
+func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: bool) -> void:
+	var snap: Dictionary = _capture_combat_snapshot(downed_peer_ids.has(old_id), already_ended_turn)
 	_receive_combat_resync.rpc_id(
 		target_peer_id,
 		_serialize_floors(),
@@ -282,10 +418,10 @@ func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: b
 		is_boss_combat,
 		run_peer_ids,
 		_serialize_players(),
-		cm.current_encounter.resource_path,
-		enemies_snapshot,
-		downed_peer_ids.has(old_id),
-		already_ended_turn,
+		snap.get("encounter_path", ""),
+		snap.get("enemies", []),
+		snap.get("is_down", false),
+		snap.get("already_ended_turn", false),
 	)
 
 # Ne reçue que par le pair qui vient de se reconnecter en plein combat
@@ -315,9 +451,9 @@ func _receive_combat_resync(serialized_floors: Array, f_idx: int, pos_idx: int, 
 func _serialize_players() -> Array:
 	var out: Array = []
 	for p: PlayerState in players:
-		var deck_paths: Array = []
+		var deck_data: Array = []
 		for c: CardData in p.deck:
-			deck_paths.append(c.template_path)
+			deck_data.append(_serialize_card(c))
 		var gem_paths: Array = []
 		for g: GemData in p.owned_gems:
 			gem_paths.append(g.template_path)
@@ -325,11 +461,31 @@ func _serialize_players() -> Array:
 			"peer_id": p.peer_id,
 			"current_hp": p.current_hp,
 			"max_hp": p.max_hp,
-			"deck": deck_paths,
+			"max_mana": p.max_mana,
+			"deck": deck_data,
 			"owned_gems": gem_paths,
 			"starting_event_resolved": p.starting_event_resolved,
 		})
 	return out
+
+# equipped_gem est référencé par template_path plutôt que dupliqué à part :
+# à la désérialisation, il DOIT pointer vers la même instance que celle
+# stockée dans owned_gems, sinon la gemme apparaîtrait à la fois équipée et
+# dans la besace.
+func _serialize_card(c: CardData) -> Dictionary:
+	var torn: Array = []
+	for mark: Dictionary in c.torn_marks:
+		var icon: Texture2D = mark.get("icon")
+		torn.append({
+			"icon_path": icon.resource_path if icon else "",
+			"position": mark["position"],
+		})
+	return {
+		"template_path": c.template_path,
+		"equipped_gem_template_path": c.equipped_gem.template_path if c.equipped_gem else "",
+		"equipped_gem_position": c.equipped_gem_position,
+		"torn_marks": torn,
+	}
 
 # Ne reçu que par le pair qui vient de se reconnecter (rpc_id ciblé, jamais
 # diffusé). gems_locked n'est volontairement pas transmis : MapView._ready()
@@ -355,44 +511,69 @@ func _deserialize_players(data: Array) -> Array[PlayerState]:
 		state.peer_id = d["peer_id"]
 		state.current_hp = d["current_hp"]
 		state.max_hp = d["max_hp"]
-		for path in d["deck"]:
-			var card: CardData = load(path).duplicate(true)
-			card.template_path = path
-			state.deck.append(card)
+		state.max_mana = d.get("max_mana", state.max_mana)
 		for path in d["owned_gems"]:
 			var gem: GemData = load(path).duplicate(true)
 			gem.template_path = path
 			state.owned_gems.append(gem)
+		for card_d: Dictionary in d["deck"]:
+			state.deck.append(_deserialize_card(card_d, state.owned_gems))
 		state.starting_event_resolved = d["starting_event_resolved"]
 		out.append(state)
 	return out
 
+func _deserialize_card(d: Dictionary, owned_gems: Array[GemData]) -> CardData:
+	var path: String = d["template_path"]
+	var card: CardData = load(path).duplicate(true)
+	card.template_path = path
+	card.equipped_gem_position = d.get("equipped_gem_position", Vector2.ZERO)
+	var gem_path: String = d.get("equipped_gem_template_path", "")
+	if not gem_path.is_empty():
+		for g: GemData in owned_gems:
+			if g.template_path == gem_path:
+				card.equipped_gem = g
+				break
+	for mark: Dictionary in d.get("torn_marks", []):
+		var icon_path: String = mark["icon_path"]
+		card.torn_marks.append({
+			"icon": load(icon_path) if not icon_path.is_empty() else null,
+			"position": mark["position"],
+		})
+	return card
+
 func _generate_map(floor_count: int) -> void:
 	var generator := MapGenerator.new()
-	floors = generator.generate_map(floor_count)
+	floors = generator.generate_map(floor_count, run_rng)
 	current_floor_index = 0
 	current_position_in_floor = 0
 	map_generated = true
 	players_ready = false
 
-func start_new_run(floor_count: int = 8) -> void:
+# seed_value/has_explicit_seed plutôt qu'une valeur sentinelle (ex: -1) : un
+# champ de saisie numérique pur pourrait légitimement contenir un nombre
+# négatif, une sentinelle serait ambiguë.
+func start_new_run(floor_count: int = 8, seed_value: int = 0, has_explicit_seed: bool = false) -> void:
+	_init_run_rng(seed_value if has_explicit_seed else randi())
 	_generate_map(floor_count)
 	run_peer_ids = [multiplayer.get_unique_id()]
 
-# Hôte uniquement : génère la carte (le RNG n'est pas seedé, chaque pair
-# obtiendrait une carte différente s'il générait la sienne) et la diffuse.
-func start_multiplayer_run(floor_count: int = 8) -> void:
+# Hôte uniquement : génère la carte à partir de run_rng (seedée ci-dessous)
+# et la diffuse — la seed elle-même voyage aussi par ce RPC pour que chaque
+# client aligne son propre run_rng sur le même point de départ.
+func start_multiplayer_run(floor_count: int = 8, seed_value: int = 0, has_explicit_seed: bool = false) -> void:
 	if not NetworkManager.is_host():
 		push_error("start_multiplayer_run() doit être appelé uniquement par l'hôte.")
 		return
+	_init_run_rng(seed_value if has_explicit_seed else randi())
 	_generate_map(floor_count)
 	run_peer_ids = [1]
 	for id in multiplayer.get_peers():
 		run_peer_ids.append(id)
-	_receive_map.rpc(_serialize_floors(), run_peer_ids, current_floor_index, current_position_in_floor)
+	_receive_map.rpc(_serialize_floors(), run_peer_ids, current_floor_index, current_position_in_floor, run_seed)
 
 @rpc("authority", "call_remote", "reliable")
-func _receive_map(serialized_floors: Array, peer_ids: Array, starting_floor_index: int, starting_position_in_floor: int) -> void:
+func _receive_map(serialized_floors: Array, peer_ids: Array, starting_floor_index: int, starting_position_in_floor: int, seed_value: int) -> void:
+	_init_run_rng(seed_value)
 	floors = _deserialize_floors(serialized_floors)
 	current_floor_index = starting_floor_index
 	current_position_in_floor = starting_position_in_floor
@@ -514,11 +695,11 @@ func _broadcast_node_choice(floor_index: int, position_in_floor: int) -> void:
 
 # Hôte uniquement. Tire l'indice dans le pool (pool_size = taille de
 # possible_encounters/possible_boss_encounters, identique chez tous les
-# pairs) et le diffuse. randi() % pool_size plutôt que pick_random() sur le
+# pairs) et le diffuse. Un indice sur run_rng plutôt que pick_random() sur le
 # tableau lui-même : RunManager n'a pas accès à encounter_pool (@export sur
 # CombatManager), seul l'indice a besoin de voyager.
 func choose_combat_encounter(pool_size: int) -> int:
-	var index: int = randi() % pool_size
+	var index: int = run_rng.randi_range(0, pool_size - 1)
 	if run_peer_ids.size() > 1:
 		_receive_encounter_index.rpc(index)
 	return index
@@ -792,4 +973,13 @@ func _apply_node_choice(map_node: MapNode) -> void:
 		is_boss_combat = true
 	elif map_node.type == MapNode.NodeType.COMBAT:
 		is_boss_combat = false
+	# COMBAT/END/EVENT sont tous "en cours de résolution" dès ce choix
+	# appliqué — remis à faux uniquement quand ce nœud est effectivement
+	# résolu (CombatManager._on_combat_finished()/EventView._on_continue_pressed()).
+	# Sert uniquement à la sauvegarde solo : recommencer un nœud non résolu
+	# plutôt que d'essayer de capturer son état interne (combat/événement).
+	current_node_pending = true
+	current_node_awaiting_rewards = false
+	if run_peer_ids.size() <= 1:
+		save_run_to_disk()
 	node_choice_applied.emit(map_node)

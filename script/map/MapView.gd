@@ -112,7 +112,7 @@ func _start_event() -> void:
 	if possible_events.is_empty():
 		push_error("Possible Events est vide ! Assigne au moins un EventData dans l'inspecteur du nœud MapView.")
 		return
-	RunManager.pending_event = possible_events.pick_random()
+	RunManager.pending_event = RngUtils.pick_random(RunManager.run_rng, possible_events)
 	get_tree().change_scene_to_file("res://scenes/events/EventView.tscn")
 
 func _start_starting_event() -> void:
@@ -135,6 +135,16 @@ func _ready() -> void:
 	current_floor_index = RunManager.current_floor_index
 	current_position_in_floor = RunManager.current_position_in_floor
 	display_map(RunManager.floors)
+
+	# Sauvegarde solo rechargée en plein combat/événement (current_node_pending) :
+	# on ne restaure jamais l'intérieur de ce nœud, on le relance à neuf.
+	if RunManager.current_node_pending:
+		var pending_node: MapNode = floors[current_floor_index][current_position_in_floor]
+		match pending_node.type:
+			MapNode.NodeType.COMBAT, MapNode.NodeType.END:
+				_start_combat()
+			MapNode.NodeType.EVENT:
+				_start_event()
 
 
 func _is_node_accessible(node_data: MapNode) -> bool:

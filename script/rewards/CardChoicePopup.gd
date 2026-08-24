@@ -29,7 +29,9 @@ func show_choices(cards: Array[CardData]) -> void:
 
 
 func _on_card_clicked(card_data: CardData) -> void:
-	RunManager.get_local_player().deck.append(card_data.duplicate(true))
+	var dup: CardData = card_data.duplicate(true)
+	dup.template_path = card_data.resource_path
+	RunManager.get_local_player().deck.append(dup)
 	RunManager.submit_card_picked(card_data.resource_path)
 	choice_made.emit(true)
 	queue_free()

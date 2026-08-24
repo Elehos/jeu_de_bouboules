@@ -33,7 +33,9 @@ func _on_card_reward_pressed() -> void:
 )
 
 func _on_gem_reward_pressed() -> void:
-	RunManager.get_local_player().owned_gems.append(current_gem.duplicate(true))
+	var dup: GemData = current_gem.duplicate(true)
+	dup.template_path = current_gem.resource_path
+	RunManager.get_local_player().owned_gems.append(dup)
 	RunManager.submit_gem_picked(current_gem.resource_path)
 	gem_reward_icon.get_parent().get_parent().visible = false
 

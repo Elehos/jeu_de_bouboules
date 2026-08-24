@@ -222,7 +222,7 @@ func _hide_forbidden_anim() -> void:
 	forbidden_anim_tween.tween_callback(func(): forbidden_anim.visible = false)
 
 func start_pickup_drag() -> void:
-	if GemInventory.gems_locked:
+	if RunManager.get_local_player().gems_locked:
 		return
 	if not card_data or not card_data.equipped_gem:
 		return

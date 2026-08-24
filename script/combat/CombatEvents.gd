@@ -15,25 +15,22 @@ var any_card_active: bool = false
 var dragging_gem: GemData = null
 var dragging_gem_source: Node = null
 
-@export var max_mana: int = 3
-var current_mana: int = max_mana
+func refill_mana(player: PlayerState) -> void:
+	player.current_mana = player.max_mana
+	mana_changed.emit(player.current_mana, player.max_mana)
 
-func refill_mana() -> void:
-	current_mana = max_mana
-	mana_changed.emit(current_mana, max_mana)
-
-func try_spend_mana(amount: int) -> bool:
-	if current_mana < amount:
+func try_spend_mana(player: PlayerState, amount: int) -> bool:
+	if player.current_mana < amount:
 		return false
-	current_mana -= amount
-	mana_changed.emit(current_mana, max_mana)
+	player.current_mana -= amount
+	mana_changed.emit(player.current_mana, player.max_mana)
 	return true
 
-func gain_mana(amount: int) -> void:
+func gain_mana(player: PlayerState, amount: int) -> void:
 	# Pas de plafond ici : le mana gagné peut dépasser le max pour ce tour
 	# (comme une potion d'énergie), pour que la carte serve à jouer une carte en plus.
-	current_mana += amount
-	mana_changed.emit(current_mana, max_mana)
+	player.current_mana += amount
+	mana_changed.emit(player.current_mana, player.max_mana)
 
 func request_targeting(card: Card) -> void:
 	pending_card = card

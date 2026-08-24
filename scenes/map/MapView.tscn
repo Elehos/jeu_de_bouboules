@@ -7,7 +7,6 @@
 [ext_resource type="Resource" uid="uid://si2lgkydtdkd" path="res://ressoucesCards/attackCard.tres" id="5_porwx"]
 [ext_resource type="Resource" uid="uid://64tt2oeikj55" path="res://ressoucesCards/superAttackCard.tres" id="6_fejxw"]
 [ext_resource type="Texture2D" uid="uid://bb6guf0pbymat" path="res://assets/backgrounds/background_map2.png" id="7_7k8nd"]
-[ext_resource type="PackedScene" uid="uid://dljbij33aq0sy" path="res://scenes/gems/gem_inventory.tscn" id="7_y4mpu"]
 [ext_resource type="Script" uid="uid://daywroxueohxe" path="res://script/map/ConnectionsDrawer.gd" id="8_7k8nd"]
 [ext_resource type="Script" uid="uid://b6itj8dvr5ww8" path="res://script/gems/GemBag.gd" id="8_ksfdk"]
 [ext_resource type="PackedScene" uid="uid://d0tb3k3iwaipx" path="res://scenes/gems/gem_icon.tscn" id="9_7k8nd"]
@@ -19,6 +18,9 @@
 [ext_resource type="Resource" path="res://ressourcesEvents/event_marchand.tres" id="15_event2"]
 [ext_resource type="Resource" path="res://ressourcesEvents/event_entrainement.tres" id="16_event3"]
 [ext_resource type="Resource" path="res://ressourcesEvents/event_prologue.tres" id="17_prologue"]
+[ext_resource type="Script" uid="uid://b02w7737ctf1b" path="res://script/gems/GemData.gd" id="18_gemdata"]
+[ext_resource type="Resource" uid="uid://cdytd8w6xkwf8" path="res://ressourcesGems/ruby1.tres" id="19_ruby1"]
+[ext_resource type="Resource" uid="uid://c4rjauh7v7662" path="res://ressourcesGems/heal1_gem.tres" id="20_heal1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7k8nd"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -61,6 +63,7 @@ floor_spacing = null
 node_spacing = null
 view_offset = null
 starting_deck = Array[ExtResource("3_e2qlp")]([ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("4_3ulgv"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("5_porwx"), ExtResource("6_fejxw"), ExtResource("6_fejxw")])
+starting_gems = Array[ExtResource("18_gemdata")]([ExtResource("19_ruby1"), ExtResource("20_heal1")])
 possible_events = Array[ExtResource("13_eventscript")]([ExtResource("14_event1"), ExtResource("15_event2"), ExtResource("16_event3")])
 starting_event = ExtResource("17_prologue")
 
@@ -76,7 +79,23 @@ script = ExtResource("8_7k8nd")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=1268101918]
 
-[node name="GemInventory" parent="UI" unique_id=524607973 instance=ExtResource("7_y4mpu")]
+[node name="StatusLabel" type="Label" parent="UI" unique_id=1268101919]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -300.0
+offset_top = 40.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("12_ksfdk")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+horizontal_alignment = 1
+text = ""
 
 [node name="GemBagPanel" type="Panel" parent="UI" unique_id=1942942163]
 offset_left = -1304.0

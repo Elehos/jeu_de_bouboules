@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Jeu de bouboules"
-run/main_scene="uid://tn17m53p1ddh"
+run/main_scene="res://scenes/ui/MainMenu.tscn"
 config/features=PackedStringArray("4.7", "Mobile")
 config/icon="res://icon.svg"
 
@@ -19,9 +19,11 @@ config/icon="res://icon.svg"
 
 CombatEvents="*uid://bs5460a8lsq78"
 DeckManager="*uid://d3b8sfuwxuw2f"
-GemInventory="*uid://dljbij33aq0sy"
 RunManager="*uid://djmsa7mv87rdg"
 RewardManager="*uid://dmftwvulbm2ea"
+NetworkManager="*res://script/network/NetworkManager.gd"
+ConnectionOverlay="*res://scenes/ui/ConnectionOverlay.tscn"
+SettingsOverlay="*res://scenes/ui/SettingsOverlay.tscn"
 
 [display]
 

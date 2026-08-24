@@ -5,16 +5,22 @@ class_name MapGenerator
 # événement à la place, façon Slay the Spire.
 const EVENT_CHANCE: float = 0.3
 
-func generate_map(floor_count: int = 5) -> Array[Array]:
+# RNG de la run en cours, transmis par RunManager._generate_map() —
+# n'apparaît que le temps d'un appel à generate_map(), MapGenerator lui-même
+# n'a aucune dépendance permanente vers l'autoload RunManager.
+var rng: RandomNumberGenerator
+
+func generate_map(floor_count: int, rng_in: RandomNumberGenerator) -> Array[Array]:
+	rng = rng_in
 	var floors: Array[Array] = []
 
 	floors.append([_make_node(MapNode.NodeType.START, 0, 0)])
 
 	for f in range(1, floor_count - 1):
 		var nodes_in_floor: Array[MapNode] = []
-		var count = randi_range(2, 4) # ici pour changer le nombre de positions mini et maxi dans un étage intermédiaire
+		var count = rng.randi_range(2, 4) # ici pour changer le nombre de positions mini et maxi dans un étage intermédiaire
 		for i in range(count):
-			var node_type: MapNode.NodeType = MapNode.NodeType.EVENT if randf() < EVENT_CHANCE else MapNode.NodeType.COMBAT
+			var node_type: MapNode.NodeType = MapNode.NodeType.EVENT if rng.randf() < EVENT_CHANCE else MapNode.NodeType.COMBAT
 			nodes_in_floor.append(_make_node(node_type, f, i))
 		floors.append(nodes_in_floor)
 	
@@ -63,8 +69,8 @@ func _connect_floors(floors: Array[Array]) -> void:
 					filtered = [closest]
 				possible_targets = filtered
 			
-			possible_targets.shuffle()
-			var connection_count: int = 1 if next_floor.size() == 1 else randi_range(1, 2)
+			RngUtils.shuffle(rng, possible_targets)
+			var connection_count: int = 1 if next_floor.size() == 1 else rng.randi_range(1, 2)
 			
 			for c in range(min(connection_count, possible_targets.size())):
 				node.connections.append(possible_targets[c])
@@ -88,7 +94,7 @@ func _connect_floors(floors: Array[Array]) -> void:
 				if eligible_sources.is_empty():
 					eligible_sources = current_floor  # filet de sécurité si jamais rien n'est proche
 				
-				var random_source: MapNode = eligible_sources[randi() % eligible_sources.size()]
+				var random_source: MapNode = eligible_sources[rng.randi_range(0, eligible_sources.size() - 1)]
 				random_source.connections.append(target_index)
 
 func _remove_crossings(floors: Array[Array]) -> void:

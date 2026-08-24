@@ -16,6 +16,7 @@ class_name Card
 
 signal card_selected(card_data: CardData)
 var reward_mode: bool = false
+var owner_player: PlayerState
 
 var dragging: bool = false
 var drag_start_mouse: Vector2
@@ -61,6 +62,7 @@ var mana_current_frame: int = 4
 var mana_anim_id: int = 0
 
 func _ready() -> void:
+	owner_player = RunManager.get_local_player()
 	update_display()
 	panel.gui_input.connect(_on_panel_gui_input)
 	panel.mouse_entered.connect(_on_mouse_entered)
@@ -222,7 +224,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # --- Jeu de la carte ---
 func confirm_play(target: Character) -> void:
-	if CombatEvents.current_mana < card_data.cost:
+	if owner_player.current_mana < card_data.cost:
 		state = CardState.IDLE
 		CombatEvents.any_card_active = false
 		var hand = get_parent()
@@ -234,9 +236,9 @@ func confirm_play(target: Character) -> void:
 	
 	state = CardState.PLAYED
 	CombatEvents.any_card_active = false
-	CombatEvents.try_spend_mana(card_data.cost)
+	CombatEvents.try_spend_mana(owner_player, card_data.cost)
 	CombatEvents.card_played.emit(card_data, target)
-	DeckManager.discard_card(card_data)
+	DeckManager.discard_card(owner_player, card_data)
 	_play_confirmation_animation()
 
 func _play_confirmation_animation() -> void:
@@ -278,7 +280,7 @@ func _on_panel_gui_input(event: InputEvent) -> void:
 		return
 	if state == CardState.PLAYED:
 		return
-	if CombatEvents.current_mana < card_data.cost:
+	if owner_player.current_mana < card_data.cost:
 		return
 	
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
@@ -403,7 +405,7 @@ func _update_affordability() -> void:
 	if state == CardState.AWAITING_TARGET or state == CardState.PLAYED:
 		return
 	
-	var affordable: bool = CombatEvents.current_mana >= card_data.cost
+	var affordable: bool = owner_player.current_mana >= card_data.cost
 	modulate = Color(1, 1, 1, 1)
 	
 	if affordable:

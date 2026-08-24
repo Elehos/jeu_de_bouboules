@@ -33,10 +33,13 @@ func _on_card_reward_pressed() -> void:
 )
 
 func _on_gem_reward_pressed() -> void:
-	GemInventory.owned_gems.append(current_gem.duplicate(true))
+	var dup: GemData = current_gem.duplicate(true)
+	dup.template_path = current_gem.resource_path
+	RunManager.get_local_player().owned_gems.append(dup)
+	RunManager.submit_gem_picked(current_gem.resource_path)
 	gem_reward_icon.get_parent().get_parent().visible = false
 
 func _on_close_pressed() -> void:
 	rewards_finished.emit()
-	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+	RunManager.submit_combat_finished()
 	queue_free()

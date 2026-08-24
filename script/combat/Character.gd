@@ -123,6 +123,8 @@ func _set_bar_fill(clip_control: Control, value: int) -> void:
 	clip_control.size.x = round(bar_width * ratio)
 
 func take_damage(amount: int) -> void:
+	if current_hp <= 0:
+		return
 	var remaining_damage: int = amount
 	
 	if current_block > 0:

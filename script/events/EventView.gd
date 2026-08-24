@@ -124,7 +124,7 @@ func _pick_choices_to_show() -> Array[EventChoice]:
 		return event_data.choices
 
 	var shuffled: Array[EventChoice] = event_data.choices.duplicate()
-	shuffled.shuffle()
+	RngUtils.shuffle(RunManager.run_rng, shuffled)
 	return shuffled.slice(0, shown)
 
 func _on_choice_selected(choice: EventChoice) -> void:
@@ -145,22 +145,38 @@ func _on_choice_selected(choice: EventChoice) -> void:
 	continue_button.visible = true
 
 func _apply_effect(effect: EventEffect) -> void:
+	var player: PlayerState = RunManager.get_local_player()
 	match effect.type:
 		EventEffect.EffectType.HEAL:
-			RunManager.player_current_hp = min(RunManager.player_current_hp + effect.amount, RunManager.player_max_hp)
+			player.current_hp = min(player.current_hp + effect.amount, player.max_hp)
+			RunManager.submit_player_hp(player.current_hp)
 		EventEffect.EffectType.DAMAGE:
 			# Ne tue jamais depuis un événement : il n'y a pas d'écran de
 			# défaite en dehors du combat, donc on plafonne à 1 PV restant.
-			RunManager.player_current_hp = max(RunManager.player_current_hp - effect.amount, 1)
+			player.current_hp = max(player.current_hp - effect.amount, 1)
+			RunManager.submit_player_hp(player.current_hp)
 		EventEffect.EffectType.GAIN_CARD:
 			if effect.card:
-				RunManager.player_deck.append(effect.card.duplicate(true))
+				var card_dup: CardData = effect.card.duplicate(true)
+				card_dup.template_path = effect.card.resource_path
+				player.deck.append(card_dup)
+				RunManager.submit_card_picked(effect.card.resource_path)
 		EventEffect.EffectType.REMOVE_RANDOM_CARD:
-			if not RunManager.player_deck.is_empty():
-				RunManager.player_deck.remove_at(randi() % RunManager.player_deck.size())
+			if not player.deck.is_empty():
+				var idx: int = RunManager.run_rng.randi_range(0, player.deck.size() - 1)
+				player.deck.remove_at(idx)
+				RunManager.submit_card_removed(idx)
 		EventEffect.EffectType.GAIN_GEM:
 			if effect.gem:
-				GemInventory.owned_gems.append(effect.gem.duplicate(true))
+				var gem_dup: GemData = effect.gem.duplicate(true)
+				gem_dup.template_path = effect.gem.resource_path
+				player.owned_gems.append(gem_dup)
+				RunManager.submit_gem_picked(effect.gem.resource_path)
 
 func _on_continue_pressed() -> void:
+	RunManager.current_node_pending = false
+	if RunManager.run_peer_ids.size() <= 1:
+		RunManager.save_run_to_disk()
+	elif NetworkManager.is_host():
+		RunManager.save_multi_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

@@ -19,6 +19,7 @@ class_name Hand
 @export var vertical_offset: float = 60.0  
 
 var cards: Array[Card] = []
+var player_state: PlayerState
 
 var hovered_card: Card = null
 @export var push_strength: float = 0.5  # 50% de l'effet de remplacement complet
@@ -26,9 +27,10 @@ var hovered_card: Card = null
 
 func _ready() -> void:
 	add_to_group("hand")
+	player_state = RunManager.get_local_player()
 	CombatEvents.player_turn_started.connect(new_turn)
 	CombatEvents.card_played.connect(_on_card_played)
-	DeckManager.setup_deck(RunManager.player_deck)
+	DeckManager.setup_deck(player_state)
 
 func add_card(data: CardData) -> void:
 	var card_instance = card_scene.instantiate()
@@ -42,13 +44,13 @@ func discard_hand() -> void:
 	hovered_card = null
 	for card_instance in cards:
 		if is_instance_valid(card_instance) and card_instance.get_parent() == self:
-			DeckManager.discard_card(card_instance.card_data)
+			DeckManager.discard_card(player_state, card_instance.card_data)
 			card_instance.queue_free()
 	cards.clear()
 
 func draw_hand() -> void:
 	for i in range(cards_per_turn):
-		var data = DeckManager.draw_card()
+		var data = DeckManager.draw_card(player_state)
 		if data:
 			add_card(data)
 

@@ -8,7 +8,14 @@ enum TurnState { PLAYER_TURN, ENEMY_TURN, TRANSITION }
 var current_state: TurnState = TurnState.PLAYER_TURN
 
 # Références aux nœuds de la scène, récupérées automatiquement au lancement
-@onready var player: Character = $WorldRoot/Player
+@onready var player_zone_center: Marker2D = $WorldRoot/PlayerZoneCenter
+@export var player_scene: PackedScene  # glisse player.tscn dans l'Inspecteur
+@export var player_spacing: float = 300.0
+
+var players: Array[Character] = []
+var local_player: Character
+var local_player_state: PlayerState
+
 @onready var end_turn_button: Button = $UI/EndTurnButton
 @onready var current_mana_label: Label = $UI/ManaIcon/ManaLabel/CurrentManaLabel
 @onready var max_mana_label: Label = $UI/ManaIcon/ManaLabel/MaxManaLabel
@@ -26,6 +33,11 @@ var current_state: TurnState = TurnState.PLAYER_TURN
 
 var combat_over: bool = false
 var _pending_victory: bool = false
+# Ce joueur précis est tombé (0 PV), mais l'équipe continue — distinct de
+# combat_over, qui ne devient vrai que sur une défaite d'équipe complète ou
+# une victoire (sinon un joueur à terre arrêterait de recevoir les mises à
+# jour réseau partagées, cf. _on_enemy_phase_started/_on_enemy_damage_received).
+var is_down: bool = false
 @onready var enemy_zone_center: Marker2D = $WorldRoot/EnemyZoneCenter
 @export var enemy_spacing: float = 300.0
 @export var enemy_scene: PackedScene  # glisse Enemy.tscn dans l'Inspecteur
@@ -54,40 +66,122 @@ var mana_frame_textures: Array[Texture2D] = []
 var mana_ui_current_frame: int = 4
 var mana_ui_anim_id: int = 0
 
+# Résout current_encounter à partir du pool déjà choisi (possible_encounters
+# ou possible_boss_encounters selon RunManager.is_boss_combat, décidé avant
+# l'appel). En solo, comportement strictement identique à avant (aucun accès
+# réseau). En multi, l'hôte tire l'indice et le diffuse ; le client l'attend
+# si besoin. pending_encounter_index est vérifié AVANT tout await : si le RPC
+# est déjà arrivé (cas le plus probable — l'hôte atteint son propre _ready()
+# sans latence réseau, le client est encore en train de recevoir), on
+# l'utilise tout de suite sans jamais attendre un signal déjà émis.
+func _resolve_encounter(pool: Array[EncounterData]) -> EncounterData:
+	if RunManager.run_peer_ids.size() <= 1:
+		return RngUtils.pick_random(RunManager.run_rng, pool)
+	if NetworkManager.is_host():
+		var index: int = RunManager.choose_combat_encounter(pool.size())
+		return pool[index]
+	var index: int = RunManager.pending_encounter_index
+	if index < 0:
+		index = await RunManager.encounter_chosen
+	RunManager.pending_encounter_index = -1
+	return pool[index]
+
 func _ready() -> void:
-	GemInventory.gems_locked = true
+	RunManager.in_combat = true
+	RunManager.active_combat_manager = self
 
-	var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
-	if encounter_pool.is_empty():
-		var pool_name: String = "Possible Boss Encounters" if RunManager.is_boss_combat else "Possible Encounters"
-		push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
-		return
+	# Défensif : si un combat multi précédent s'est terminé par une défaite
+	# d'équipe et qu'on relance via "Recommencer", évite que downed_peer_ids
+	# reste peuplé et bloque le tally de fin de tour dès le premier tour.
+	RunManager.downed_peer_ids.clear()
+	RunManager.pending_turn_ready.clear()
+	RunManager.pending_combat_finished.clear()
+	RunManager.pending_restart.clear()
 
-	CombatEvents.damage_taken.connect(_on_damage_taken)
-	current_encounter = encounter_pool.pick_random()
-	spawn_enemies()
-	if RunManager.player_current_hp >= 0:
-		player.max_hp = RunManager.player_max_hp
-		player.current_hp = RunManager.player_current_hp
-		player.sync_hp_bars_instantly()
+	local_player_state = RunManager.get_local_player()
+	local_player_state.gems_locked = true
+
+	var resync: Dictionary = RunManager.pending_combat_resync
+	RunManager.pending_combat_resync = {}
+	# Sauvegarde rechargée juste après une victoire, avant le choix des
+	# récompenses (cf. CombatManager._on_enemy_died()) : le combat est déjà
+	# gagné, on ne rejoue rien, juste le choix de récompenses réaffiché.
+	var awaiting_rewards: bool = RunManager.current_node_awaiting_rewards
+
+	if not resync.is_empty():
+		spawn_players()
+		CombatEvents.damage_taken.connect(_on_damage_taken)
+		current_encounter = load(resync["encounter_path"])
+		spawn_enemies()
+		_apply_combat_resync(resync)
+		is_down = resync["is_down"]
+	elif awaiting_rewards:
+		spawn_players()
+		combat_over = true
 	else:
-		RunManager.player_max_hp = player.max_hp
-		RunManager.player_current_hp = player.current_hp
-	
+		var encounter_pool: Array[EncounterData] = possible_boss_encounters if RunManager.is_boss_combat else possible_encounters
+		if encounter_pool.is_empty():
+			var pool_name: String = "Possible Boss Encounters" if RunManager.is_boss_combat else "Possible Encounters"
+			push_error(pool_name + " est vide ! Assigne au moins un EncounterData dans l'inspecteur du nœud Combat.")
+			return
+
+		spawn_players()
+		CombatEvents.damage_taken.connect(_on_damage_taken)
+		current_encounter = await _resolve_encounter(encounter_pool)
+		spawn_enemies()
+
+	if local_player_state.current_hp >= 0:
+		local_player.max_hp = local_player_state.max_hp
+		local_player.current_hp = local_player_state.current_hp
+		local_player.sync_hp_bars_instantly()
+	else:
+		local_player_state.max_hp = local_player.max_hp
+		local_player_state.current_hp = local_player.current_hp
+
 	CombatEvents.damage_taken.connect(_on_player_hp_changed)
-	
+
 	CombatEvents.deck_counts_changed.connect(_on_deck_counts_changed)
 	end_turn_button.pressed.connect(_on_end_turn_pressed)
 	turn_started.connect(_on_turn_started)
+	RunManager.enemy_phase_started.connect(_on_enemy_phase_started)
+	RunManager.team_wiped.connect(_on_team_wiped)
+	RunManager.combat_finished.connect(_on_combat_finished)
+	RunManager.restart_ready.connect(_on_restart_ready)
+	RunManager.player_hp_updated.connect(_on_player_hp_updated)
+	RunManager.enemy_damage_received.connect(_on_enemy_damage_received)
+	for entry: Dictionary in RunManager.pending_enemy_damage:
+		_on_enemy_damage_received(entry["spawn_id"], entry["amount"])
+	RunManager.pending_enemy_damage.clear()
 	CombatEvents.card_played.connect(_on_card_played)
 	CombatEvents.mana_changed.connect(_on_mana_changed)
-	player.died.connect(_on_player_died)
+	local_player.died.connect(_on_player_died)
 	restart_button.pressed.connect(_on_restart_pressed)
 	draw_pile_icon.gui_input.connect(_on_draw_pile_input)
 	discard_pile_icon.gui_input.connect(_on_discard_pile_input)
 	gem_bag_button.pressed.connect(gem_bag.toggle)
 	_setup_mana_ui_frames()
-	start_turn(TurnState.PLAYER_TURN)
+	if awaiting_rewards:
+		_show_rewards()
+	else:
+		start_turn(TurnState.PLAYER_TURN)
+		if not resync.is_empty() and resync.get("already_ended_turn", false):
+			end_turn_button.disabled = true
+
+func spawn_players() -> void:
+	var my_id: int = multiplayer.get_unique_id()
+	var player_count: int = RunManager.players.size()
+	for i in range(player_count):
+		var player_state: PlayerState = RunManager.players[i]
+		var new_player: Character = player_scene.instantiate()
+		world_root.add_child(new_player)
+		new_player.global_position = _compute_player_position(i, player_count)
+		players.append(new_player)
+		if player_state.peer_id == my_id:
+			local_player = new_player
+
+func _compute_player_position(index: int, total: int) -> Vector2:
+	var offset_x: float = (index - (total - 1) / 2.0) * player_spacing
+	return player_zone_center.global_position + Vector2(offset_x, 0)
 	
 
 
@@ -97,8 +191,8 @@ func start_turn(state: TurnState) -> void:
 	
 	match state:
 		TurnState.PLAYER_TURN:
-			player.reset_block()
-			CombatEvents.refill_mana()
+			local_player.reset_block()
+			CombatEvents.refill_mana(local_player_state)
 			CombatEvents.player_turn_started.emit()
 		TurnState.ENEMY_TURN:
 			for e in enemies:
@@ -122,16 +216,23 @@ func end_turn() -> void:
 func enemy_play_turn() -> void:
 	for e in enemies:
 		if is_instance_valid(e):
-			await get_tree().create_timer(0.5).timeout
-			e.execute_intention(player)
+			await get_tree().create_timer(0.5, false).timeout
+			e.execute_intention(local_player)
 	end_turn()
 
 
 func _on_end_turn_pressed() -> void:
-	if combat_over:
+	if combat_over or is_down:
 		return
 	if current_state == TurnState.PLAYER_TURN:
-		end_turn()
+		end_turn_button.disabled = true
+		RunManager.submit_end_turn()
+
+
+func _on_enemy_phase_started() -> void:
+	if combat_over:
+		return
+	end_turn()
 
 
 func _on_turn_started(state: TurnState) -> void:
@@ -141,24 +242,55 @@ func _on_turn_started(state: TurnState) -> void:
 
 
 func _on_card_played(card_data: CardData, target: Character) -> void:
-	if combat_over:
+	if combat_over or is_down:
 		return
 	if current_state != TurnState.PLAYER_TURN:
 		return
 	
 	if card_data.damage > 0 and target:
-		target.take_damage(card_data.get_effective_damage())
-	
+		var dmg: int = card_data.get_effective_damage()
+		target.take_damage(dmg)
+		if target is Enemy:
+			RunManager.submit_enemy_damage((target as Enemy).combat_spawn_id, dmg)
+
 	if card_data.block > 0:
-		player.gain_block(card_data.block)
-	
+		local_player.gain_block(card_data.block)
+
 	if card_data.mana_gain > 0:
-		CombatEvents.gain_mana(card_data.mana_gain)
-	
+		CombatEvents.gain_mana(local_player_state, card_data.mana_gain)
+
 	if card_data.equipped_gem and card_data.equipped_gem.heal_on_play > 0:
-		player.heal(card_data.equipped_gem.heal_on_play)
-		
-		
+		local_player.heal(card_data.equipped_gem.heal_on_play)
+
+
+func _on_enemy_damage_received(spawn_id: int, amount: int) -> void:
+	if combat_over:
+		return
+	var target_enemy: Enemy = _find_enemy_by_spawn_id(spawn_id)
+	if target_enemy and is_instance_valid(target_enemy):
+		target_enemy.take_damage(amount)
+
+
+func _find_enemy_by_spawn_id(spawn_id: int) -> Enemy:
+	for e in enemies:
+		if is_instance_valid(e) and e.combat_spawn_id == spawn_id:
+			return e
+	return null
+
+func _on_player_hp_updated(peer_id: int, current_hp: int) -> void:
+	var target: Character = _find_character_by_peer_id(peer_id)
+	if target and is_instance_valid(target):
+		target.current_hp = current_hp
+		target.sync_hp_bars_instantly()
+
+func _find_character_by_peer_id(peer_id: int) -> Character:
+	for i in range(RunManager.players.size()):
+		if RunManager.players[i].peer_id == peer_id:
+			if i < players.size():
+				return players[i]
+	return null
+
+
 func _on_mana_changed(current: int, max: int) -> void:
 	current_mana_label.text = str(current)
 	max_mana_label.text = str(max)
@@ -169,6 +301,12 @@ func _on_mana_changed(current: int, max: int) -> void:
 		_play_mana_ui_animation(MANA_FRAME_COUNT - 1)
 	
 func _on_player_died() -> void:
+	if is_down:
+		return
+	is_down = true
+	RunManager.submit_player_down()
+
+func _on_team_wiped() -> void:
 	show_end_screen("Défaite...", false)
 
 func _on_enemy_died(dead_enemy: Enemy) -> void:
@@ -182,11 +320,43 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 			break
 	
 	if all_dead:
+		combat_over = true
+		if is_down:
+			is_down = false
+			local_player_state.current_hp = 1
+			local_player.current_hp = 1
+			local_player.sync_hp_bars_instantly()
+			RunManager.submit_player_hp(1)
+		# Victoire acquise avant même le choix des récompenses : sauvegarder
+		# maintenant évite de perdre une récompense déjà ramassée si le
+		# joueur quitte pendant que le popup est ouvert (le nœud ne sera pas
+		# rejoué au chargement, juste le choix de récompenses réaffiché,
+		# cf. current_node_awaiting_rewards / CombatManager._ready()).
+		RunManager.current_node_awaiting_rewards = true
+		if RunManager.run_peer_ids.size() <= 1:
+			RunManager.save_run_to_disk()
+		elif NetworkManager.is_host():
+			RunManager.save_multi_run_to_disk()
 		_show_rewards()
 
 func _show_rewards() -> void:
 	var popup: RewardPopup = reward_popup_scene.instantiate()
 	$UI.add_child(popup)
+
+func _on_combat_finished() -> void:
+	RunManager.in_combat = false
+	RunManager.active_combat_manager = null
+	RunManager.current_node_pending = false
+	RunManager.current_node_awaiting_rewards = false
+	if RunManager.is_boss_combat:
+		RunManager.delete_solo_save()
+		if NetworkManager.is_host() and RunManager.run_peer_ids.size() > 1:
+			RunManager.delete_multi_save()
+	elif RunManager.run_peer_ids.size() <= 1:
+		RunManager.save_run_to_disk()
+	elif NetworkManager.is_host():
+		RunManager.save_multi_run_to_disk()
+	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:
 	combat_over = true
@@ -204,7 +374,11 @@ func _on_restart_pressed() -> void:
 	if _pending_victory:
 		get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 	else:
-		get_tree().reload_current_scene()
+		restart_button.disabled = true
+		RunManager.submit_restart()
+
+func _on_restart_ready() -> void:
+	get_tree().reload_current_scene()
 
 func _on_deck_counts_changed(draw_count: int, discard_count: int) -> void:
 	draw_count_label.text = str(draw_count)
@@ -237,10 +411,10 @@ func shake_screen(amount: int) -> void:
 	shake_tween.tween_property(world_root, "position", Vector2.ZERO, duration / steps)
 
 func _on_draw_pile_clicked() -> void:
-	card_list_popup.show_cards(DeckManager.draw_pile, "Pioche")
+	card_list_popup.show_cards(local_player_state.draw_pile, "Pioche")
 
 func _on_discard_pile_clicked() -> void:
-	card_list_popup.show_cards(DeckManager.discard_pile, "Défausse")
+	card_list_popup.show_cards(local_player_state.discard_pile, "Défausse")
 
 func _on_draw_pile_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -258,19 +432,46 @@ func spawn_enemies() -> void:
 		var new_enemy: Enemy = enemy_scene.instantiate()
 		new_enemy.enemy_data = slot.enemy_data
 		new_enemy.intention_override = slot.intention_override
+		new_enemy.combat_spawn_id = i
 		world_root.add_child(new_enemy)
 		new_enemy.global_position = _compute_enemy_position(i, enemy_count)
 		enemies.append(new_enemy)
 		new_enemy.died.connect(_on_enemy_died.bind(new_enemy))
+
+# Applique l'instantané combat reçu par resync aux ennemis fraîchement
+# spawnés par spawn_enemies(). Un ennemi présent dans enemies mais absent de
+# l'instantané est déjà mort côté hôte (spawn_enemies() recrée toujours le
+# roster complet à pleins PV) : on le retire ici. Le cas "ça vide enemies
+# entièrement" est impossible : la resync n'est envoyée que si combat_over
+# était encore faux côté hôte à l'instant de l'envoi, et combat_over devient
+# vrai de façon synchrone dès que le dernier ennemi meurt (_on_enemy_died()).
+func _apply_combat_resync(data: Dictionary) -> void:
+	for e in enemies.duplicate():
+		var found: bool = false
+		for snap: Dictionary in data["enemies"]:
+			if snap["spawn_id"] == e.combat_spawn_id:
+				found = true
+				e.current_hp = snap["current_hp"]
+				e.current_block = snap["current_block"]
+				e.current_intention = snap["current_intention"]
+				e.sequence_index = snap["sequence_index"]
+				e.sync_hp_bars_instantly()
+				e.update_block_display()
+				e.intention_changed.emit(e.current_intention)
+				break
+		if not found:
+			enemies.erase(e)
+			e.queue_free()
 
 func _compute_enemy_position(index: int, total: int) -> Vector2:
 	var offset_x: float = (index - (total - 1) / 2.0) * enemy_spacing
 	return enemy_zone_center.global_position + Vector2(offset_x, 0)
 
 func _on_player_hp_changed(character: Character, _amount: int) -> void:
-	if character == player:
-		RunManager.player_current_hp = player.current_hp
-		
+	if character == local_player:
+		local_player_state.current_hp = local_player.current_hp
+		RunManager.submit_player_hp(local_player.current_hp)
+
 func _setup_mana_ui_frames() -> void:
 	if not mana_frames_texture:
 		return

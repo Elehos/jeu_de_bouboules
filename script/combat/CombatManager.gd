@@ -335,6 +335,8 @@ func _on_enemy_died(dead_enemy: Enemy) -> void:
 		RunManager.current_node_awaiting_rewards = true
 		if RunManager.run_peer_ids.size() <= 1:
 			RunManager.save_run_to_disk()
+		elif NetworkManager.is_host():
+			RunManager.save_multi_run_to_disk()
 		_show_rewards()
 
 func _show_rewards() -> void:
@@ -348,8 +350,12 @@ func _on_combat_finished() -> void:
 	RunManager.current_node_awaiting_rewards = false
 	if RunManager.is_boss_combat:
 		RunManager.delete_solo_save()
+		if NetworkManager.is_host() and RunManager.run_peer_ids.size() > 1:
+			RunManager.delete_multi_save()
 	elif RunManager.run_peer_ids.size() <= 1:
 		RunManager.save_run_to_disk()
+	elif NetworkManager.is_host():
+		RunManager.save_multi_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:

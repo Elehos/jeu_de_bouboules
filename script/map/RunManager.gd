@@ -2,6 +2,8 @@ extends Node
 
 const SOLO_SAVE_PATH: String = "user://solo_save.dat"
 const SAVE_FORMAT_VERSION: int = 1
+const MULTI_SAVE_PATH: String = "user://multi_save.dat"
+const MULTI_SAVE_FORMAT_VERSION: int = 1
 
 # RNG unique de la run en cours — tout ce qui détermine réellement son
 # déroulement (carte, rencontres, événements, récompenses, mélange du deck)
@@ -79,6 +81,21 @@ signal node_choice_applied(map_node: MapNode)
 # moment de la déconnexion) — consommé puis remis à vide dès lecture.
 var last_disconnect_message: String = ""
 
+# true entre load_multi_run_from_disk() et resume_multiplayer_run() : salon de
+# reprise en cours, pas encore en jeu. Distinct de map_generated (qui pilote
+# le bouton engrenage de SettingsOverlay et la pause de _on_peer_disconnected)
+# pour que ni l'un ni l'autre ne s'active pendant l'attente en salon.
+var resume_mode: bool = false
+# Un booléen par emplacement de joueurs[] d'une sauvegarde multi chargée :
+# true si ce joueur d'origine s'est reconnecté cette session. Reconstruit par
+# _lobby_roster_flags() à chaque reconnexion, lu par MainMenu pour afficher le
+# statut du salon et n'activer le bouton de reprise qu'une fois tout le monde
+# revenu.
+var lobby_roster_flags: Array[bool] = []
+# Émis côté client quand l'hôte a rejeté sa tentative de rejoindre un salon de
+# reprise (token absent de la sauvegarde) — MainMenu affiche le message.
+signal join_rejected(reason: String)
+
 func _ready() -> void:
 	NetworkManager.player_disconnected.connect(_on_peer_disconnected)
 	NetworkManager.server_disconnected.connect(_on_host_disconnected)
@@ -131,6 +148,8 @@ func reset_run_state() -> void:
 	in_combat = false
 	active_combat_manager = null
 	pending_combat_resync = {}
+	resume_mode = false
+	lobby_roster_flags.clear()
 
 # Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
 var peer_client_tokens: Dictionary = {}
@@ -147,7 +166,54 @@ func _submit_client_token(token: String) -> void:
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	peer_client_tokens[sender_id] = token
-	_try_reconnect_match(sender_id, token)
+	if resume_mode:
+		_try_lobby_rejoin_match(sender_id, token)
+	else:
+		_try_reconnect_match(sender_id, token)
+
+# Hôte uniquement, salon de reprise (resume_mode == true, cf. load_multi_run_
+# from_disk()). Distinct de _try_reconnect_match() : ici run_peer_ids contient
+# des sentinelles -1 (joueur d'origine pas encore revenu cette session), pas
+# d'anciens peer_id périmés d'une session en cours — mécanisme structurellement
+# différent, pas la peine de les unifier.
+func _try_lobby_rejoin_match(new_peer_id: int, token: String) -> void:
+	if token.is_empty():
+		return
+	for i in players.size():
+		var p: PlayerState = players[i]
+		if p.client_token == token and p.peer_id == -1:
+			p.peer_id = new_peer_id
+			run_peer_ids[i] = new_peer_id
+			lobby_roster_flags = _lobby_roster_flags()
+			_broadcast_lobby_roster.rpc(lobby_roster_flags)
+			return
+	var reason: String = "Cette sauvegarde ne vous inclut pas parmi les joueurs d'origine."
+	for p: PlayerState in players:
+		if p.client_token == token:
+			reason = "Vous êtes déjà connecté depuis un autre appareil."
+			break
+	_receive_join_rejection.rpc_id(new_peer_id, reason)
+
+func _lobby_roster_flags() -> Array[bool]:
+	var out: Array[bool] = []
+	for p: PlayerState in players:
+		out.append(p.peer_id != -1)
+	return out
+
+@rpc("authority", "call_remote", "reliable")
+func _broadcast_lobby_roster(flags: Array) -> void:
+	resume_mode = true
+	lobby_roster_flags = []
+	for f in flags:
+		lobby_roster_flags.append(f)
+
+# Le rejet ne force jamais la déconnexion côté hôte (ordre RPC-avant-
+# disconnect_peer() non garanti) : c'est le pair rejeté qui se déconnecte
+# lui-même en recevant ce RPC fiable.
+@rpc("authority", "call_remote", "reliable")
+func _receive_join_rejection(reason: String) -> void:
+	join_rejected.emit(reason)
+	NetworkManager.close_connection()
 
 # Hôte uniquement. Cherche dans run_peer_ids un ANCIEN peer_id (déjà membre
 # de la run, actuellement déconnecté) dont le token enregistré correspond —
@@ -300,6 +366,95 @@ func has_solo_save() -> bool:
 func delete_solo_save() -> void:
 	if FileAccess.file_exists(SOLO_SAVE_PATH):
 		DirAccess.remove_absolute(SOLO_SAVE_PATH)
+
+func has_multi_save() -> bool:
+	return FileAccess.file_exists(MULTI_SAVE_PATH)
+
+func delete_multi_save() -> void:
+	if FileAccess.file_exists(MULTI_SAVE_PATH):
+		DirAccess.remove_absolute(MULTI_SAVE_PATH)
+
+# Un token par joueur de players[], dans le même ordre — jamais transmis par
+# RPC (cf. commentaire sur PlayerState.client_token), collecté ici uniquement
+# pour l'écriture sur disque. peer_id == 1 est toujours l'hôte lui-même
+# (garanti par la topologie en étoile) : son token vient directement de
+# NetworkManager, les autres de peer_client_tokens (alimenté à chaque
+# handshake entrant, cf. _submit_client_token).
+func _collect_player_tokens() -> Array:
+	var out: Array = []
+	for p: PlayerState in players:
+		out.append(NetworkManager.local_client_token if p.peer_id == 1 else peer_client_tokens.get(p.peer_id, ""))
+	return out
+
+# Hôte uniquement. Mêmes points de contrôle que save_run_to_disk() (jamais
+# d'instantané de combat en cours), format séparé car run_peer_ids/peer_id
+# n'ont aucun sens après un redémarrage du process — l'identité de chaque
+# joueur d'origine est portée par son token, pas par son peer_id ENet.
+func save_multi_run_to_disk() -> bool:
+	if not NetworkManager.is_host():
+		push_error("save_multi_run_to_disk() ne doit être appelé que par l'hôte.")
+		return false
+	var data: Dictionary = {
+		"version": MULTI_SAVE_FORMAT_VERSION,
+		"floors": _serialize_floors(),
+		"current_floor_index": current_floor_index,
+		"current_position_in_floor": current_position_in_floor,
+		"current_node_pending": current_node_pending,
+		"current_node_awaiting_rewards": current_node_awaiting_rewards,
+		"is_boss_combat": is_boss_combat,
+		"players": _serialize_players(),
+		"tokens": _collect_player_tokens(),
+		"seed": run_seed,
+		"rng_state": run_rng.state,
+	}
+	var f: FileAccess = FileAccess.open(MULTI_SAVE_PATH, FileAccess.WRITE)
+	if f == null:
+		push_error("save_multi_run_to_disk(): écriture impossible (code %d)" % FileAccess.get_open_error())
+		return false
+	f.store_var(data)
+	f.close()
+	return true
+
+# Repeuple floors/players/etc depuis le disque, comme load_run_from_disk(),
+# mais laisse map_generated à false et pose resume_mode = true à la place :
+# le run n'est pas encore "en jeu", il attend en salon que les joueurs
+# d'origine se reconnectent (cf. _try_lobby_rejoin_match()). C'est
+# resume_multiplayer_run() qui bascule effectivement vers la partie.
+func load_multi_run_from_disk() -> bool:
+	if not FileAccess.file_exists(MULTI_SAVE_PATH):
+		return false
+	var f: FileAccess = FileAccess.open(MULTI_SAVE_PATH, FileAccess.READ)
+	if f == null:
+		return false
+	var data = f.get_var()
+	f.close()
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	floors = _deserialize_floors(data["floors"])
+	current_floor_index = data["current_floor_index"]
+	current_position_in_floor = data["current_position_in_floor"]
+	current_node_pending = data.get("current_node_pending", false)
+	current_node_awaiting_rewards = data.get("current_node_awaiting_rewards", false)
+	is_boss_combat = data["is_boss_combat"]
+	players = _deserialize_players(data["players"])
+	var tokens: Array = data.get("tokens", [])
+	for i in players.size():
+		players[i].client_token = tokens[i] if i < tokens.size() else ""
+		if players[i].peer_id != 1:
+			players[i].peer_id = -1
+	run_peer_ids = []
+	for p: PlayerState in players:
+		run_peer_ids.append(p.peer_id)
+	players_ready = true
+	resume_mode = true
+	lobby_roster_flags = _lobby_roster_flags()
+	if data.has("seed") and data.has("rng_state"):
+		run_rng.seed = data["seed"]
+		run_rng.state = data["rng_state"]
+		run_seed = data["seed"]
+	else:
+		_init_run_rng(randi())
+	return true
 
 # N'est appelée que par _apply_node_choice() / CombatManager._on_enemy_died()
 # (victoire) / CombatManager._on_combat_finished() / EventView._on_continue_pressed()
@@ -982,4 +1137,53 @@ func _apply_node_choice(map_node: MapNode) -> void:
 	current_node_awaiting_rewards = false
 	if run_peer_ids.size() <= 1:
 		save_run_to_disk()
+	elif NetworkManager.is_host():
+		save_multi_run_to_disk()
 	node_choice_applied.emit(map_node)
+
+# Hôte uniquement. Bascule le salon de reprise (resume_mode) vers la partie
+# effective — n'est appelée par MainMenu qu'une fois lobby_roster_flags ne
+# contient plus aucun false (tous les joueurs d'origine reconnectés, décision
+# utilisateur : pas de reprise partielle). Diffuse un instantané complet,
+# comme start_multiplayer_run()/_receive_map, mais transporte en plus
+# current_node_pending/current_node_awaiting_rewards/seed+état RNG puisque,
+# contrairement à _send_full_resync() (qui ne part jamais en cours de nœud),
+# une reprise peut redémarrer en plein milieu d'un nœud non résolu.
+func resume_multiplayer_run() -> void:
+	if not NetworkManager.is_host():
+		push_error("resume_multiplayer_run() ne doit être appelé que par l'hôte.")
+		return
+	resume_mode = false
+	map_generated = true
+	_receive_resumed_run.rpc(
+		_serialize_floors(),
+		run_peer_ids,
+		current_floor_index,
+		current_position_in_floor,
+		current_node_pending,
+		current_node_awaiting_rewards,
+		is_boss_combat,
+		_serialize_players(),
+		run_seed,
+		run_rng.state,
+	)
+
+@rpc("authority", "call_remote", "reliable")
+func _receive_resumed_run(serialized_floors: Array, peer_ids: Array, f_idx: int, pos_idx: int, node_pending: bool, awaiting_rewards: bool, boss: bool, serialized_players: Array, seed_value: int, rng_state: int) -> void:
+	floors = _deserialize_floors(serialized_floors)
+	current_floor_index = f_idx
+	current_position_in_floor = pos_idx
+	current_node_pending = node_pending
+	current_node_awaiting_rewards = awaiting_rewards
+	is_boss_combat = boss
+	run_peer_ids = []
+	for id in peer_ids:
+		run_peer_ids.append(id)
+	players = _deserialize_players(serialized_players)
+	map_generated = true
+	players_ready = true
+	resume_mode = false
+	run_rng.seed = seed_value
+	run_rng.state = rng_state
+	run_seed = seed_value
+	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

@@ -11,9 +11,11 @@ extends Node2D
 @onready var solo_button: Button = $UI/ChoicePanel/SoloButton
 @onready var multi_button: Button = $UI/ChoicePanel/MultiButton
 @onready var host_button: Button = $UI/MultiPanel/Content/HostButton
+@onready var continue_multi_button: Button = $UI/MultiPanel/Content/ContinueMultiButton
 @onready var join_button: Button = $UI/MultiPanel/Content/JoinRow/JoinButton
 @onready var address_field: LineEdit = $UI/MultiPanel/Content/JoinRow/AddressField
 @onready var status_label: Label = $UI/MultiPanel/Content/StatusLabel
+@onready var lobby_status_label: Label = $UI/MultiPanel/Content/LobbyStatusLabel
 @onready var start_game_button: Button = $UI/MultiPanel/Content/StartGameButton
 @onready var back_button: Button = $UI/MultiPanel/Content/BackButton
 
@@ -22,11 +24,14 @@ var pending_seed: int = 0
 func _ready() -> void:
 	multi_panel.visible = false
 	start_game_button.visible = false
+	lobby_status_label.visible = false
 	continue_button.visible = RunManager.has_solo_save()
 	continue_button.pressed.connect(_on_continue_pressed)
 	solo_button.pressed.connect(_on_solo_pressed)
 	multi_button.pressed.connect(_on_multi_pressed)
 	host_button.pressed.connect(_on_host_pressed)
+	continue_multi_button.visible = RunManager.has_multi_save()
+	continue_multi_button.pressed.connect(_on_continue_multi_pressed)
 	join_button.pressed.connect(_on_join_pressed)
 	back_button.pressed.connect(_on_back_pressed)
 	start_game_button.pressed.connect(_on_start_game_pressed)
@@ -35,6 +40,7 @@ func _ready() -> void:
 	NetworkManager.connection_succeeded.connect(_on_connection_succeeded)
 	NetworkManager.connection_failed.connect(_on_connection_failed)
 	NetworkManager.server_disconnected.connect(_on_server_disconnected)
+	RunManager.join_rejected.connect(_on_join_rejected)
 
 	if not RunManager.last_disconnect_message.is_empty():
 		choice_panel.visible = false
@@ -75,10 +81,12 @@ func _on_continue_pressed() -> void:
 func _on_multi_pressed() -> void:
 	choice_panel.visible = false
 	multi_panel.visible = true
+	continue_multi_button.visible = RunManager.has_multi_save()
 	status_label.text = ""
 
 func _on_back_pressed() -> void:
 	NetworkManager.close_connection()
+	RunManager.reset_run_state()
 	_set_connect_buttons_enabled(true)
 	start_game_button.visible = false
 	multi_panel.visible = false
@@ -94,6 +102,22 @@ func _on_host_pressed() -> void:
 		status_label.text = "Erreur lors de l'hébergement (code %d)" % err
 		return
 	status_label.text = "En attente d'un joueur... (Seed : %d)" % pending_seed
+	_set_connect_buttons_enabled(false)
+
+# Charge la sauvegarde multi et héberge un salon de reprise (RunManager.
+# resume_mode passe à true) : les joueurs d'origine s'y reconnectent via
+# _try_lobby_rejoin_match() côté hôte, _process() ci-dessous affiche leur
+# statut et n'active le bouton de reprise qu'une fois tout le monde revenu.
+func _on_continue_multi_pressed() -> void:
+	if not RunManager.load_multi_run_from_disk():
+		continue_multi_button.visible = false
+		return
+	var err: Error = NetworkManager.host_game()
+	if err != OK:
+		status_label.text = "Erreur lors de l'hébergement (code %d)" % err
+		RunManager.reset_run_state()
+		return
+	status_label.text = "Salon de reprise ouvert. En attente des joueurs d'origine..."
 	_set_connect_buttons_enabled(false)
 
 func _on_join_pressed() -> void:
@@ -132,9 +156,46 @@ func _on_start_game_pressed() -> void:
 	if not NetworkManager.is_host():
 		return
 	start_game_button.disabled = true
-	RunManager.start_multiplayer_run(8, pending_seed, true)
+	if RunManager.resume_mode:
+		RunManager.resume_multiplayer_run()
+	else:
+		RunManager.start_multiplayer_run(8, pending_seed, true)
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
+
+# Le client s'est déjà déconnecté lui-même juste avant l'émission de ce
+# signal (cf. RunManager._receive_join_rejection) — pas de double
+# désinscription réseau à faire ici, juste afficher le message et repermettre
+# une nouvelle tentative.
+func _on_join_rejected(reason: String) -> void:
+	status_label.text = reason
+	_set_connect_buttons_enabled(true)
+
+func _format_lobby_roster(flags: Array) -> String:
+	var lines: PackedStringArray = []
+	for i in flags.size():
+		var connected: bool = flags[i]
+		var who: String = "Joueur %d (hôte)" % (i + 1) if i == 0 else "Joueur %d" % (i + 1)
+		lines.append("%s : %s" % [who, "Connecté" if connected else "En attente..."])
+	return "\n".join(lines)
+
+# Actif uniquement pendant l'affichage de MultiPanel. En salon de reprise
+# (RunManager.resume_mode), affiche le statut de chaque joueur d'origine et
+# n'active le bouton de démarrage qu'une fois tous reconnectés (décision
+# utilisateur : pas de reprise partielle) — sinon, laisse la logique
+# existante de _on_player_connected/_on_player_disconnected piloter sa
+# visibilité pour une partie fraîche.
+func _process(_delta: float) -> void:
+	if not multi_panel.visible:
+		return
+	lobby_status_label.visible = RunManager.resume_mode
+	if RunManager.resume_mode:
+		lobby_status_label.text = _format_lobby_roster(RunManager.lobby_roster_flags)
+		start_game_button.text = "Reprendre la partie"
+		start_game_button.visible = NetworkManager.is_host() and not RunManager.lobby_roster_flags.has(false)
+	else:
+		start_game_button.text = "Démarrer la partie"
 
 func _set_connect_buttons_enabled(enabled: bool) -> void:
 	host_button.disabled = not enabled
 	join_button.disabled = not enabled
+	continue_multi_button.disabled = not enabled

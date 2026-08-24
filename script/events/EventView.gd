@@ -177,4 +177,6 @@ func _on_continue_pressed() -> void:
 	RunManager.current_node_pending = false
 	if RunManager.run_peer_ids.size() <= 1:
 		RunManager.save_run_to_disk()
+	elif NetworkManager.is_host():
+		RunManager.save_multi_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")

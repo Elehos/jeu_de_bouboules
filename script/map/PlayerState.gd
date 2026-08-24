@@ -26,3 +26,11 @@ var current_mana: int = max_mana
 
 # --- Progression du run ---
 var starting_event_resolved: bool = false
+
+# Token d'identité persistant (NetworkManager.local_client_token) du joueur
+# propriétaire de cet état — uniquement rempli/lu par la sauvegarde/chargement
+# multijoueur (RunManager.save_multi_run_to_disk()/load_multi_run_from_disk()),
+# jamais transmis par RPC : diffuser ce secret à tous les pairs permettrait à
+# l'un d'eux de capturer le token d'un autre et d'usurper son emplacement à
+# une reconnexion future.
+var client_token: String = ""

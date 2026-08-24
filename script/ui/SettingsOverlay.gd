@@ -29,12 +29,15 @@ func _on_close_pressed() -> void:
 	panel.visible = false
 	get_tree().paused = false
 
-# N'écrit jamais rien sur disque ici : RunManager sauvegarde déjà tout seul
-# aux bons moments (entrée dans un nœud, victoire avant récompenses, sortie
-# du nœud — cf. RunManager.save_run_to_disk() call sites). Sauvegarder ici
-# aussi capturerait un instant arbitraire choisi par le joueur (typiquement
+# N'écrit jamais rien sur disque en solo : RunManager sauvegarde déjà tout
+# seul aux bons moments (entrée dans un nœud, victoire avant récompenses,
+# sortie du nœud — cf. RunManager.save_run_to_disk() call sites). Sauvegarder
+# ici aussi capturerait un instant arbitraire choisi par le joueur (typiquement
 # en pleine bagarre, dégâts déjà pris) au lieu d'un point de progression
-# réellement acquis — ce bouton se contente donc de quitter.
+# réellement acquis. En multi, seul l'hôte écrit (couvre aussi le cas où on
+# quitte avant le tout premier point de contrôle) ; un simple client n'a
+# jamais de sauvegarde à lui, l'hôte reste seul dépositaire du fichier — il se
+# contente de se déconnecter, la partie continue en pause pour les autres.
 func _quit_without_saving() -> void:
 	panel.visible = false
 	get_tree().paused = false
@@ -45,6 +48,8 @@ func _quit_without_saving() -> void:
 	# reste du processus. Ne toucher au réseau que si une vraie session
 	# multijoueur est en cours.
 	if RunManager.run_peer_ids.size() > 1:
+		if NetworkManager.is_host():
+			RunManager.save_multi_run_to_disk()
 		NetworkManager.close_connection()
 	RunManager.reset_run_state()
 	get_tree().change_scene_to_file("res://scenes/ui/MainMenu.tscn")

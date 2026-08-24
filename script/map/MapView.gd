@@ -5,8 +5,6 @@ class_name MapView
 @export var floor_spacing: float = 200.0  # distance verticale entre étages
 @export var node_spacing: float = 150.0   # distance horizontale entre nœuds d'un même étage
 @export var view_offset: Vector2 = Vector2(200, 540)  # centre horizontal, bas de l'écran (le départ en bas, la fin en haut)
-@export var starting_deck: Array[CardData] = []
-@export var starting_gems: Array[GemData] = []
 @export var possible_events: Array[EventData] = []
 # Événement fixe (pas tiré au hasard parmi possible_events) : se déclenche en
 # cliquant sur la case de départ (type START), une seule fois par run. Laisse
@@ -126,7 +124,7 @@ func _ready() -> void:
 	if not RunManager.map_generated:
 		RunManager.start_new_run(8)
 	if not RunManager.players_ready:
-		RunManager.build_players_from_starting_content(starting_deck, starting_gems)
+		RunManager.build_players_from_starting_content()
 	RunManager.get_local_player().gems_locked = false
 	gem_bag_button.pressed.connect(gem_bag_panel.toggle)
 	status_label.visible = false

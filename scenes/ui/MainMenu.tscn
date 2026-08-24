@@ -1,8 +1,11 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://script/ui/MainMenu.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://c0dkpritmuasc" path="res://assets/backgrounds/landscape.png" id="2_bg"]
 [ext_resource type="FontFile" uid="uid://cpcy53csexows" path="res://assets/fonts/PatrickHand-Regular.ttf" id="3_font"]
+[ext_resource type="PackedScene" path="res://scenes/ui/CharacterSelectPanel.tscn" id="4_charselect"]
+[ext_resource type="Script" path="res://script/characters/CharacterData.gd" id="5_characterdata"]
+[ext_resource type="Resource" path="res://ressourcesCharacters/personnage_de_base.tres" id="6_defaultchar"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
 bg_color = Color(0.35686275, 0.35686275, 0.35686275, 1)
@@ -28,6 +31,39 @@ corner_radius_bottom_right = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
 bg_color = Color(0.26, 0.26, 0.26, 1)
+border_width_left = 20
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abandon_normal"]
+bg_color = Color(0.45, 0.2, 0.2, 1)
+border_width_left = 20
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abandon_hover"]
+bg_color = Color(0.56, 0.26, 0.26, 1)
+border_width_left = 20
+border_width_top = 20
+border_width_right = 20
+border_width_bottom = 20
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_abandon_pressed"]
+bg_color = Color(0.32, 0.14, 0.14, 1)
 border_width_left = 20
 border_width_top = 20
 border_width_right = 20
@@ -85,31 +121,6 @@ theme_override_constants/outline_size = 10
 text = "Jeu de bouboules"
 horizontal_alignment = 1
 
-[node name="SeedRow" type="HBoxContainer" parent="UI/ChoicePanel"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="SeedLabel" type="Label" parent="UI/ChoicePanel/SeedRow"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 32
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-text = "Seed :"
-
-[node name="SeedField" type="LineEdit" parent="UI/ChoicePanel/SeedRow"]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Aléatoire si vide"
-
-[node name="SeedErrorLabel" type="Label" parent="UI/ChoicePanel"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 24
-theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
-horizontal_alignment = 1
-text = ""
-
 [node name="ContinueButton" type="Button" parent="UI/ChoicePanel"]
 visible = false
 custom_minimum_size = Vector2(0, 100)
@@ -121,6 +132,18 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
 text = "Continuer"
+
+[node name="AbandonButton" type="Button" parent="UI/ChoicePanel"]
+visible = false
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_abandon_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_abandon_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_abandon_pressed")
+text = "Abandonner la partie sauvegardée"
 
 [node name="SoloButton" type="Button" parent="UI/ChoicePanel"]
 custom_minimum_size = Vector2(0, 100)
@@ -153,9 +176,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -260.0
-offset_top = -320.0
+offset_top = -380.0
 offset_right = 260.0
-offset_bottom = 320.0
+offset_bottom = 380.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
@@ -226,6 +249,39 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 horizontal_alignment = 1
 text = ""
 
+[node name="MultiSeedRow" type="HBoxContainer" parent="UI/MultiPanel/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SeedLabel" type="Label" parent="UI/MultiPanel/Content/MultiSeedRow"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Seed :"
+
+[node name="SeedField" type="LineEdit" parent="UI/MultiPanel/Content/MultiSeedRow"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Aléatoire si vide"
+
+[node name="MultiSeedErrorLabel" type="Label" parent="UI/MultiPanel/Content"]
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+horizontal_alignment = 1
+text = ""
+
+[node name="MultiCharacterPanel" parent="UI/MultiPanel/Content" instance=ExtResource("4_charselect")]
+visible = false
+layout_mode = 2
+available_characters = Array[ExtResource("5_characterdata")]([ExtResource("6_defaultchar")])
+confirm_button_text = "Confirmer mon personnage"
+
 [node name="LobbyStatusLabel" type="Label" parent="UI/MultiPanel/Content"]
 visible = false
 layout_mode = 2
@@ -249,5 +305,76 @@ theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
 text = "Démarrer la partie"
 
 [node name="BackButton" type="Button" parent="UI/MultiPanel/Content"]
+layout_mode = 2
+text = "Retour"
+
+[node name="CharacterPanel" type="Panel" parent="UI"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -320.0
+offset_right = 320.0
+offset_bottom = 320.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Content" type="VBoxContainer" parent="UI/CharacterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 30.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="UI/CharacterPanel/Content"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 44
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+horizontal_alignment = 1
+text = "Choisis ton personnage"
+
+[node name="SeedRow" type="HBoxContainer" parent="UI/CharacterPanel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SeedLabel" type="Label" parent="UI/CharacterPanel/Content/SeedRow"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Seed :"
+
+[node name="SeedField" type="LineEdit" parent="UI/CharacterPanel/Content/SeedRow"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Aléatoire si vide"
+
+[node name="SeedErrorLabel" type="Label" parent="UI/CharacterPanel/Content"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+horizontal_alignment = 1
+text = ""
+
+[node name="SoloCharacterSelect" parent="UI/CharacterPanel/Content" instance=ExtResource("4_charselect")]
+layout_mode = 2
+available_characters = Array[ExtResource("5_characterdata")]([ExtResource("6_defaultchar")])
+confirm_button_text = "Commencer"
+
+[node name="BackButton" type="Button" parent="UI/CharacterPanel/Content"]
 layout_mode = 2
 text = "Retour"

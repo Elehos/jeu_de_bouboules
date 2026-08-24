@@ -343,6 +343,17 @@ func _show_rewards() -> void:
 	var popup: RewardPopup = reward_popup_scene.instantiate()
 	$UI.add_child(popup)
 
+# Ne réécrit PLUS la sauvegarde ici (demande explicite) : le dernier point de
+# contrôle d'un combat reste celui pris juste après la victoire, avant le
+# choix des récompenses (_on_enemy_died()) — recharger après avoir pris les
+# récompenses et être revenu sur la carte, mais avant d'avoir cliqué un
+# nouveau nœud, rejoue donc le choix de récompenses plutôt que de reprendre
+# tel quel sur la carte. Dès qu'un nouveau nœud est choisi, _apply_node_
+# choice() sauvegarde de toute façon l'état à jour — la fenêtre où cette
+# sauvegarde reste "en retard" est donc limitée au temps passé sur la carte
+# entre la fin du combat et le prochain clic. Les événements (EventView.
+# _on_continue_pressed()) ne sont pas concernés, ils sauvegardent toujours
+# à leur sortie.
 func _on_combat_finished() -> void:
 	RunManager.in_combat = false
 	RunManager.active_combat_manager = null
@@ -352,10 +363,6 @@ func _on_combat_finished() -> void:
 		RunManager.delete_solo_save()
 		if NetworkManager.is_host() and RunManager.run_peer_ids.size() > 1:
 			RunManager.delete_multi_save()
-	elif RunManager.run_peer_ids.size() <= 1:
-		RunManager.save_run_to_disk()
-	elif NetworkManager.is_host():
-		RunManager.save_multi_run_to_disk()
 	get_tree().change_scene_to_file("res://scenes/map/MapView.tscn")
 
 func show_end_screen(text: String, is_victory: bool) -> void:

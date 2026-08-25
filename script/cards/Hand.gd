@@ -30,7 +30,14 @@ func _ready() -> void:
 	player_state = RunManager.get_local_player()
 	CombatEvents.player_turn_started.connect(new_turn)
 	CombatEvents.card_played.connect(_on_card_played)
-	DeckManager.setup_deck(player_state)
+	# _ready() des enfants avant celui de la racine : ce mélange tourne donc
+	# TOUJOURS avant CombatManager._ready(). Sur le chemin "victoire déjà
+	# acquise, on réaffiche juste les récompenses"
+	# (RunManager.current_node_awaiting_rewards), aucun tour ne sera joué et
+	# mélanger ici consommerait run_rng entre l'état restauré depuis la
+	# sauvegarde et le tirage des récompenses — la gemme et les 3 cartes
+	# réaffichées ne seraient alors plus celles déjà vues avant de quitter.
+	DeckManager.setup_deck(player_state, not RunManager.current_node_awaiting_rewards)
 
 func add_card(data: CardData) -> void:
 	var card_instance = card_scene.instantiate()

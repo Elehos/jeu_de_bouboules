@@ -145,27 +145,46 @@ func _ready() -> void:
 				_start_event()
 
 
+# true tant que le nœud START a un événement assigné et que ce joueur ne l'a
+# pas encore résolu — bloque l'accès au 1er étage (les connexions sortantes de
+# START existent dès la génération de la carte, indépendamment de l'événement)
+# tant que ce n'est pas fait.
+func _start_pending() -> bool:
+	return starting_event != null and not RunManager.get_local_player().starting_event_resolved
+
 func _is_node_accessible(node_data: MapNode) -> bool:
 	if _vote_pending:
 		return false
 
 	if node_data.type == MapNode.NodeType.START:
 		var is_here: bool = node_data.floor_index == current_floor_index and node_data.position_in_floor == current_position_in_floor
-		return is_here and starting_event != null and not RunManager.get_local_player().starting_event_resolved
+		return is_here and _start_pending()
 
 	if node_data.floor_index != current_floor_index + 1:
 		return false
 
+	# L'étage 0 ne contient que START (un seul nœud) : cette vérification ne
+	# peut donc concerner que le 1er étage, jamais un étage suivant.
+	if current_floor_index == 0 and _start_pending():
+		return false
+
 	var current_node: MapNode = floors[current_floor_index][current_position_in_floor]
 	return node_data.position_in_floor in current_node.connections
-	
+
 func _update_node_states() -> void:
+	# START unique cas où le nœud "courant" peut encore être non résolu (tout
+	# autre type de nœud ne redevient visible sur la carte qu'après résolution,
+	# la scène de combat/événement occupant l'écran entre-temps) : le traiter
+	# comme "déjà fait" (jaune) avant que le joueur ait cliqué dessus donnerait
+	# l'impression trompeuse d'un nœud déjà passé.
+	var start_pending: bool = _start_pending()
 	for f in range(node_views.size()):
 		for i in range(node_views[f].size()):
 			var view: MapNodeView = node_views[f][i]
 			var data: MapNode = floors[f][i]
-			
-			var is_current: bool = (f == current_floor_index and i == current_position_in_floor)
+
+			var is_here: bool = (f == current_floor_index and i == current_position_in_floor)
+			var is_current: bool = is_here and not (data.type == MapNode.NodeType.START and start_pending)
 			var is_accessible: bool = _is_node_accessible(data)
-			
+
 			view.set_state(is_current, is_accessible)

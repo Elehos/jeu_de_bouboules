@@ -239,6 +239,12 @@ func _on_turn_started(state: TurnState) -> void:
 	end_turn_button.disabled = (state != TurnState.PLAYER_TURN)
 	if state == TurnState.PLAYER_TURN:
 		end_turn_button.reveal_text()
+		# Rattrape ici un éventuel pair reconnecté pendant le tour ennemi qui
+		# vient de se terminer (cf. RunManager.pending_combat_reconnects) —
+		# c'est le premier instant où current_state est de nouveau PLAYER_TURN,
+		# donc sûr pour lui envoyer un instantané (cf. _send_combat_resync).
+		if NetworkManager.is_host():
+			RunManager.flush_pending_combat_reconnects()
 
 
 func _on_card_played(card_data: CardData, target: Character) -> void:

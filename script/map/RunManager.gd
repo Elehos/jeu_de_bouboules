@@ -177,6 +177,7 @@ func reset_run_state() -> void:
 	pending_turn_ready.clear()
 	pending_combat_finished.clear()
 	pending_restart.clear()
+	pending_combat_reconnects.clear()
 	downed_peer_ids.clear()
 	pending_encounter_index = -1
 	pending_enemy_damage.clear()
@@ -191,6 +192,10 @@ func reset_run_state() -> void:
 # Hôte uniquement : peer_id -> token, alimenté par chaque handshake entrant.
 var peer_client_tokens: Dictionary = {}
 signal peer_reconnected(peer_id: int)
+
+# Hôte uniquement : new_peer_id -> old_id, pairs revenus pendant un tour
+# ennemi (cf. _try_reconnect_match()/flush_pending_combat_reconnects()).
+var pending_combat_reconnects: Dictionary = {}
 
 func _on_connected_to_host() -> void:
 	if NetworkManager.is_host():
@@ -294,8 +299,21 @@ func _try_reconnect_match(new_peer_id: int, token: String) -> void:
 			# relance juste après les Tweens/timers de l'hôte) : évite toute
 			# dépendance fragile à l'ordre d'exécution entre unpause et lecture
 			# de l'état des ennemis.
-			if in_combat and is_instance_valid(active_combat_manager) and not active_combat_manager.combat_over and active_combat_manager.current_state == CombatManager.TurnState.PLAYER_TURN:
-				_send_combat_resync(new_peer_id, old_id, already_ended_turn)
+			if in_combat and is_instance_valid(active_combat_manager) and not active_combat_manager.combat_over:
+				if active_combat_manager.current_state == CombatManager.TurnState.PLAYER_TURN:
+					_send_combat_resync(new_peer_id, old_id, already_ended_turn)
+				elif active_combat_manager.current_state == CombatManager.TurnState.ENEMY_TURN:
+					# Reco en plein tour ennemi : dépauser va laisser ce tour ennemi
+					# (déjà en cours au moment de la coupure) se terminer normalement
+					# chez l'hôte et les pairs déjà connectés (lockstep), mais rien
+					# de sûr à envoyer au pair revenu tant que current_state n'est
+					# pas retombé à PLAYER_TURN (cf. commentaire sur
+					# _send_combat_resync) — mis en attente,
+					# flush_pending_combat_reconnects() le rattrapera dès que ce
+					# sera le cas (turn_started côté CombatManager), y compris après
+					# un Recommencer suite à une défaite d'équipe survenue pendant
+					# ce même tour ennemi.
+					pending_combat_reconnects[new_peer_id] = old_id
 			ConnectionOverlay.hide_overlay()
 			peer_reconnected.emit(new_peer_id)
 			if not in_combat:
@@ -594,12 +612,13 @@ func _capture_combat_snapshot(is_down_for: bool, already_ended_turn: bool) -> Di
 	}
 
 # Hôte uniquement. N'est appelée que si active_combat_manager.current_state
-# == PLAYER_TURN (cf. commentaire dans _try_reconnect_match) : une
-# reconnexion pendant ENEMY_TURN casserait le lockstep de séquence
-# d'intentions des ennemis, qui ne repose QUE sur le fait qu'enemy_play_turn()
-# tourne à l'identique sur chaque pair — resynchroniser un ennemi déjà à
-# mi-séquence sans rejouer les attaques manquées le désynchroniserait
-# définitivement. Laissé hors scope, comme le cas combat_over déjà vrai.
+# == PLAYER_TURN, soit tout de suite depuis _try_reconnect_match(), soit plus
+# tard depuis flush_pending_combat_reconnects() : une reconnexion pendant
+# ENEMY_TURN casserait le lockstep de séquence d'intentions des ennemis, qui
+# ne repose QUE sur le fait qu'enemy_play_turn() tourne à l'identique sur
+# chaque pair — resynchroniser un ennemi déjà à mi-séquence sans rejouer les
+# attaques manquées le désynchroniserait définitivement. Le cas combat_over
+# déjà vrai (victoire, récompenses pas encore refermées) reste hors scope.
 func _send_combat_resync(target_peer_id: int, old_id: int, already_ended_turn: bool) -> void:
 	var snap: Dictionary = _capture_combat_snapshot(downed_peer_ids.has(old_id), already_ended_turn)
 	_receive_combat_resync.rpc_id(
@@ -639,6 +658,25 @@ func _receive_combat_resync(serialized_floors: Array, f_idx: int, pos_idx: int, 
 		"already_ended_turn": already_ended_turn,
 	}
 	get_tree().change_scene_to_file("res://scenes/combat/Combat.tscn")
+
+# Hôte uniquement. Rattrape les pairs mis en attente par _try_reconnect_match()
+# pendant un tour ennemi, dès que current_state redevient sûr (PLAYER_TURN) :
+# appelée par CombatManager._on_turn_started(). already_ended_turn est
+# recalculé ici plutôt que réutilisé depuis la mise en attente — si une
+# défaite d'équipe est survenue entre-temps et que le combat a été relancé
+# via "Recommencer", pending_turn_ready a été vidé pour ce nouveau tour et il
+# faut refléter cet état à jour, pas celui d'avant la coupure. Ignore un pair
+# qui se serait redéconnecté entre-temps (plus dans multiplayer.get_peers()) :
+# il devra simplement retenter sa reconnexion.
+func flush_pending_combat_reconnects() -> void:
+	if pending_combat_reconnects.is_empty():
+		return
+	var reconnects: Dictionary = pending_combat_reconnects
+	pending_combat_reconnects = {}
+	for new_peer_id: int in reconnects:
+		if not multiplayer.get_peers().has(new_peer_id):
+			continue
+		_send_combat_resync(new_peer_id, reconnects[new_peer_id], pending_turn_ready.has(new_peer_id))
 
 func _serialize_players() -> Array:
 	var out: Array = []
